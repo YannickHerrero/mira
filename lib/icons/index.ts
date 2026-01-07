@@ -35,3 +35,6 @@ export { AlertCircle } from "./AlertCircle";
 export { RefreshCw } from "./RefreshCw";
 export { WifiOff } from "./WifiOff";
 export { MonitorPlay } from "./MonitorPlay";
+export { Volume2 } from "./Volume2";
+export { Lock } from "./Lock";
+export { Unlock } from "./Unlock";
