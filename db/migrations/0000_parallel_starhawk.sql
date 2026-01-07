@@ -1,4 +1,4 @@
-CREATE TABLE `media` (
+CREATE TABLE IF NOT EXISTS `media` (
 	`tmdb_id` integer NOT NULL,
 	`media_type` text NOT NULL,
 	`title` text NOT NULL,
@@ -18,7 +18,7 @@ CREATE TABLE `media` (
 	PRIMARY KEY(`tmdb_id`, `media_type`)
 );
 --> statement-breakpoint
-CREATE TABLE `watch_progress` (
+CREATE TABLE IF NOT EXISTS `watch_progress` (
 	`tmdb_id` integer NOT NULL,
 	`media_type` text NOT NULL,
 	`season_number` integer,
@@ -31,7 +31,7 @@ CREATE TABLE `watch_progress` (
 	PRIMARY KEY(`tmdb_id`, `media_type`, `season_number`, `episode_number`)
 );
 --> statement-breakpoint
-CREATE TABLE `watchlist` (
+CREATE TABLE IF NOT EXISTS `watchlist` (
 	`tmdb_id` integer NOT NULL,
 	`media_type` text NOT NULL,
 	`added_at` text DEFAULT (CURRENT_TIMESTAMP),
