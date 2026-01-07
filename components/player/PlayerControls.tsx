@@ -1,15 +1,15 @@
 import * as React from "react";
-import { View, Pressable, StyleSheet, ActivityIndicator } from "react-native";
+import { View, Pressable, StyleSheet, ActivityIndicator, ScrollView } from "react-native";
 import Animated, {
   useAnimatedStyle,
   withTiming,
 } from "react-native-reanimated";
 import Slider from "@react-native-community/slider";
 import { Text } from "@/components/ui/text";
-import { Play, ChevronLeft } from "@/lib/icons";
+import { Play, ChevronLeft, Lock, Unlock } from "@/lib/icons";
 import { lightImpact, selectionChanged } from "@/lib/haptics";
-import type { PlayerState } from "./VideoPlayer";
-import type { SelectedTrack } from "react-native-video";
+import type { PlayerState } from "./VLCVideoPlayer";
+import { SelectedTrackType, type SelectedTrack } from "react-native-video";
 
 interface PlayerControlsProps {
   visible: boolean;
@@ -22,9 +22,12 @@ interface PlayerControlsProps {
   onPlaybackRateChange: (rate: number) => void;
   onSelectAudioTrack: (track: SelectedTrack) => void;
   onSelectTextTrack: (track: SelectedTrack | undefined) => void;
+  onToggleLock: () => void;
 }
 
 const PLAYBACK_RATES = [0.5, 0.75, 1, 1.25, 1.5, 2];
+
+type MenuType = "speed" | "audio" | "subtitles" | null;
 
 export function PlayerControls({
   visible,
@@ -35,8 +38,18 @@ export function PlayerControls({
   onSeek,
   onBack,
   onPlaybackRateChange,
+  onSelectAudioTrack,
+  onSelectTextTrack,
+  onToggleLock,
 }: PlayerControlsProps) {
-  const [showSpeedSelector, setShowSpeedSelector] = React.useState(false);
+  const [activeMenu, setActiveMenu] = React.useState<MenuType>(null);
+
+  // Close menu when controls hide
+  React.useEffect(() => {
+    if (!visible) {
+      setActiveMenu(null);
+    }
+  }, [visible]);
 
   const containerStyle = useAnimatedStyle(() => ({
     opacity: withTiming(visible ? 1 : 0, { duration: 200 }),
@@ -53,6 +66,71 @@ export function PlayerControls({
     }
     return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
+
+  const toggleMenu = (menu: MenuType) => {
+    selectionChanged();
+    setActiveMenu((prev) => (prev === menu ? null : menu));
+  };
+
+  const handleSelectAudioTrack = (index: number) => {
+    selectionChanged();
+    onSelectAudioTrack({ type: SelectedTrackType.INDEX, value: index });
+    setActiveMenu(null);
+  };
+
+  const handleSelectTextTrack = (index: number | "off") => {
+    selectionChanged();
+    if (index === "off") {
+      onSelectTextTrack({ type: SelectedTrackType.DISABLED, value: undefined });
+    } else {
+      onSelectTextTrack({ type: SelectedTrackType.INDEX, value: index });
+    }
+    setActiveMenu(null);
+  };
+
+  const handleSelectSpeed = (rate: number) => {
+    selectionChanged();
+    onPlaybackRateChange(rate);
+    setActiveMenu(null);
+  };
+
+  // Get current selected track index
+  const getSelectedAudioIndex = (): number | undefined => {
+    if (playerState.selectedAudioTrack?.type === SelectedTrackType.INDEX) {
+      return playerState.selectedAudioTrack.value as number;
+    }
+    return undefined;
+  };
+
+  const getSelectedTextIndex = (): number | "off" | undefined => {
+    if (playerState.selectedTextTrack?.type === SelectedTrackType.DISABLED) {
+      return "off";
+    }
+    if (playerState.selectedTextTrack?.type === SelectedTrackType.INDEX) {
+      return playerState.selectedTextTrack.value as number;
+    }
+    return undefined;
+  };
+
+  // If locked, only show unlock button
+  if (playerState.isLocked) {
+    return (
+      <Animated.View style={[styles.container, containerStyle]}>
+        <View style={styles.lockContainer}>
+          <Pressable
+            onPress={() => {
+              lightImpact();
+              onToggleLock();
+            }}
+            style={styles.lockButton}
+          >
+            <Lock size={24} color="#fff" />
+            <Text className="text-white text-sm ml-2">Tap to unlock</Text>
+          </Pressable>
+        </View>
+      </Animated.View>
+    );
+  }
 
   return (
     <Animated.View style={[styles.container, containerStyle]}>
@@ -72,6 +150,16 @@ export function PlayerControls({
             {title}
           </Text>
         )}
+        {/* Lock button */}
+        <Pressable
+          onPress={() => {
+            lightImpact();
+            onToggleLock();
+          }}
+          style={styles.topBarButton}
+        >
+          <Unlock size={22} color="#fff" />
+        </Pressable>
       </View>
 
       {/* Center controls */}
@@ -126,10 +214,30 @@ export function PlayerControls({
 
         {/* Additional controls */}
         <View style={styles.additionalControls}>
+          {/* Audio tracks button */}
+          {playerState.audioTracks.length > 1 && (
+            <Pressable
+              onPress={() => toggleMenu("audio")}
+              style={[styles.controlButton, activeMenu === "audio" && styles.controlButtonActive]}
+            >
+              <Text className="text-white text-sm">Audio</Text>
+            </Pressable>
+          )}
+
+          {/* Subtitles button */}
+          {playerState.textTracks.length > 0 && (
+            <Pressable
+              onPress={() => toggleMenu("subtitles")}
+              style={[styles.controlButton, activeMenu === "subtitles" && styles.controlButtonActive]}
+            >
+              <Text className="text-white text-sm">CC</Text>
+            </Pressable>
+          )}
+
           {/* Playback speed */}
           <Pressable
-            onPress={() => setShowSpeedSelector(!showSpeedSelector)}
-            style={styles.speedButton}
+            onPress={() => toggleMenu("speed")}
+            style={[styles.controlButton, activeMenu === "speed" && styles.controlButtonActive]}
           >
             <Text className="text-white text-sm font-medium">
               {playerState.playbackRate}x
@@ -137,20 +245,17 @@ export function PlayerControls({
           </Pressable>
         </View>
 
-        {/* Speed selector popup */}
-        {showSpeedSelector && (
-          <View style={styles.speedSelector}>
+        {/* Popup menus */}
+        {activeMenu === "speed" && (
+          <View style={styles.popup}>
+            <Text className="text-white text-sm font-semibold mb-2">Playback Speed</Text>
             {PLAYBACK_RATES.map((rate) => (
               <Pressable
                 key={rate}
-                onPress={() => {
-                  selectionChanged();
-                  onPlaybackRateChange(rate);
-                  setShowSpeedSelector(false);
-                }}
+                onPress={() => handleSelectSpeed(rate)}
                 style={[
-                  styles.speedOption,
-                  playerState.playbackRate === rate && styles.speedOptionActive,
+                  styles.popupOption,
+                  playerState.playbackRate === rate && styles.popupOptionActive,
                 ]}
               >
                 <Text
@@ -160,6 +265,69 @@ export function PlayerControls({
                 </Text>
               </Pressable>
             ))}
+          </View>
+        )}
+
+        {activeMenu === "audio" && (
+          <View style={styles.popup}>
+            <Text className="text-white text-sm font-semibold mb-2">Audio Track</Text>
+            <ScrollView style={styles.popupScroll}>
+              {playerState.audioTracks.map((track) => (
+                <Pressable
+                  key={track.index}
+                  onPress={() => handleSelectAudioTrack(track.index)}
+                  style={[
+                    styles.popupOption,
+                    getSelectedAudioIndex() === track.index && styles.popupOptionActive,
+                  ]}
+                >
+                  <Text
+                    className={`text-sm ${getSelectedAudioIndex() === track.index ? "text-primary font-bold" : "text-white"}`}
+                    numberOfLines={1}
+                  >
+                    {track.title || track.language || `Track ${track.index}`}
+                  </Text>
+                </Pressable>
+              ))}
+            </ScrollView>
+          </View>
+        )}
+
+        {activeMenu === "subtitles" && (
+          <View style={styles.popup}>
+            <Text className="text-white text-sm font-semibold mb-2">Subtitles</Text>
+            <ScrollView style={styles.popupScroll}>
+              <Pressable
+                onPress={() => handleSelectTextTrack("off")}
+                style={[
+                  styles.popupOption,
+                  getSelectedTextIndex() === "off" && styles.popupOptionActive,
+                ]}
+              >
+                <Text
+                  className={`text-sm ${getSelectedTextIndex() === "off" ? "text-primary font-bold" : "text-white"}`}
+                >
+                  Off
+                </Text>
+              </Pressable>
+              {playerState.textTracks.map((track) => (
+                <Pressable
+                  key={track.index}
+                  onPress={() => handleSelectTextTrack(track.index)}
+                  style={[
+                    styles.popupOption,
+                    getSelectedTextIndex() === track.index && styles.popupOptionActive,
+                  ]}
+                >
+                  <Text
+                    className={`text-sm ${getSelectedTextIndex() === track.index ? "text-primary font-bold" : "text-white"}`}
+                    numberOfLines={1}
+                  >
+                    {track.title || track.language || `Subtitle ${track.index}`}
+                  </Text>
+                </Pressable>
+              ))}
+            </ScrollView>
           </View>
         )}
       </View>
@@ -186,7 +354,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    height: 150,
+    height: 180,
     backgroundColor: "rgba(0,0,0,0.5)",
   },
   topBar: {
@@ -199,6 +367,10 @@ const styles = StyleSheet.create({
   backButton: {
     padding: 8,
     marginRight: 8,
+  },
+  topBarButton: {
+    padding: 8,
+    marginLeft: 8,
   },
   centerControls: {
     flex: 1,
@@ -243,27 +415,49 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "flex-end",
     marginTop: 8,
+    gap: 8,
   },
-  speedButton: {
+  controlButton: {
     paddingHorizontal: 12,
     paddingVertical: 6,
     backgroundColor: "rgba(255,255,255,0.2)",
     borderRadius: 4,
   },
-  speedSelector: {
+  controlButtonActive: {
+    backgroundColor: "rgba(255,255,255,0.4)",
+  },
+  popup: {
     position: "absolute",
     bottom: 80,
     right: 16,
-    backgroundColor: "rgba(0,0,0,0.9)",
+    backgroundColor: "rgba(0,0,0,0.95)",
     borderRadius: 8,
-    padding: 8,
+    padding: 12,
+    minWidth: 150,
+    maxWidth: 250,
   },
-  speedOption: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+  popupScroll: {
+    maxHeight: 200,
   },
-  speedOptionActive: {
+  popupOption: {
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  popupOptionActive: {
     backgroundColor: "rgba(255,255,255,0.1)",
     borderRadius: 4,
+  },
+  lockContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  lockButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.7)",
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 8,
   },
 });
