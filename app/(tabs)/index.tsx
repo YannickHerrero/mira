@@ -1,115 +1,161 @@
-import {View, Pressable, Platform} from "react-native";
-import {useScrollToTop} from "@react-navigation/native";
-import {FlashList} from "@shopify/flash-list";
-import {eq} from "drizzle-orm";
-import {Link, Stack} from "expo-router";
 import * as React from "react";
-import {useLiveQuery} from "drizzle-orm/expo-sqlite";
-import {Text} from "@/components/ui/text";
-import {habitTable, type Habit} from "@/db/schema";
-import {Plus} from "@/components/Icons";
-import {useMigrationHelper} from "@/db/drizzle";
-import {useDatabase} from "@/db/provider";
-import {HabitCard} from "@/components/habit";
+import { View, ScrollView, RefreshControl, ActivityIndicator } from "react-native";
+import { useRouter } from "expo-router";
+import { Text } from "@/components/ui/text";
+import { Input } from "@/components/ui/input";
+import { MediaSection } from "@/components/library";
+import { useMigrationHelper } from "@/db/drizzle";
+import { useApiKeys } from "@/hooks/useApiKeys";
+import { useTrending } from "@/hooks/useTrending";
+import { useContinueWatching, useWatchlist } from "@/hooks/useLibrary";
+import { Search, Film, Tv, Settings } from "@/lib/icons";
+import type { Media, MediaType } from "@/lib/types";
 
-export default function Home() {
-  const {success, error} = useMigrationHelper();
+export default function HomeScreen() {
+  const router = useRouter();
+  const { success, error: migrationError } = useMigrationHelper();
+  const { isConfigured, isLoading: loadingKeys } = useApiKeys();
 
-  if (error) {
+  const {
+    trendingMovies,
+    trendingTv,
+    isLoading: loadingTrending,
+    refetch: refetchTrending,
+  } = useTrending();
+
+  const { items: continueItems, refetch: refetchContinue } = useContinueWatching();
+  const { items: watchlistItems, refetch: refetchWatchlist } = useWatchlist();
+
+  const [refreshing, setRefreshing] = React.useState(false);
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await Promise.all([refetchTrending(), refetchContinue(), refetchWatchlist()]);
+    setRefreshing(false);
+  };
+
+  const handleSearchPress = () => {
+    router.push("/search" as any);
+  };
+
+  // Convert database records to Media type
+  const continueWatchingMedia: Media[] = continueItems.map((item) => ({
+    id: item.media.tmdbId,
+    mediaType: item.media.mediaType as MediaType,
+    title: item.media.title,
+    posterPath: item.media.posterPath,
+    backdropPath: item.media.backdropPath,
+    year: item.media.year,
+    score: item.media.score,
+    genres: item.media.genres ? JSON.parse(item.media.genres) : [],
+  }));
+
+  const watchlistMedia: Media[] = watchlistItems.map((item) => ({
+    id: item.media.tmdbId,
+    mediaType: item.media.mediaType as MediaType,
+    title: item.media.title,
+    posterPath: item.media.posterPath,
+    backdropPath: item.media.backdropPath,
+    year: item.media.year,
+    score: item.media.score,
+    genres: item.media.genres ? JSON.parse(item.media.genres) : [],
+  }));
+
+  // Migration error
+  if (migrationError) {
     return (
-      <View className="flex-1 gap-5 p-6 bg-secondary/30">
-        <Text>Migration error: {error.message}</Text>
+      <View className="flex-1 bg-background items-center justify-center px-6">
+        <Text className="text-destructive">Migration error: {migrationError.message}</Text>
       </View>
     );
   }
+
+  // Loading migration
   if (!success) {
     return (
-      <View className="flex-1 gap-5 p-6 bg-secondary/30">
-        <Text>Migration is in progress...</Text>
+      <View className="flex-1 bg-background items-center justify-center px-6">
+        <ActivityIndicator size="large" />
+        <Text className="text-muted-foreground mt-4">Loading...</Text>
       </View>
     );
   }
 
-  return <ScreenContent />;
-}
-
-function ScreenContent() {
-  const {db} = useDatabase();
-
-  const ref = React.useRef(null);
-  useScrollToTop(ref);
-
-  const renderItem = React.useCallback(
-    ({item}: {item: Habit}) => <HabitCard {...item} enableNotifications={item.enableNotifications ?? false} archived={item.archived ?? false} />,
-    [],
-  );
-
-  if (!db) {
+  // Not configured - prompt to set up API keys
+  if (!loadingKeys && !isConfigured) {
     return (
-      <View className="flex-1 items-center justify-center bg-secondary/30">
-        <Text>Loading database...</Text>
+      <View className="flex-1 bg-background items-center justify-center px-6">
+        <Settings size={48} className="text-muted-foreground mb-4" />
+        <Text className="text-xl font-semibold text-foreground text-center">
+          Welcome to Mira
+        </Text>
+        <Text className="text-muted-foreground mt-2 text-center">
+          To get started, configure your TMDB and Real-Debrid API keys in Settings.
+        </Text>
       </View>
     );
-  }
-
-  const {data: habits, error} = useLiveQuery(
-    db.select().from(habitTable).where(eq(habitTable.archived, false)),
-  );
-
-  if (error) {
-    return (
-      <View className="flex-1 items-center justify-center bg-secondary/30">
-        <Text className="text-destructive pb-2 ">Error Loading data</Text>
-      </View>
-    )
   }
 
   return (
-    <View className="flex flex-col basis-full bg-background  p-8">
-      <Stack.Screen
-        options={{
-          title: "Habits",
-        }}
-      />
-      <FlashList
-        ref={ref}
-        className="native:overflow-hidden rounded-t-lg"
+    <View className="flex-1 bg-background">
+      <ScrollView
+        className="flex-1"
         showsVerticalScrollIndicator={false}
-        ListEmptyComponent={() => (
-          <View>
-            <Text className="text-lg"  >Hi There 👋</Text>
-            <Text className="text-sm">
-              This example use sql.js on Web and expo/sqlite on native
-            </Text>
-            {Platform.OS !== "web" && <Text className="text-sm">
-              If you change the schema, you need to run{" "}
-              <Text className="text-sm font-mono text-muted-foreground bg-muted">
-                bun db:generate
-              </Text>
-              <Text className="text-sm px-1">
-                then
-              </Text>
-              <Text className="text-sm font-mono text-muted-foreground bg-muted">
-                bun migrate
-              </Text>
-            </Text>}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+        }
+      >
+        {/* Search bar */}
+        <View className="px-4 pt-4 pb-2">
+          <View className="flex-row items-center bg-muted rounded-lg px-3" onTouchEnd={handleSearchPress}>
+            <Search size={20} className="text-muted-foreground" />
+            <Input
+              placeholder="Search movies, TV shows..."
+              className="flex-1 border-0 bg-transparent"
+              editable={false}
+              pointerEvents="none"
+            />
           </View>
+        </View>
+
+        {/* Continue Watching */}
+        {continueWatchingMedia.length > 0 && (
+          <MediaSection
+            title="Continue Watching"
+            items={continueWatchingMedia}
+          />
         )}
-        ItemSeparatorComponent={() => <View className="p-2" />}
-        data={habits}
-        renderItem={renderItem}
-        keyExtractor={(_, index) => `item-${ index }`}
-        ListFooterComponent={<View className="py-4" />}
-      />
-      <View className="absolute web:bottom-20 bottom-10 right-8">
-        <Link href="/create" asChild>
-          <Pressable>
-            <View className="bg-primary justify-center rounded-full h-[45px] w-[45px]">
-              <Plus className="text-background self-center" />
-            </View>
-          </Pressable>
-        </Link>
-      </View>
+
+        {/* Watchlist */}
+        {watchlistMedia.length > 0 && (
+          <MediaSection
+            title="Your Watchlist"
+            items={watchlistMedia.slice(0, 10)}
+            onSeeAll={() => router.push("/library" as any)}
+          />
+        )}
+
+        {/* Trending Movies */}
+        {loadingTrending ? (
+          <View className="py-8 items-center">
+            <ActivityIndicator size="small" />
+          </View>
+        ) : (
+          <>
+            <MediaSection
+              title="Trending Movies"
+              items={trendingMovies}
+            />
+
+            <MediaSection
+              title="Trending TV Shows"
+              items={trendingTv}
+            />
+          </>
+        )}
+
+        {/* Bottom padding */}
+        <View className="h-8" />
+      </ScrollView>
     </View>
   );
 }
