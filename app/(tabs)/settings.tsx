@@ -93,7 +93,7 @@ export default function Settings() {
         <ListItem
           itemLeft={(props) => <MonitorPlay {...props} />}
           label="Play in VLC"
-          description="Open videos in VLC instead of built-in player"
+          description="Open videos in external VLC app (requires VLC installed)"
           detail={false}
           itemRight={() => (
             <Switch

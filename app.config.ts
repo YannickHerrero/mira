@@ -14,9 +14,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     policy: "appVersion",
   },
   splash: {
-    image: "./assets/images/splash.png",
-    resizeMode: "contain",
-    backgroundColor: "#ffffff",
+    backgroundColor: "#08080a",
   },
   assetBundlePatterns: ["**/*"],
   ios: {
@@ -26,13 +24,15 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     infoPlist: {
       UIBackgroundModes: ["audio"],
       LSApplicationQueriesSchemes: ["vlc-x-callback"],
+      NSLocalNetworkUsageDescription:
+        "Mira uses the local network to stream media from local sources.",
     },
   },
   android: {
     newArchEnabled: true,
     adaptiveIcon: {
       foregroundImage: "./assets/images/adaptive-icon.png",
-      backgroundColor: "#ffffff",
+      backgroundColor: "#08080a",
     },
     package: "com.yherrero.mira",
   },
@@ -48,15 +48,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     "expo-web-browser",
     "expo-secure-store",
     "expo-screen-orientation",
-    [
-      "react-native-video",
-      {
-        enableNotificationControls: true,
-        enableBackgroundAudio: true,
-        enableADSExtension: false,
-        enableCacheExtension: false,
-      },
-    ],
+    "react-native-vlc-media-player",
   ],
   experiments: {
     typedRoutes: true,
