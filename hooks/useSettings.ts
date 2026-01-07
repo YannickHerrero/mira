@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { Linking, Alert, Platform } from "react-native";
 import { useRouter } from "expo-router";
 import { useSettingsStore } from "@/stores/settings";
+import type { MediaType } from "@/lib/types";
 
 export function useSettings() {
   const store = useSettingsStore();
@@ -13,6 +14,15 @@ export function useSettings() {
   return store;
 }
 
+interface PlayMediaParams {
+  url: string;
+  title?: string;
+  tmdbId: number;
+  mediaType: MediaType;
+  seasonNumber?: number;
+  episodeNumber?: number;
+}
+
 /**
  * Hook to handle media playback - either in-app or via VLC
  */
@@ -20,13 +30,27 @@ export function useMediaPlayer() {
   const router = useRouter();
   const { useVlcPlayer } = useSettingsStore();
 
-  const playMedia = async (url: string, title?: string) => {
+  const playMedia = async ({
+    url,
+    title,
+    tmdbId,
+    mediaType,
+    seasonNumber,
+    episodeNumber,
+  }: PlayMediaParams) => {
     if (useVlcPlayer) {
       await openInVlc(url, title);
     } else {
       router.push({
         pathname: "/player",
-        params: { url, title },
+        params: {
+          url,
+          title,
+          tmdbId: String(tmdbId),
+          mediaType,
+          seasonNumber: seasonNumber != null ? String(seasonNumber) : undefined,
+          episodeNumber: episodeNumber != null ? String(episodeNumber) : undefined,
+        },
       } as any);
     }
   };
