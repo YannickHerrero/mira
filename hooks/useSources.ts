@@ -49,7 +49,7 @@ export function useSources({
         results = await client.getMovieStreams(imdbId);
       }
 
-      // Sort by quality (4K > 1080p > 720p) and then by size
+      // Sort by quality (4K > 1080p > 720p) and then by size (smallest first)
       results.sort((a, b) => {
         const qualityOrder: Record<string, number> = {
           "2160p": 4,
@@ -64,11 +64,11 @@ export function useSources({
         const bQuality = qualityOrder[b.quality ?? ""] ?? -1;
 
         if (aQuality !== bQuality) {
-          return bQuality - aQuality;
+          return bQuality - aQuality; // Higher quality first
         }
 
-        // If same quality, sort by size (larger first, assuming better quality)
-        return b.sizeBytes - a.sizeBytes;
+        // If same quality, sort by size (smallest first for faster downloads)
+        return a.sizeBytes - b.sizeBytes;
       });
 
       setStreams(results);

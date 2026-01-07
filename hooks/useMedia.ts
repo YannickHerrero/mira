@@ -38,22 +38,15 @@ export function useMedia(tmdbId: number, mediaType: MediaType): UseMediaResult {
       const externalId = await client.getImdbId(tmdbId, mediaType);
       setImdbId(externalId ?? null);
 
-      // For TV shows, fetch details with seasons
+      // Fetch media details by ID
       if (mediaType === "tv") {
-        const details = await client.getTvDetails(tmdbId);
-        setSeasons(details.seasons);
-
-        // Also do a search to get full media info (bit of a hack, but works)
-        // In a real app, we'd have a dedicated endpoint for this
-        const searchResults = await client.searchTv("");
-        const found = searchResults.find((m) => m.id === tmdbId);
-        if (found) {
-          setMedia({
-            ...found,
-            seasonCount: details.seasonCount,
-            episodeCount: details.episodeCount,
-          });
-        }
+        const { media: tvMedia, seasons: tvSeasons } =
+          await client.getTvDetailsById(tmdbId);
+        setMedia(tvMedia);
+        setSeasons(tvSeasons);
+      } else {
+        const movieMedia = await client.getMovieDetails(tmdbId);
+        setMedia(movieMedia);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load media");

@@ -20,6 +20,7 @@ import { useApiKeyStore } from "@/stores/api-keys";
 import { createTMDBClient } from "@/lib/api/tmdb";
 import { useSources } from "@/hooks/useSources";
 import { useEpisodes } from "@/hooks/useMedia";
+import { useMediaPlayer } from "@/hooks/useSettings";
 import type { Media, MediaType, Season, Episode } from "@/lib/types";
 
 type ViewMode = "details" | "sources";
@@ -27,6 +28,7 @@ type ViewMode = "details" | "sources";
 export default function MediaDetailScreen() {
   const router = useRouter();
   const { id, type } = useLocalSearchParams<{ id: string; type: MediaType }>();
+  const { playMedia } = useMediaPlayer();
 
   const [media, setMedia] = React.useState<Media | null>(null);
   const [imdbId, setImdbId] = React.useState<string | null>(null);
@@ -74,35 +76,22 @@ export default function MediaDetailScreen() {
       try {
         const client = createTMDBClient(tmdbApiKey);
 
-        // Search to get media info
-        const results = await client.search(id, mediaType);
-        const found = results.find((m) => m.id === tmdbId);
-
-        if (!found) {
-          // If not found in search, create minimal media object
-          setError("Media not found");
-          setIsLoading(false);
-          return;
-        }
-
         // Get IMDB ID
         const externalId = await client.getImdbId(tmdbId, mediaType);
         setImdbId(externalId ?? null);
 
-        // For TV shows, get seasons
+        // Fetch media details by ID
         if (mediaType === "tv") {
-          const details = await client.getTvDetails(tmdbId);
-          setSeasons(details.seasons);
-          if (details.seasons.length > 0) {
-            setSelectedSeason(details.seasons[0].seasonNumber);
+          const { media: tvMedia, seasons: tvSeasons } =
+            await client.getTvDetailsById(tmdbId);
+          setMedia(tvMedia);
+          setSeasons(tvSeasons);
+          if (tvSeasons.length > 0) {
+            setSelectedSeason(tvSeasons[0].seasonNumber);
           }
-          setMedia({
-            ...found,
-            seasonCount: details.seasonCount,
-            episodeCount: details.episodeCount,
-          });
         } else {
-          setMedia(found);
+          const movieMedia = await client.getMovieDetails(tmdbId);
+          setMedia(movieMedia);
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load media");
@@ -112,7 +101,7 @@ export default function MediaDetailScreen() {
     };
 
     fetchMedia();
-  }, [tmdbApiKey, tmdbId, id, mediaType]);
+  }, [tmdbApiKey, tmdbId, mediaType]);
 
   const handleWatchMovie = () => {
     setViewMode("sources");
@@ -123,18 +112,12 @@ export default function MediaDetailScreen() {
     setViewMode("sources");
   };
 
-  const handleSelectStream = (stream: { url?: string }) => {
+  const handleSelectStream = async (stream: { url?: string }) => {
     if (!stream.url) {
       return;
     }
 
-    router.push({
-      pathname: "/player",
-      params: {
-        url: stream.url,
-        title: media?.title,
-      },
-    } as any);
+    await playMedia(stream.url, media?.title);
   };
 
   const handleBackToDetails = () => {

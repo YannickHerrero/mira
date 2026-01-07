@@ -55,9 +55,29 @@ interface TMDBExternalIds {
   tvdb_id?: number;
 }
 
+interface TMDBMovieDetails {
+  id: number;
+  title: string;
+  original_title?: string;
+  release_date?: string;
+  vote_average?: number;
+  poster_path?: string;
+  backdrop_path?: string;
+  overview?: string;
+  genres: { id: number; name: string }[];
+  runtime?: number;
+}
+
 interface TMDBTvDetails {
   id: number;
   name: string;
+  original_name?: string;
+  first_air_date?: string;
+  vote_average?: number;
+  poster_path?: string;
+  backdrop_path?: string;
+  overview?: string;
+  genres: { id: number; name: string }[];
   number_of_seasons: number;
   number_of_episodes: number;
   seasons: TMDBSeasonInfo[];
@@ -157,6 +177,67 @@ export class TMDBClient {
    */
   async searchTv(query: string): Promise<Media[]> {
     return this.search(query, "tv");
+  }
+
+  /**
+   * Get movie details by TMDB ID
+   */
+  async getMovieDetails(tmdbId: number): Promise<Media> {
+    const details = await this.fetch<TMDBMovieDetails>(`/movie/${tmdbId}`);
+
+    return {
+      id: details.id,
+      mediaType: "movie",
+      title: details.title,
+      titleOriginal: details.original_title,
+      year: details.release_date
+        ? parseInt(details.release_date.slice(0, 4), 10)
+        : undefined,
+      score: details.vote_average,
+      posterPath: details.poster_path ?? undefined,
+      backdropPath: details.backdrop_path ?? undefined,
+      description: details.overview ?? undefined,
+      genres: details.genres.map((g) => g.name),
+    };
+  }
+
+  /**
+   * Get TV show details by TMDB ID (includes full media info + seasons)
+   */
+  async getTvDetailsById(tmdbId: number): Promise<{
+    media: Media;
+    seasons: Season[];
+  }> {
+    const details = await this.fetch<TMDBTvDetails>(`/tv/${tmdbId}`);
+
+    const media: Media = {
+      id: details.id,
+      mediaType: "tv",
+      title: details.name,
+      titleOriginal: details.original_name,
+      year: details.first_air_date
+        ? parseInt(details.first_air_date.slice(0, 4), 10)
+        : undefined,
+      score: details.vote_average,
+      posterPath: details.poster_path ?? undefined,
+      backdropPath: details.backdrop_path ?? undefined,
+      description: details.overview ?? undefined,
+      genres: details.genres.map((g) => g.name),
+      seasonCount: details.number_of_seasons,
+      episodeCount: details.number_of_episodes,
+    };
+
+    const seasons: Season[] = details.seasons
+      .filter((s) => s.season_number > 0) // Filter out "Specials" (season 0)
+      .map((s) => ({
+        seasonNumber: s.season_number,
+        episodeCount: s.episode_count,
+        name: s.name,
+        posterPath: s.poster_path ?? undefined,
+        airDate: s.air_date ?? undefined,
+      }));
+
+    return { media, seasons };
   }
 
   /**
