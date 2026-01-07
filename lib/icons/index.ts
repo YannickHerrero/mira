@@ -41,3 +41,5 @@ export { Unlock } from "./Unlock";
 export { Eye } from "./Eye";
 export { EyeOff } from "./EyeOff";
 export { ListChecks } from "./ListChecks";
+export { Download } from "./Download";
+export { Trash } from "./Trash";

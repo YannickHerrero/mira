@@ -1,30 +1,48 @@
 import * as React from "react";
-import { View, ScrollView, Pressable, RefreshControl, ActivityIndicator } from "react-native";
-import { useFocusEffect } from "expo-router";
+import { View, ScrollView, Pressable, RefreshControl, Platform } from "react-native";
+import { useFocusEffect, useRouter } from "expo-router";
+import type { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { Text } from "@/components/ui/text";
 import { MediaCard, MediaCardSkeleton } from "@/components/media";
 import { EmptyState } from "@/components/ui/empty-state";
+import {
+  DownloadedItemCard,
+  DownloadInfoSheet,
+} from "@/components/downloads";
+import { BottomSheet } from "@/components/primitives/bottomSheet/bottom-sheet.native";
 import {
   useContinueWatching,
   useWatchlist,
   useFavorites,
 } from "@/hooks/useLibrary";
-import { Play, Plus, Heart, Clock } from "@/lib/icons";
-import { selectionChanged } from "@/lib/haptics";
+import { useDownloads, useDownloadsList } from "@/hooks/useDownloads";
+import { useMediaPlayer } from "@/hooks/useSettings";
+import { Play, Plus, Heart, Clock, Download } from "@/lib/icons";
+import { selectionChanged, mediumImpact } from "@/lib/haptics";
+import { fileExists } from "@/lib/download-manager";
 import { cn } from "@/lib/utils";
 import type { Media, MediaType } from "@/lib/types";
+import type { DownloadItem } from "@/stores/downloads";
 
-type TabType = "continue" | "watchlist" | "favorites";
+type TabType = "continue" | "watchlist" | "favorites" | "downloads";
 
 export default function LibraryScreen() {
+  const router = useRouter();
   const [activeTab, setActiveTab] = React.useState<TabType>("continue");
   const [refreshing, setRefreshing] = React.useState(false);
 
   const { items: continueItems, isLoading: loadingContinue, refetch: refetchContinue } = useContinueWatching();
   const { items: watchlistItems, isLoading: loadingWatchlist, refetch: refetchWatchlist } = useWatchlist();
   const { items: favoriteItems, isLoading: loadingFavorites, refetch: refetchFavorites } = useFavorites();
+  const { items: downloadItems, isLoading: loadingDownloads } = useDownloadsList();
+  const { deleteDownload, retryDownload } = useDownloads();
+  const { playMedia } = useMediaPlayer();
 
-  // Refetch data when screen gains focus (e.g., after adding to favorites/watchlist)
+  // Bottom sheet for download info
+  const [selectedDownload, setSelectedDownload] = React.useState<DownloadItem | null>(null);
+  const downloadInfoSheetRef = React.useRef<BottomSheetModal>(null);
+
+  // Refetch data when screen gains focus
   useFocusEffect(
     React.useCallback(() => {
       refetchContinue();
@@ -38,6 +56,65 @@ export default function LibraryScreen() {
     await Promise.all([refetchContinue(), refetchWatchlist(), refetchFavorites()]);
     setRefreshing(false);
   }, [refetchContinue, refetchWatchlist, refetchFavorites]);
+
+  const handleDownloadPress = React.useCallback(
+    async (download: DownloadItem) => {
+      if (download.status === "completed") {
+        // Play the downloaded file
+        const exists = fileExists(download.filePath);
+        if (exists) {
+          await playMedia({
+            url: download.filePath,
+            title: download.title,
+            tmdbId: download.tmdbId,
+            mediaType: download.mediaType,
+            seasonNumber: download.seasonNumber,
+            episodeNumber: download.episodeNumber,
+          });
+        } else {
+          // File doesn't exist, show error
+          console.error("Downloaded file not found:", download.filePath);
+        }
+      } else if (download.status === "failed") {
+        // Retry failed download
+        retryDownload(download.id);
+      }
+    },
+    [playMedia, retryDownload]
+  );
+
+  const handleDownloadLongPress = React.useCallback((download: DownloadItem) => {
+    mediumImpact();
+    setSelectedDownload(download);
+    downloadInfoSheetRef.current?.present();
+  }, []);
+
+  const handlePlayDownload = React.useCallback(async () => {
+    if (selectedDownload?.status === "completed") {
+      await playMedia({
+        url: selectedDownload.filePath,
+        title: selectedDownload.title,
+        tmdbId: selectedDownload.tmdbId,
+        mediaType: selectedDownload.mediaType,
+        seasonNumber: selectedDownload.seasonNumber,
+        episodeNumber: selectedDownload.episodeNumber,
+      });
+    }
+  }, [selectedDownload, playMedia]);
+
+  const handleDeleteDownload = React.useCallback(() => {
+    if (selectedDownload) {
+      deleteDownload(selectedDownload.id);
+      setSelectedDownload(null);
+    }
+  }, [selectedDownload, deleteDownload]);
+
+  const handleRetryDownload = React.useCallback(() => {
+    if (selectedDownload?.status === "failed") {
+      retryDownload(selectedDownload.id);
+      setSelectedDownload(null);
+    }
+  }, [selectedDownload, retryDownload]);
 
   const renderContent = () => {
     switch (activeTab) {
@@ -103,13 +180,42 @@ export default function LibraryScreen() {
             onRefresh={handleRefresh}
           />
         );
+
+      case "downloads":
+        if (loadingDownloads && downloadItems.length === 0) {
+          return <DownloadLoadingState />;
+        }
+        if (downloadItems.length === 0) {
+          return (
+            <EmptyState
+              icon={<Download size={48} className="text-muted-foreground" />}
+              title="No downloads"
+              description="Long press a source to download for offline viewing"
+            />
+          );
+        }
+        return (
+          <DownloadsList
+            items={downloadItems}
+            onPress={handleDownloadPress}
+            onLongPress={handleDownloadLongPress}
+          />
+        );
     }
   };
+
+  // Don't show downloads tab on web
+  const showDownloadsTab = Platform.OS !== "web";
 
   return (
     <View className="flex-1 bg-background">
       {/* Tabs */}
-      <View className="flex-row px-4 pt-2 pb-3 border-b border-border">
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        className="flex-grow-0 border-b border-border"
+        contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 12 }}
+      >
         <TabButton
           label="Continue"
           icon={<Clock size={16} />}
@@ -131,10 +237,32 @@ export default function LibraryScreen() {
           onPress={() => setActiveTab("favorites")}
           badge={favoriteItems.length > 0 ? favoriteItems.length : undefined}
         />
-      </View>
+        {showDownloadsTab && (
+          <TabButton
+            label="Downloads"
+            icon={<Download size={16} />}
+            isActive={activeTab === "downloads"}
+            onPress={() => setActiveTab("downloads")}
+            badge={downloadItems.length > 0 ? downloadItems.length : undefined}
+          />
+        )}
+      </ScrollView>
 
       {/* Content */}
       <View className="flex-1">{renderContent()}</View>
+
+      {/* Download Info Sheet */}
+      {Platform.OS !== "web" && (
+        <BottomSheet>
+          <DownloadInfoSheet
+            sheetRef={downloadInfoSheetRef}
+            download={selectedDownload}
+            onPlay={handlePlayDownload}
+            onDelete={handleDeleteDownload}
+            onRetry={handleRetryDownload}
+          />
+        </BottomSheet>
+      )}
     </View>
   );
 }
@@ -191,6 +319,25 @@ function LoadingState() {
           </View>
         ))}
       </View>
+    </View>
+  );
+}
+
+function DownloadLoadingState() {
+  return (
+    <View className="flex-1 px-4 pt-4">
+      {Array.from({ length: 3 }).map((_, i) => (
+        <View
+          key={i}
+          className="flex-row bg-card rounded-lg overflow-hidden mb-3 border border-border h-28"
+        >
+          <View className="w-20 h-full bg-muted animate-pulse" />
+          <View className="flex-1 p-3 justify-center">
+            <View className="h-4 bg-muted rounded w-3/4 animate-pulse mb-2" />
+            <View className="h-3 bg-muted rounded w-1/2 animate-pulse" />
+          </View>
+        </View>
+      ))}
     </View>
   );
 }
@@ -261,6 +408,31 @@ function MediaGridFromRecord({ items, refreshing, onRefresh }: MediaGridLocalPro
           </View>
         ))}
       </View>
+    </ScrollView>
+  );
+}
+
+interface DownloadsListProps {
+  items: DownloadItem[];
+  onPress: (download: DownloadItem) => void;
+  onLongPress: (download: DownloadItem) => void;
+}
+
+function DownloadsList({ items, onPress, onLongPress }: DownloadsListProps) {
+  return (
+    <ScrollView
+      className="flex-1"
+      contentContainerStyle={{ padding: 16 }}
+      showsVerticalScrollIndicator={false}
+    >
+      {items.map((download) => (
+        <DownloadedItemCard
+          key={download.id}
+          download={download}
+          onPress={() => onPress(download)}
+          onLongPress={() => onLongPress(download)}
+        />
+      ))}
     </ScrollView>
   );
 }

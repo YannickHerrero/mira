@@ -4,9 +4,11 @@ import { type Theme, ThemeProvider } from "@react-navigation/native";
 import { SplashScreen, Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import * as React from "react";
+import { Platform } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { configureReanimatedLogger, ReanimatedLogLevel } from "react-native-reanimated";
 import { PortalHost } from "@/components/primitives/portal";
+import { DownloadProgressIndicator } from "@/components/downloads";
 import { DatabaseProvider } from "@/db/provider";
 import { setAndroidNavigationBar } from "@/lib/android-navigation-bar";
 import { DARK_THEME, LIGHT_THEME } from "@/lib/constants";
@@ -98,6 +100,8 @@ export default function RootLayout() {
                 }}
               />
             </Stack>
+            {/* Download progress indicator - only on native */}
+            {Platform.OS !== "web" && <DownloadProgressIndicator />}
           </BottomSheetModalProvider>
         </GestureHandlerRootView>
       </ThemeProvider>

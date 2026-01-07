@@ -110,3 +110,42 @@ export const watchlistTable = sqliteTable(
 
 export const WatchlistSchema = createSelectSchema(watchlistTable);
 export type WatchlistItem = z.infer<typeof WatchlistSchema>;
+
+/**
+ * Downloaded media for offline viewing
+ */
+export const downloadsTable = sqliteTable("downloads", {
+  id: text("id").primaryKey(), // cuid2 unique ID
+  tmdbId: integer("tmdb_id").notNull(),
+  mediaType: text("media_type", { enum: ["movie", "tv"] }).notNull(),
+
+  // For TV shows only (null for movies)
+  seasonNumber: integer("season_number"),
+  episodeNumber: integer("episode_number"),
+
+  // Display info
+  title: text("title").notNull(), // e.g., "Movie Name" or "Show - S01E01"
+  posterPath: text("poster_path"),
+
+  // File info
+  fileName: text("file_name").notNull(),
+  filePath: text("file_path").notNull(),
+  fileSize: integer("file_size"), // bytes, may be null until complete
+  quality: text("quality"),
+
+  // Download state
+  status: text("status", {
+    enum: ["pending", "downloading", "completed", "failed", "paused"],
+  })
+    .notNull()
+    .default("pending"),
+  progress: real("progress").default(0), // 0-100
+  streamUrl: text("stream_url").notNull(), // Original URL for retry
+
+  // Timestamps
+  addedAt: text("added_at").default(sql`(CURRENT_TIMESTAMP)`),
+  completedAt: text("completed_at"),
+});
+
+export const DownloadSchema = createSelectSchema(downloadsTable);
+export type DownloadRecord = z.infer<typeof DownloadSchema>;

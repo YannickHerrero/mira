@@ -448,6 +448,16 @@ export default function MediaDetailScreen() {
           isLoading={isLoadingSources}
           error={sourcesError}
           onSelectStream={handleSelectStream}
+          tmdbId={media.id}
+          mediaType={mediaType}
+          seasonNumber={selectedEpisode?.seasonNumber}
+          episodeNumber={selectedEpisode?.episodeNumber}
+          title={
+            selectedEpisode
+              ? `${media.title} - S${selectedEpisode.seasonNumber}E${selectedEpisode.episodeNumber}`
+              : media.title
+          }
+          posterPath={media.posterPath}
         />
       </View>
     );
