@@ -1,5 +1,6 @@
 import * as React from "react";
 import { View, ScrollView, Pressable, RefreshControl, ActivityIndicator } from "react-native";
+import { useFocusEffect } from "expo-router";
 import { Text } from "@/components/ui/text";
 import { MediaCard, MediaCardSkeleton } from "@/components/media";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -22,6 +23,15 @@ export default function LibraryScreen() {
   const { items: continueItems, isLoading: loadingContinue, refetch: refetchContinue } = useContinueWatching();
   const { items: watchlistItems, isLoading: loadingWatchlist, refetch: refetchWatchlist } = useWatchlist();
   const { items: favoriteItems, isLoading: loadingFavorites, refetch: refetchFavorites } = useFavorites();
+
+  // Refetch data when screen gains focus (e.g., after adding to favorites/watchlist)
+  useFocusEffect(
+    React.useCallback(() => {
+      refetchContinue();
+      refetchWatchlist();
+      refetchFavorites();
+    }, [refetchContinue, refetchWatchlist, refetchFavorites])
+  );
 
   const handleRefresh = React.useCallback(async () => {
     setRefreshing(true);

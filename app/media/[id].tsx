@@ -15,7 +15,8 @@ import {
   EpisodeCard,
 } from "@/components/media";
 import { SourceList } from "@/components/stream";
-import { Play, Heart, Plus, ChevronRight } from "@/lib/icons";
+import { Play, Heart, Plus, Check } from "@/lib/icons";
+import { useLibraryActions } from "@/hooks/useLibrary";
 import { useApiKeyStore } from "@/stores/api-keys";
 import { createTMDBClient } from "@/lib/api/tmdb";
 import { useSources } from "@/hooks/useSources";
@@ -38,8 +39,17 @@ export default function MediaDetailScreen() {
   const [isLoading, setIsLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
   const [viewMode, setViewMode] = React.useState<ViewMode>("details");
+  const [isFavorite, setIsFavorite] = React.useState(false);
+  const [isInWatchlist, setIsInWatchlist] = React.useState(false);
 
   const tmdbApiKey = useApiKeyStore((s) => s.tmdbApiKey);
+  const {
+    toggleFavorite,
+    addToWatchlist,
+    removeFromWatchlist,
+    checkIsFavorite,
+    checkIsInWatchlist,
+  } = useLibraryActions();
   const mediaType = type || "movie";
   const tmdbId = id ? parseInt(id, 10) : 0;
 
@@ -103,6 +113,50 @@ export default function MediaDetailScreen() {
     fetchMedia();
   }, [tmdbApiKey, tmdbId, mediaType]);
 
+  // Check favorite and watchlist status when media loads
+  React.useEffect(() => {
+    if (!media) return;
+
+    const checkStatus = async () => {
+      try {
+        const [favorite, watchlist] = await Promise.all([
+          checkIsFavorite(media.id, media.mediaType),
+          checkIsInWatchlist(media.id, media.mediaType),
+        ]);
+        setIsFavorite(favorite);
+        setIsInWatchlist(watchlist);
+      } catch {
+        // Silently ignore errors
+      }
+    };
+
+    checkStatus();
+  }, [media, checkIsFavorite, checkIsInWatchlist]);
+
+  const handleToggleFavorite = async () => {
+    if (!media) return;
+    try {
+      await toggleFavorite(media, imdbId ?? undefined);
+      setIsFavorite((prev) => !prev);
+    } catch {
+      // Silently ignore errors
+    }
+  };
+
+  const handleToggleWatchlist = async () => {
+    if (!media) return;
+    try {
+      if (isInWatchlist) {
+        await removeFromWatchlist(media.id, media.mediaType);
+      } else {
+        await addToWatchlist(media, imdbId ?? undefined);
+      }
+      setIsInWatchlist((prev) => !prev);
+    } catch {
+      // Silently ignore errors
+    }
+  };
+
   const handleWatchMovie = () => {
     setViewMode("sources");
   };
@@ -113,11 +167,20 @@ export default function MediaDetailScreen() {
   };
 
   const handleSelectStream = async (stream: { url?: string }) => {
-    if (!stream.url) {
+    if (!stream.url || !media) {
       return;
     }
 
-    await playMedia(stream.url, media?.title);
+    await playMedia({
+      url: stream.url,
+      title: selectedEpisode
+        ? `${media.title} - S${selectedEpisode.seasonNumber}E${selectedEpisode.episodeNumber}`
+        : media.title,
+      tmdbId: media.id,
+      mediaType: media.mediaType,
+      seasonNumber: selectedEpisode?.seasonNumber,
+      episodeNumber: selectedEpisode?.episodeNumber,
+    });
   };
 
   const handleBackToDetails = () => {
@@ -202,12 +265,30 @@ export default function MediaDetailScreen() {
             </View>
           )}
 
-          <Button variant="outline" size="icon" className="w-12 h-12">
-            <Plus size={20} className="text-foreground" />
+          <Button
+            variant="outline"
+            size="icon"
+            className="w-12 h-12"
+            onPress={handleToggleWatchlist}
+          >
+            {isInWatchlist ? (
+              <Check size={20} className="text-primary" />
+            ) : (
+              <Plus size={20} className="text-foreground" />
+            )}
           </Button>
 
-          <Button variant="outline" size="icon" className="w-12 h-12">
-            <Heart size={20} className="text-foreground" />
+          <Button
+            variant="outline"
+            size="icon"
+            className="w-12 h-12"
+            onPress={handleToggleFavorite}
+          >
+            <Heart
+              size={20}
+              className={isFavorite ? "text-red-500" : "text-foreground"}
+              fill={isFavorite ? "#ef4444" : "none"}
+            />
           </Button>
         </View>
 
