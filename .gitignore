@@ -29,6 +29,14 @@ yarn-error.*
 .DS_Store
 *.pem
 
+# AI/Coding agents
+AGENTS.md
+.cursor/
+.cursorrules
+.github/copilot-instructions.md
+.claude/
+.claude_context
+
 # local env files
 .env*.local
 

@@ -2,13 +2,13 @@ import type { ConfigContext, ExpoConfig } from "@expo/config";
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
-  name: "Expo Starter",
-  slug: "expostarter",
+  name: "Mira",
+  slug: "mira",
   newArchEnabled: true,
   version: "1.0.0",
-  orientation: "portrait",
+  orientation: "default",
   icon: "./assets/images/icon.png",
-  scheme: "ltstarter",
+  scheme: "mira",
   userInterfaceStyle: "dark",
   runtimeVersion: {
     policy: "appVersion",
@@ -22,7 +22,10 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ios: {
     newArchEnabled: true,
     supportsTablet: true,
-    bundleIdentifier: "com.expostarter.base",
+    bundleIdentifier: "com.yherrero.mira",
+    infoPlist: {
+      UIBackgroundModes: ["audio"],
+    },
   },
   android: {
     newArchEnabled: true,
@@ -30,22 +33,37 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       foregroundImage: "./assets/images/adaptive-icon.png",
       backgroundColor: "#ffffff",
     },
-    package: "com.expostarter.base",
+    package: "com.yherrero.mira",
   },
   web: {
     bundler: "metro",
     output: "static",
     favicon: "./assets/images/favicon.png",
   },
-  plugins: ["expo-router", "expo-sqlite", "expo-font", "expo-web-browser"],
+  plugins: [
+    "expo-router",
+    "expo-sqlite",
+    "expo-font",
+    "expo-web-browser",
+    "expo-secure-store",
+    [
+      "react-native-video",
+      {
+        enableNotificationControls: true,
+        enableBackgroundAudio: true,
+        enableADSExtension: false,
+        enableCacheExtension: false,
+      },
+    ],
+  ],
   experiments: {
     typedRoutes: true,
-    baseUrl: "/expo-local-first-template",
+    baseUrl: "/mira",
   },
   extra: {
     eas: {
-      projectId: "",
+      projectId: "73c87940-8013-4e8b-b8c0-fbf35a56e3da",
     },
   },
-  owner: "*",
+  owner: "yherrero",
 });
