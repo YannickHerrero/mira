@@ -1,70 +1,95 @@
-# Expo Local-first Template  [![Twitter](https://img.shields.io/twitter/url/https/twitter.com/cloudposse.svg?style=social&label=Follow%20%40expostarter)](https://twitter.com/expostarter)
+# Mira
 
-[![Open in Bolt.new](https://www.expostarter.com/images/open-in-bolt.svg)](https://bolt.new/~/github.com/expo-starter/expo-local-first-template)
+A cross-platform media streaming app that allows users to search and stream movies and TV shows. Built with Expo and React Native.
 
-<p align="center">
-  <a href="https://expostarter.com/"><img src="assets/github-banner.png?raw=true" alt="Expo Starter Kit"></a>
-</p>
+## Features
 
-The `Expo Local-First Template` is a free project model with up-to-date frameworks and configurations for your new local-first Expo project.
+- Search movies and TV shows via TMDB
+- Stream content via Real-Debrid integration
+- Track watch progress across episodes
+- Manage watchlist and favorites
+- Multiple audio track and subtitle support
+- Gesture controls (seek, volume, brightness)
+- Screen lock during playback
+- Dark and light mode support
+- Cross-platform (Android, iOS, Web)
 
-If you're searching for a more production-ready template, consider purchasing the [Expo Starter Kit](https://expostarter.com). Your support will help us maintaining our free templates as well.
+## Tech Stack
 
-For local-first example with remote sync please check our [article](https://www.expostarter.com/blog/expo-libsql-improve-app-performance)
+- **Framework**: Expo v54 + React Native 0.81.4
+- **Routing**: Expo Router (file-based routing)
+- **Styling**: NativeWind v4 (Tailwind CSS for React Native)
+- **Database**: Expo SQLite (native) + sql.js (web) with Drizzle ORM
+- **State**: Zustand for global state
+- **Video**: VLC Media Player (react-native-vlc-media-player)
+- **APIs**: TMDB (metadata), Real-Debrid (streaming), Torrentio (sources)
 
-## 📚 What's inside
+## Requirements
 
-- ⚡ [Expo v54](https://expo.dev) - Built with Expo for cross-platform support
-- ⚛️ [React Native v0.81.4](https://reactnative.dev) for building native apps using React
-- 💽 Local-first based on [Expo SQLite for](https://docs.expo.dev/versions/latest/sdk/sqlite/) for native and [Sqlite.js](https://github.com/sql-js/sql.js) for Web
-- 💽 Full integrated with [DrizzleORM](https://drizzle.dev) including live query
-- 💎 Integrate with [NativeWind v4](https://www.nativewind.dev), Tailwind CSS for React Native
-- 📦 [zustand](docs.pmnd.rs/zustand)
-- 🎨 Common components from the [rn-reusables](https://github.com/mrzachnugent/react-native-reusables)
-- 🌗 Dark and light mode - Android Navigation Bar matches mode and Persistant mode
-- 📏 Linter and Code Formatter with [biome](https://biomejs.dev/)
-- 🗂 VSCode recommended extensions, settings, and snippets to enhance the developer experience.
+- Node.js 20+ and Bun
+- [iOS Simulator](https://docs.expo.dev/workflow/ios-simulator/) (for iOS development)
+- [Android Studio Emulator](https://docs.expo.dev/workflow/android-studio-emulator/) (for Android development)
 
+## Getting Started
 
+1. Clone the repository:
 
-### Requirements
-
-- Node.js 20+ and bun
-- [iOS Simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Android Studio Emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- For Windows users: [Microsoft Visual C++ Redistributable](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist) is required
-
-
-### Getting started
-
-Run the following command on your local environment:
-
-```shell
-bunx create-expo-app --template https://github.com/expo-starter/expo-local-first-template
+```bash
+git clone https://github.com/YannickHerrero/mira.git
+cd mira
 ```
 
-Then, you can run locally in development mode with live reload:
+2. Install dependencies:
 
-```shell
-bun run dev:ios
-# Or
-bun run dev:android
+```bash
+bun install
 ```
 
-<p align="center">
-  <a href="https://expostarter.dev/"><img src="assets/preview-banner.png?raw=true" alt="React Native Expo Starter Kit"></a>
-</p>
+3. Configure API keys in the app settings:
+   - TMDB API key (for movie/TV metadata)
+   - Real-Debrid API key (for streaming)
 
-This will open the app in the iOS simulator or Android emulator.
+4. Run the app:
 
-### Contributions
+```bash
+# Start Expo development server
+bun run dev
 
-Everyone is welcome to contribute to this project. Feel free to open an issue if you have question or found a bug. Totally open to any suggestions and improvements.
+# Run on Android
+bun run android
 
-### License
+# Run on iOS
+bun run ios
 
-See [LICENSE](LICENSE) for more information.
+# Build for web
+bun run build:web
+```
 
----
+## Project Structure
 
-[Expo starter](expostarter.com) [![Twitter](https://img.shields.io/twitter/url/https/twitter.com/cloudposse.svg?style=social&label=Follow%20%40y0x53)](https://twitter.com/expostarter)
+```
+app/                    # Expo Router pages (file-based routing)
+  (tabs)/              # Tab navigation (home, search, library, settings)
+  media/[id].tsx       # Media detail screen
+  player.tsx           # Video player screen
+
+components/
+  media/               # Media cards, grids, episode pickers
+  player/              # VLC player, controls, gestures
+  ui/                  # Reusable UI components
+
+lib/
+  api/                 # API clients (TMDB, Real-Debrid, Torrentio)
+
+db/                    # Database schema and providers
+stores/                # Zustand stores
+hooks/                 # Custom React hooks
+```
+
+## Contributing
+
+Contributions are welcome! Feel free to open an issue or submit a pull request.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
