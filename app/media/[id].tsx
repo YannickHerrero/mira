@@ -17,6 +17,7 @@ import {
 import { SourceList } from "@/components/stream";
 import { Play, Heart, Plus, Check } from "@/lib/icons";
 import { useLibraryActions } from "@/hooks/useLibrary";
+import { useWatchProgress } from "@/hooks/useWatchProgress";
 import { useApiKeyStore } from "@/stores/api-keys";
 import { createTMDBClient } from "@/lib/api/tmdb";
 import { useSources } from "@/hooks/useSources";
@@ -41,6 +42,9 @@ export default function MediaDetailScreen() {
   const [viewMode, setViewMode] = React.useState<ViewMode>("details");
   const [isFavorite, setIsFavorite] = React.useState(false);
   const [isInWatchlist, setIsInWatchlist] = React.useState(false);
+  const [episodeProgress, setEpisodeProgress] = React.useState<
+    Map<string, { position: number; duration: number; completed: boolean }>
+  >(new Map());
 
   const tmdbApiKey = useApiKeyStore((s) => s.tmdbApiKey);
   const {
@@ -50,6 +54,7 @@ export default function MediaDetailScreen() {
     checkIsFavorite,
     checkIsInWatchlist,
   } = useLibraryActions();
+  const { getShowProgress } = useWatchProgress();
   const mediaType = type || "movie";
   const tmdbId = id ? parseInt(id, 10) : 0;
 
@@ -132,6 +137,22 @@ export default function MediaDetailScreen() {
 
     checkStatus();
   }, [media, checkIsFavorite, checkIsInWatchlist]);
+
+  // Fetch episode watch progress for TV shows
+  React.useEffect(() => {
+    if (!media || media.mediaType !== "tv") return;
+
+    const fetchProgress = async () => {
+      try {
+        const progress = await getShowProgress(media.id);
+        setEpisodeProgress(progress);
+      } catch {
+        // Silently ignore errors
+      }
+    };
+
+    fetchProgress();
+  }, [media, getShowProgress]);
 
   const handleToggleFavorite = async () => {
     if (!media) return;
@@ -307,13 +328,23 @@ export default function MediaDetailScreen() {
                   <ActivityIndicator size="small" />
                 </View>
               ) : (
-                episodes.map((episode) => (
-                  <EpisodeCard
-                    key={`${episode.seasonNumber}-${episode.episodeNumber}`}
-                    episode={episode}
-                    onPress={() => handleWatchEpisode(episode)}
-                  />
-                ))
+                episodes.map((episode) => {
+                  const progressKey = `${episode.seasonNumber}-${episode.episodeNumber}`;
+                  const progress = episodeProgress.get(progressKey);
+                  const watchPercent = progress && progress.duration > 0
+                    ? Math.round((progress.position / progress.duration) * 100)
+                    : undefined;
+
+                  return (
+                    <EpisodeCard
+                      key={progressKey}
+                      episode={episode}
+                      onPress={() => handleWatchEpisode(episode)}
+                      watchProgress={watchPercent}
+                      isCompleted={progress?.completed}
+                    />
+                  );
+                })
               )}
             </View>
           </View>

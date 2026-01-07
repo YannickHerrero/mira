@@ -1,7 +1,7 @@
 import * as React from "react";
 import { View, Pressable, Image } from "react-native";
 import { Text } from "@/components/ui/text";
-import { Play } from "@/lib/icons";
+import { Play, Check } from "@/lib/icons";
 import type { Episode } from "@/lib/types";
 import { TMDB_IMAGE_BASE } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -10,9 +10,10 @@ interface EpisodeCardProps {
   episode: Episode;
   onPress: () => void;
   watchProgress?: number; // 0-100
+  isCompleted?: boolean;
 }
 
-export function EpisodeCard({ episode, onPress, watchProgress }: EpisodeCardProps) {
+export function EpisodeCard({ episode, onPress, watchProgress, isCompleted }: EpisodeCardProps) {
   const stillUrl = episode.stillPath
     ? `${TMDB_IMAGE_BASE}/w300${episode.stillPath}`
     : null;
@@ -36,11 +37,17 @@ export function EpisodeCard({ episode, onPress, watchProgress }: EpisodeCardProp
           </View>
         )}
 
-        {/* Play overlay */}
+        {/* Play overlay or completed indicator */}
         <View className="absolute inset-0 items-center justify-center bg-black/30">
-          <View className="w-10 h-10 rounded-full bg-white/90 items-center justify-center">
-            <Play size={20} className="text-black ml-0.5" fill="black" />
-          </View>
+          {isCompleted ? (
+            <View className="w-10 h-10 rounded-full bg-primary items-center justify-center">
+              <Check size={20} className="text-primary-foreground" />
+            </View>
+          ) : (
+            <View className="w-10 h-10 rounded-full bg-white/90 items-center justify-center">
+              <Play size={20} className="text-black ml-0.5" fill="black" />
+            </View>
+          )}
         </View>
 
         {/* Progress bar */}
