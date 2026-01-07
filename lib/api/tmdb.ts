@@ -343,6 +343,16 @@ export class TMDBClient {
   }
 
   /**
+   * Get similar movies for a given movie
+   */
+  async getSimilarMovies(tmdbId: number): Promise<Media[]> {
+    const response = await this.fetch<TMDBSearchResponse<TMDBMovieResult>>(
+      `/movie/${tmdbId}/similar`
+    );
+    return response.results.map((m) => this.mapMovieResult(m));
+  }
+
+  /**
    * Validate API key by making a simple request
    */
   async validateApiKey(): Promise<boolean> {

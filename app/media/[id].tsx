@@ -18,7 +18,9 @@ import {
   MediaHeader,
   SeasonPicker,
   EpisodeCard,
+  MediaSectionSkeleton,
 } from "@/components/media";
+import { MediaSection } from "@/components/library";
 import { SourceList } from "@/components/stream";
 import { Play, Heart, Plus, Check, Eye, EyeOff, ListChecks } from "@/lib/icons";
 import { useLibraryActions } from "@/hooks/useLibrary";
@@ -117,6 +119,8 @@ export default function MediaDetailScreen() {
     Map<string, { position: number; duration: number; completed: boolean }>
   >(new Map());
   const [isMovieWatched, setIsMovieWatched] = React.useState(false);
+  const [similarMovies, setSimilarMovies] = React.useState<Media[]>([]);
+  const [isLoadingSimilar, setIsLoadingSimilar] = React.useState(false);
   const [actionSheetEpisode, setActionSheetEpisode] = React.useState<Episode | null>(null);
   const actionSheetRef = React.useRef<BottomSheetModal>(null);
 
@@ -246,6 +250,26 @@ export default function MediaDetailScreen() {
 
     fetchMovieProgress();
   }, [media, getProgress]);
+
+  // Fetch similar movies
+  React.useEffect(() => {
+    if (!media || media.mediaType !== "movie" || !tmdbApiKey) return;
+
+    const fetchSimilarMovies = async () => {
+      setIsLoadingSimilar(true);
+      try {
+        const client = createTMDBClient(tmdbApiKey);
+        const similar = await client.getSimilarMovies(media.id);
+        setSimilarMovies(similar.slice(0, 10)); // Limit to 10 items
+      } catch {
+        // Silently ignore errors
+      } finally {
+        setIsLoadingSimilar(false);
+      }
+    };
+
+    fetchSimilarMovies();
+  }, [media, tmdbApiKey]);
 
   const handleToggleFavorite = async () => {
     if (!media) return;
@@ -498,6 +522,20 @@ export default function MediaDetailScreen() {
             />
           </Button>
         </View>
+
+        {/* Similar Movies (movies only) */}
+        {mediaType === "movie" && (
+          <View className="mt-6">
+            {isLoadingSimilar ? (
+              <MediaSectionSkeleton />
+            ) : (
+              <MediaSection
+                title="You Might Also Like"
+                items={similarMovies}
+              />
+            )}
+          </View>
+        )}
 
         {/* TV Show: Season picker and episodes */}
         {mediaType === "tv" && seasons.length > 0 && (
