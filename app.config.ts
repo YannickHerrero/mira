@@ -6,7 +6,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   slug: "mira",
   newArchEnabled: true,
   version: "1.0.0",
-  orientation: "default",
+  orientation: "portrait",
   icon: "./assets/images/icon.png",
   scheme: "mira",
   userInterfaceStyle: "dark",
@@ -25,6 +25,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     bundleIdentifier: "com.yherrero.mira",
     infoPlist: {
       UIBackgroundModes: ["audio"],
+      LSApplicationQueriesSchemes: ["vlc-x-callback"],
     },
   },
   android: {
@@ -46,6 +47,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     "expo-font",
     "expo-web-browser",
     "expo-secure-store",
+    "expo-screen-orientation",
     [
       "react-native-video",
       {

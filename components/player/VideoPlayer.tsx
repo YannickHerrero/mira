@@ -5,12 +5,17 @@ import Video, {
   type OnLoadData,
   type OnProgressData,
   type OnPlaybackStateChangedData,
+  type OnVideoErrorData,
+  type OnBufferData,
   type SelectedTrack,
   type TextTrack,
   type AudioTrack,
 } from "react-native-video";
 import { PlayerControls } from "./PlayerControls";
 import { PlayerGestures } from "./PlayerGestures";
+
+// Debug logging for video player
+const LOG_PREFIX = "[VideoPlayer]";
 
 interface VideoPlayerProps {
   url: string;
@@ -85,8 +90,22 @@ export function VideoPlayer({
     }
   }, [controlsVisible, resetHideControlsTimer]);
 
+  // Log URL on mount
+  React.useEffect(() => {
+    console.log(LOG_PREFIX, "Mounting with URL:", url);
+    console.log(LOG_PREFIX, "URL length:", url.length);
+    console.log(LOG_PREFIX, "URL protocol:", url.split(":")[0]);
+  }, [url]);
+
   // Video event handlers
   const handleLoad = (data: OnLoadData) => {
+    console.log(LOG_PREFIX, "onLoad - Video loaded successfully", {
+      duration: data.duration,
+      naturalSize: data.naturalSize,
+      audioTracks: data.audioTracks?.length ?? 0,
+      textTracks: data.textTracks?.length ?? 0,
+    });
+
     setIsLoaded(true);
     setPlayerState((prev) => ({
       ...prev,
@@ -102,7 +121,24 @@ export function VideoPlayer({
     }
   };
 
+  const handleLoadStart = () => {
+    console.log(LOG_PREFIX, "onLoadStart - Starting to load video...");
+  };
+
+  const handleReadyForDisplay = () => {
+    console.log(LOG_PREFIX, "onReadyForDisplay - Video is ready to display");
+  };
+
   const handleProgress = (data: OnProgressData) => {
+    // Only log occasionally to avoid spam
+    if (Math.floor(data.currentTime) % 10 === 0 && data.currentTime > 0) {
+      console.log(LOG_PREFIX, "onProgress", {
+        currentTime: data.currentTime.toFixed(1),
+        playableDuration: data.playableDuration?.toFixed(1),
+        seekableDuration: data.seekableDuration?.toFixed(1),
+      });
+    }
+
     setPlayerState((prev) => ({
       ...prev,
       position: data.currentTime,
@@ -113,6 +149,11 @@ export function VideoPlayer({
   };
 
   const handlePlaybackStateChanged = (data: OnPlaybackStateChangedData) => {
+    console.log(LOG_PREFIX, "onPlaybackStateChanged", {
+      isPlaying: data.isPlaying,
+      isSeeking: data.isSeeking,
+    });
+
     setPlayerState((prev) => ({
       ...prev,
       isPlaying: data.isPlaying,
@@ -120,16 +161,36 @@ export function VideoPlayer({
     }));
   };
 
-  const handleBuffer = ({ isBuffering }: { isBuffering: boolean }) => {
+  const handleBuffer = (data: OnBufferData) => {
+    console.log(LOG_PREFIX, "onBuffer", { isBuffering: data.isBuffering });
+
     setPlayerState((prev) => ({
       ...prev,
-      isBuffering,
+      isBuffering: data.isBuffering,
     }));
   };
 
+  const handleError = (error: OnVideoErrorData) => {
+    console.error(LOG_PREFIX, "onError - Video playback error:", {
+      error: error.error,
+    });
+  };
+
   const handleEnd = () => {
+    console.log(LOG_PREFIX, "onEnd - Video playback ended");
     setPlayerState((prev) => ({ ...prev, isPlaying: false }));
     onEnd?.();
+  };
+
+  const handleVideoPlaybackRateChange = (data: { playbackRate: number }) => {
+    console.log(LOG_PREFIX, "onPlaybackRateChange", { rate: data.playbackRate });
+  };
+
+  const handleVideoSeek = (data: { currentTime: number; seekTime: number }) => {
+    console.log(LOG_PREFIX, "onSeek", {
+      from: data.currentTime.toFixed(1),
+      to: data.seekTime.toFixed(1),
+    });
   };
 
   // Control handlers
@@ -203,13 +264,25 @@ export function VideoPlayer({
         rate={playerState.playbackRate}
         selectedAudioTrack={playerState.selectedAudioTrack}
         selectedTextTrack={playerState.selectedTextTrack}
+        onLoadStart={handleLoadStart}
         onLoad={handleLoad}
+        onReadyForDisplay={handleReadyForDisplay}
         onProgress={handleProgress}
         onPlaybackStateChanged={handlePlaybackStateChanged}
+        onPlaybackRateChange={handleVideoPlaybackRateChange}
         onBuffer={handleBuffer}
+        onSeek={handleVideoSeek}
+        onError={handleError}
         onEnd={handleEnd}
         playInBackground
         playWhenInactive
+        // Buffer settings for streaming
+        bufferConfig={{
+          minBufferMs: 15000,
+          maxBufferMs: 50000,
+          bufferForPlaybackMs: 2500,
+          bufferForPlaybackAfterRebufferMs: 5000,
+        }}
       />
 
       {/* Gesture layer */}
