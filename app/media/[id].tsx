@@ -116,6 +116,7 @@ export default function MediaDetailScreen() {
   const [episodeProgress, setEpisodeProgress] = React.useState<
     Map<string, { position: number; duration: number; completed: boolean }>
   >(new Map());
+  const [isMovieWatched, setIsMovieWatched] = React.useState(false);
   const [actionSheetEpisode, setActionSheetEpisode] = React.useState<Episode | null>(null);
   const actionSheetRef = React.useRef<BottomSheetModal>(null);
 
@@ -127,7 +128,7 @@ export default function MediaDetailScreen() {
     checkIsFavorite,
     checkIsInWatchlist,
   } = useLibraryActions();
-  const { getShowProgress, markAsCompleted, clearProgress, markEpisodesAsCompleted } = useWatchProgress();
+  const { getShowProgress, getProgress, markAsCompleted, clearProgress, markEpisodesAsCompleted } = useWatchProgress();
   const mediaType = type || "movie";
   const tmdbId = id ? parseInt(id, 10) : 0;
 
@@ -227,6 +228,25 @@ export default function MediaDetailScreen() {
     fetchProgress();
   }, [media, getShowProgress]);
 
+  // Fetch watch progress for movies
+  React.useEffect(() => {
+    if (!media || media.mediaType !== "movie") return;
+
+    const fetchMovieProgress = async () => {
+      try {
+        const progress = await getProgress({
+          tmdbId: media.id,
+          mediaType: "movie",
+        });
+        setIsMovieWatched(progress?.completed ?? false);
+      } catch {
+        // Silently ignore errors
+      }
+    };
+
+    fetchMovieProgress();
+  }, [media, getProgress]);
+
   const handleToggleFavorite = async () => {
     if (!media) return;
     try {
@@ -253,6 +273,27 @@ export default function MediaDetailScreen() {
 
   const handleWatchMovie = () => {
     setViewMode("sources");
+  };
+
+  const handleToggleMovieWatched = async () => {
+    if (!media) return;
+
+    try {
+      if (isMovieWatched) {
+        await clearProgress({
+          tmdbId: media.id,
+          mediaType: "movie",
+        });
+      } else {
+        await markAsCompleted({
+          tmdbId: media.id,
+          mediaType: "movie",
+        });
+      }
+      setIsMovieWatched((prev) => !prev);
+    } catch {
+      // Silently ignore errors
+    }
   };
 
   const handleWatchEpisode = (episode: Episode) => {
@@ -414,6 +455,21 @@ export default function MediaDetailScreen() {
                 Select an episode below to watch
               </Text>
             </View>
+          )}
+
+          {mediaType === "movie" && (
+            <Button
+              variant="outline"
+              size="icon"
+              className="w-12 h-12"
+              onPress={handleToggleMovieWatched}
+            >
+              {isMovieWatched ? (
+                <Eye size={20} className="text-primary" />
+              ) : (
+                <EyeOff size={20} className="text-foreground" />
+              )}
+            </Button>
           )}
 
           <Button
