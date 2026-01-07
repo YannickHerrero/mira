@@ -5,11 +5,14 @@ import * as WebBrowser from "expo-web-browser";
 import List, { ListHeader } from "@/components/ui/list";
 import ListItem from "@/components/ui/list-item";
 import { Text } from "@/components/ui/text";
+import { Switch } from "@/components/ui/switch";
 import { Muted } from "@/components/ui/typography";
-import { BookOpen, Shield, Star, Send } from "@/lib/icons";
+import { BookOpen, Shield, Star, Send, MonitorPlay } from "@/lib/icons";
 import { ThemeSettingItem } from "@/components/settings/ThemeItem";
 import { ApiKeyItem } from "@/components/settings/ApiKeyItem";
 import { useApiKeys } from "@/hooks/useApiKeys";
+import { useSettings } from "@/hooks/useSettings";
+import { selectionChanged } from "@/lib/haptics";
 
 export default function Settings() {
   const {
@@ -25,6 +28,13 @@ export default function Settings() {
     setRealDebridKey,
   } = useApiKeys();
 
+  const { useVlcPlayer, setUseVlcPlayer, isLoading: isLoadingSettings } = useSettings();
+
+  const handleVlcToggle = (checked: boolean) => {
+    selectionChanged();
+    setUseVlcPlayer(checked);
+  };
+
   const openExternalURL = (url: string) => {
     if (Platform.OS === "web") {
       Linking.openURL(url);
@@ -33,7 +43,7 @@ export default function Settings() {
     }
   };
 
-  if (isLoading) {
+  if (isLoading || isLoadingSettings) {
     return (
       <View className="flex-1 bg-background items-center justify-center">
         <ActivityIndicator size="large" />
@@ -74,6 +84,23 @@ export default function Settings() {
               : undefined
           }
           onSave={setRealDebridKey}
+        />
+
+        {/* Playback Settings */}
+        <ListHeader className="pt-8">
+          <Muted>PLAYBACK</Muted>
+        </ListHeader>
+        <ListItem
+          itemLeft={(props) => <MonitorPlay {...props} />}
+          label="Play in VLC"
+          description="Open videos in VLC instead of built-in player"
+          detail={false}
+          itemRight={() => (
+            <Switch
+              checked={useVlcPlayer}
+              onCheckedChange={handleVlcToggle}
+            />
+          )}
         />
 
         {/* App Settings */}

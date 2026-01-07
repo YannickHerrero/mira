@@ -34,3 +34,4 @@ export { Clock } from "./Clock";
 export { AlertCircle } from "./AlertCircle";
 export { RefreshCw } from "./RefreshCw";
 export { WifiOff } from "./WifiOff";
+export { MonitorPlay } from "./MonitorPlay";
