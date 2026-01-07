@@ -4,18 +4,23 @@ import {
   ScrollView,
   ActivityIndicator,
   Pressable,
-  FlatList,
 } from "react-native";
 import { useLocalSearchParams, Stack, useRouter } from "expo-router";
+import { useBottomSheetModal } from "@gorhom/bottom-sheet";
 import { Text } from "@/components/ui/text";
 import { Button } from "@/components/ui/button";
+import {
+  BottomSheet,
+  BottomSheetContent,
+  BottomSheetView,
+} from "@/components/primitives/bottomSheet/bottom-sheet.native";
 import {
   MediaHeader,
   SeasonPicker,
   EpisodeCard,
 } from "@/components/media";
 import { SourceList } from "@/components/stream";
-import { Play, Heart, Plus, Check } from "@/lib/icons";
+import { Play, Heart, Plus, Check, Eye, EyeOff, ListChecks } from "@/lib/icons";
 import { useLibraryActions } from "@/hooks/useLibrary";
 import { useWatchProgress } from "@/hooks/useWatchProgress";
 import { useApiKeyStore } from "@/stores/api-keys";
@@ -24,8 +29,74 @@ import { useSources } from "@/hooks/useSources";
 import { useEpisodes } from "@/hooks/useMedia";
 import { useMediaPlayer } from "@/hooks/useSettings";
 import type { Media, MediaType, Season, Episode } from "@/lib/types";
+import type { BottomSheetModal } from "@gorhom/bottom-sheet";
 
 type ViewMode = "details" | "sources";
+
+interface EpisodeActionSheetProps {
+  sheetRef: React.RefObject<BottomSheetModal | null>;
+  episode: Episode | null;
+  isCompleted: boolean;
+  onToggleWatched: () => void;
+  onMarkWatchedUpToHere: () => void;
+}
+
+function EpisodeActionSheet({
+  sheetRef,
+  episode,
+  isCompleted,
+  onToggleWatched,
+  onMarkWatchedUpToHere,
+}: EpisodeActionSheetProps) {
+  const { dismiss } = useBottomSheetModal();
+
+  return (
+    <BottomSheetContent ref={sheetRef}>
+      <BottomSheetView className="px-4 pb-8 bg-background">
+        {episode && (
+          <>
+            <Text className="text-lg font-semibold text-foreground mb-1">
+              Episode {episode.episodeNumber}
+            </Text>
+            <Text className="text-sm text-muted-foreground mb-6" numberOfLines={1}>
+              {episode.title}
+            </Text>
+
+            <Pressable
+              className="flex-row items-center py-3 active:opacity-70"
+              onPress={() => {
+                onToggleWatched();
+                dismiss();
+              }}
+            >
+              {isCompleted ? (
+                <EyeOff size={20} className="text-foreground mr-3" />
+              ) : (
+                <Eye size={20} className="text-foreground mr-3" />
+              )}
+              <Text className="text-base text-foreground">
+                {isCompleted ? "Mark as unwatched" : "Mark as watched"}
+              </Text>
+            </Pressable>
+
+            <Pressable
+              className="flex-row items-center py-3 active:opacity-70"
+              onPress={() => {
+                onMarkWatchedUpToHere();
+                dismiss();
+              }}
+            >
+              <ListChecks size={20} className="text-foreground mr-3" />
+              <Text className="text-base text-foreground">
+                Mark watched up to here
+              </Text>
+            </Pressable>
+          </>
+        )}
+      </BottomSheetView>
+    </BottomSheetContent>
+  );
+}
 
 export default function MediaDetailScreen() {
   const router = useRouter();
@@ -45,6 +116,8 @@ export default function MediaDetailScreen() {
   const [episodeProgress, setEpisodeProgress] = React.useState<
     Map<string, { position: number; duration: number; completed: boolean }>
   >(new Map());
+  const [actionSheetEpisode, setActionSheetEpisode] = React.useState<Episode | null>(null);
+  const actionSheetRef = React.useRef<BottomSheetModal>(null);
 
   const tmdbApiKey = useApiKeyStore((s) => s.tmdbApiKey);
   const {
@@ -54,7 +127,7 @@ export default function MediaDetailScreen() {
     checkIsFavorite,
     checkIsInWatchlist,
   } = useLibraryActions();
-  const { getShowProgress } = useWatchProgress();
+  const { getShowProgress, markAsCompleted, clearProgress, markEpisodesAsCompleted } = useWatchProgress();
   const mediaType = type || "movie";
   const tmdbId = id ? parseInt(id, 10) : 0;
 
@@ -209,6 +282,63 @@ export default function MediaDetailScreen() {
     setSelectedEpisode(null);
   };
 
+  const handleEpisodeLongPress = (episode: Episode) => {
+    setActionSheetEpisode(episode);
+    actionSheetRef.current?.present();
+  };
+
+  const handleToggleWatched = async (episode: Episode) => {
+    if (!media) return;
+
+    const progressKey = `${episode.seasonNumber}-${episode.episodeNumber}`;
+    const progress = episodeProgress.get(progressKey);
+    const isCompleted = progress?.completed ?? false;
+
+    if (isCompleted) {
+      // Mark as unwatched
+      await clearProgress({
+        tmdbId: media.id,
+        mediaType: "tv",
+        seasonNumber: episode.seasonNumber,
+        episodeNumber: episode.episodeNumber,
+      });
+    } else {
+      // Mark as watched
+      await markAsCompleted({
+        tmdbId: media.id,
+        mediaType: "tv",
+        seasonNumber: episode.seasonNumber,
+        episodeNumber: episode.episodeNumber,
+      });
+    }
+
+    // Refresh progress
+    const updatedProgress = await getShowProgress(media.id);
+    setEpisodeProgress(updatedProgress);
+  };
+
+  const handleMarkWatchedUpToHere = async (episode: Episode) => {
+    if (!media) return;
+
+    // Get all episodes from current season up to and including the selected episode
+    const episodesToMark = episodes
+      .filter(
+        (ep) =>
+          ep.seasonNumber === episode.seasonNumber &&
+          ep.episodeNumber <= episode.episodeNumber
+      )
+      .map((ep) => ({
+        seasonNumber: ep.seasonNumber,
+        episodeNumber: ep.episodeNumber,
+      }));
+
+    await markEpisodesAsCompleted(media.id, episodesToMark);
+
+    // Refresh progress
+    const updatedProgress = await getShowProgress(media.id);
+    setEpisodeProgress(updatedProgress);
+  };
+
   // Loading state
   if (isLoading) {
     return (
@@ -340,6 +470,7 @@ export default function MediaDetailScreen() {
                       key={progressKey}
                       episode={episode}
                       onPress={() => handleWatchEpisode(episode)}
+                      onLongPress={() => handleEpisodeLongPress(episode)}
                       watchProgress={watchPercent}
                       isCompleted={progress?.completed}
                     />
@@ -353,6 +484,31 @@ export default function MediaDetailScreen() {
         {/* Bottom padding */}
         <View className="h-8" />
       </ScrollView>
+
+      {/* Episode Action Sheet */}
+      <BottomSheet>
+        <EpisodeActionSheet
+          sheetRef={actionSheetRef}
+          episode={actionSheetEpisode}
+          isCompleted={
+            actionSheetEpisode
+              ? episodeProgress.get(
+                  `${actionSheetEpisode.seasonNumber}-${actionSheetEpisode.episodeNumber}`
+                )?.completed ?? false
+              : false
+          }
+          onToggleWatched={() => {
+            if (actionSheetEpisode) {
+              handleToggleWatched(actionSheetEpisode);
+            }
+          }}
+          onMarkWatchedUpToHere={() => {
+            if (actionSheetEpisode) {
+              handleMarkWatchedUpToHere(actionSheetEpisode);
+            }
+          }}
+        />
+      </BottomSheet>
     </View>
   );
 }

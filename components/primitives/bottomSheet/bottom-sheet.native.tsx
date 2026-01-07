@@ -108,7 +108,8 @@ const BottomSheetContent = React.forwardRef<
       (props: BottomSheetBackdropProps) => {
         const {
           pressBehavior = "close",
-          opacity = isDarkColorScheme ? 0.3 : 0.7,
+          opacity = 0.7,
+          appearsOnIndex = 0,
           disappearsOnIndex = CLOSED_INDEX,
           style,
           onPress,
@@ -120,9 +121,10 @@ const BottomSheetContent = React.forwardRef<
         return (
           <BottomSheetBackdrop
             opacity={opacity}
+            appearsOnIndex={appearsOnIndex}
             disappearsOnIndex={disappearsOnIndex}
             pressBehavior={pressBehavior}
-            style={[{backgroundColor: "rgba(0,0,0,0.8)"}, style]}
+            style={style}
             onPress={() => {
               if (Keyboard.isVisible()) {
                 Keyboard.dismiss();
@@ -133,7 +135,7 @@ const BottomSheetContent = React.forwardRef<
           />
         );
       },
-      [backdropProps, colors],
+      [backdropProps],
     );
 
     return (

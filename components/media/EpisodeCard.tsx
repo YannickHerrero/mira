@@ -8,20 +8,29 @@ import { cn } from "@/lib/utils";
 
 interface EpisodeCardProps {
   episode: Episode;
-  onPress: () => void;
+  onPress?: () => void;
+  onLongPress?: () => void;
   watchProgress?: number; // 0-100
   isCompleted?: boolean;
+  /** When true, renders as a View instead of Pressable (for use with external press handlers) */
+  asView?: boolean;
 }
 
-export function EpisodeCard({ episode, onPress, watchProgress, isCompleted }: EpisodeCardProps) {
+export function EpisodeCard({ episode, onPress, onLongPress, watchProgress, isCompleted, asView = false }: EpisodeCardProps) {
   const stillUrl = episode.stillPath
     ? `${TMDB_IMAGE_BASE}/w300${episode.stillPath}`
     : null;
 
+  const Container = asView ? View : Pressable;
+  const containerProps = asView ? {} : { onPress, onLongPress, delayLongPress: 400 };
+
   return (
-    <Pressable
-      onPress={onPress}
-      className="flex-row bg-card rounded-lg overflow-hidden mb-3 active:opacity-80"
+    <Container
+      {...containerProps}
+      className={cn(
+        "flex-row bg-card rounded-lg overflow-hidden mb-3",
+        !asView && "active:opacity-80"
+      )}
     >
       {/* Thumbnail */}
       <View className="relative" style={{ width: 140, height: 80 }}>
@@ -75,6 +84,6 @@ export function EpisodeCard({ episode, onPress, watchProgress, isCompleted }: Ep
           </Text>
         )}
       </View>
-    </Pressable>
+    </Container>
   );
 }

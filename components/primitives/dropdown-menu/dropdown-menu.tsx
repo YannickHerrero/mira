@@ -87,8 +87,16 @@ function useRootContext() {
   return context;
 }
 
-const Trigger = React.forwardRef<PressableRef, SlottablePressableProps>(
-  ({asChild, onPress: onPressProp, disabled = false, ...props}, ref) => {
+interface TriggerProps extends SlottablePressableProps {
+  /**
+   * When true, the dropdown menu opens on long-press instead of regular press.
+   * This allows onPress to be used for other actions (e.g., navigation).
+   */
+  triggerOnLongPress?: boolean;
+}
+
+const Trigger = React.forwardRef<PressableRef, TriggerProps>(
+  ({asChild, onPress: onPressProp, onLongPress: onLongPressProp, triggerOnLongPress = false, disabled = false, ...props}, ref) => {
     const triggerRef = React.useRef<View>(null);
     const {open, onOpenChange, setTriggerPosition} = useRootContext();
 
@@ -103,14 +111,27 @@ const Trigger = React.forwardRef<PressableRef, SlottablePressableProps>(
       [triggerRef.current],
     );
 
-    function onPress(ev: GestureResponderEvent) {
+    function openMenu() {
       if (disabled) return;
       triggerRef.current?.measure((_x, _y, width, height, pageX, pageY) => {
         setTriggerPosition({width, pageX, pageY: pageY, height});
       });
       const newValue = !open;
       onOpenChange(newValue);
+    }
+
+    function onPress(ev: GestureResponderEvent) {
+      if (!triggerOnLongPress) {
+        openMenu();
+      }
       onPressProp?.(ev);
+    }
+
+    function onLongPress(ev: GestureResponderEvent) {
+      if (triggerOnLongPress) {
+        openMenu();
+      }
+      onLongPressProp?.(ev);
     }
 
     const Component = asChild ? Slot.Pressable : Pressable;
@@ -120,6 +141,8 @@ const Trigger = React.forwardRef<PressableRef, SlottablePressableProps>(
         aria-disabled={disabled ?? undefined}
         role="button"
         onPress={onPress}
+        onLongPress={onLongPress}
+        delayLongPress={400}
         disabled={disabled ?? undefined}
         aria-expanded={open}
         {...props}

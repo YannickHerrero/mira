@@ -190,6 +190,52 @@ export function useWatchProgress() {
   );
 
   /**
+   * Mark multiple episodes as completed in a batch
+   * Useful for "mark watched up to here" functionality
+   */
+  const markEpisodesAsCompleted = useCallback(
+    async (
+      tmdbId: number,
+      episodes: Array<{ seasonNumber: number; episodeNumber: number }>
+    ) => {
+      if (!db || episodes.length === 0) return;
+
+      try {
+        // Use a transaction to batch insert/update all episodes
+        for (const ep of episodes) {
+          await db
+            .insert(watchProgressTable)
+            .values({
+              tmdbId,
+              mediaType: "tv",
+              seasonNumber: ep.seasonNumber,
+              episodeNumber: ep.episodeNumber,
+              position: 0,
+              duration: 1, // Set to 1 to avoid division by zero
+              completed: true,
+              updatedAt: sql`(CURRENT_TIMESTAMP)`,
+            })
+            .onConflictDoUpdate({
+              target: [
+                watchProgressTable.tmdbId,
+                watchProgressTable.mediaType,
+                watchProgressTable.seasonNumber,
+                watchProgressTable.episodeNumber,
+              ],
+              set: {
+                completed: true,
+                updatedAt: sql`(CURRENT_TIMESTAMP)`,
+              },
+            });
+        }
+      } catch (err) {
+        console.error("[useWatchProgress] Failed to mark episodes as completed:", err);
+      }
+    },
+    [db]
+  );
+
+  /**
    * Get all episode progress for a TV show
    * Returns a map of "seasonNumber-episodeNumber" -> progress data
    */
@@ -232,6 +278,7 @@ export function useWatchProgress() {
   return {
     saveProgress,
     markAsCompleted,
+    markEpisodesAsCompleted,
     getProgress,
     clearProgress,
     getShowProgress,

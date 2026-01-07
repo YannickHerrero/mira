@@ -62,10 +62,18 @@ function useRootContext() {
   return context;
 }
 
-const Trigger = React.forwardRef<PressableRef, SlottablePressableProps>(
-  ({asChild, disabled = false, ...props}, ref) => {
+interface TriggerProps extends SlottablePressableProps {
+  /**
+   * When true, the dropdown menu opens on long-press (native) or right-click (web) instead of regular press.
+   * This allows onPress to be used for other actions (e.g., navigation).
+   */
+  triggerOnLongPress?: boolean;
+}
+
+const Trigger = React.forwardRef<PressableRef, TriggerProps>(
+  ({asChild, disabled = false, triggerOnLongPress = false, onPress: onPressProp, ...props}, ref) => {
     const augmentedRef = useAugmentedRef({ref});
-    const {open} = useRootContext();
+    const {open, onOpenChange} = useRootContext();
 
     React.useLayoutEffect(() => {
       if (augmentedRef.current) {
@@ -85,10 +93,33 @@ const Trigger = React.forwardRef<PressableRef, SlottablePressableProps>(
       }
     }, [disabled]);
 
+    // For web with triggerOnLongPress, use right-click (context menu) to open
+    const handleContextMenu = React.useCallback((e: React.MouseEvent) => {
+      if (triggerOnLongPress) {
+        e.preventDefault();
+        onOpenChange(!open);
+      }
+    }, [triggerOnLongPress, onOpenChange, open]);
+
+    const handlePress = React.useCallback((ev: GestureResponderEvent) => {
+      onPressProp?.(ev);
+    }, [onPressProp]);
+
     const Component = asChild ? Slot.Pressable : Pressable;
+    
+    // When triggerOnLongPress is true, don't use Radix trigger (which opens on click)
+    // Instead, manually control open state via context menu
+    if (triggerOnLongPress) {
+      return (
+        <div onContextMenu={handleContextMenu} style={{display: 'contents'}}>
+          <Component ref={augmentedRef} onPress={handlePress} {...props} />
+        </div>
+      );
+    }
+
     return (
       <DropdownMenu.Trigger disabled={disabled ?? undefined} asChild>
-        <Component ref={augmentedRef} {...props} />
+        <Component ref={augmentedRef} onPress={onPressProp} {...props} />
       </DropdownMenu.Trigger>
     );
   },

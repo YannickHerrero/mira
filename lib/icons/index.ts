@@ -38,3 +38,6 @@ export { MonitorPlay } from "./MonitorPlay";
 export { Volume2 } from "./Volume2";
 export { Lock } from "./Lock";
 export { Unlock } from "./Unlock";
+export { Eye } from "./Eye";
+export { EyeOff } from "./EyeOff";
+export { ListChecks } from "./ListChecks";
