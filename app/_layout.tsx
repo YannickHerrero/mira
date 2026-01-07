@@ -65,14 +65,31 @@ export default function RootLayout() {
         <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
         <GestureHandlerRootView style={{ flex: 1 }}>
           <BottomSheetModalProvider>
-            <Stack>
-              <Stack.Screen name="(tabs)" options={{ title: "Habits", headerShown: false }} />
-              <Stack.Screen options={{
+            <Stack
+              screenOptions={{
+                headerStyle: {
+                  backgroundColor: colorScheme === "dark" ? "hsl(240, 10%, 3.9%)" : "hsl(0, 0%, 100%)",
+                },
+                headerTintColor: colorScheme === "dark" ? "hsl(0, 0%, 98%)" : "hsl(240, 10%, 3.9%)",
                 headerShadowVisible: false,
-              }} name="habits/archive" />
-              <Stack.Screen options={{
-                headerShadowVisible: false,
-              }} name="habits/[id]" />
+              }}
+            >
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+              <Stack.Screen
+                name="media/[id]"
+                options={{
+                  title: "",
+                  headerTransparent: true,
+                }}
+              />
+              <Stack.Screen
+                name="player"
+                options={{
+                  headerShown: false,
+                  orientation: "landscape",
+                  animation: "fade",
+                }}
+              />
             </Stack>
           </BottomSheetModalProvider>
         </GestureHandlerRootView>
