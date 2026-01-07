@@ -1,1 +1,0 @@
-ALTER TABLE `habits` ADD `archived` integer DEFAULT false;
