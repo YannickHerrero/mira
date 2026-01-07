@@ -5,6 +5,7 @@ import { SplashScreen, Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import * as React from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { configureReanimatedLogger, ReanimatedLogLevel } from "react-native-reanimated";
 import { PortalHost } from "@/components/primitives/portal";
 import { DatabaseProvider } from "@/db/provider";
 import { setAndroidNavigationBar } from "@/lib/android-navigation-bar";
@@ -14,6 +15,12 @@ import { getItem, setItem } from "@/lib/storage";
 import { useFrameworkReady } from "@/hooks/useFrameworkReady";
 import { Inter_400Regular, Inter_600SemiBold, useFonts } from '@expo-google-fonts/inter';
 import { useEffect } from "react";
+
+// Disable Reanimated strict mode warnings
+configureReanimatedLogger({
+  level: ReanimatedLogLevel.warn,
+  strict: false,
+});
 
 
 export {
