@@ -1,5 +1,5 @@
 import * as React from "react";
-import { View, ScrollView, RefreshControl, ActivityIndicator } from "react-native";
+import { View, ScrollView, RefreshControl, ActivityIndicator, Pressable } from "react-native";
 import { useRouter } from "expo-router";
 import { Text } from "@/components/ui/text";
 import { Input } from "@/components/ui/input";
@@ -149,15 +149,17 @@ export default function HomeScreen() {
       >
         {/* Search bar */}
         <View className="px-4 pt-4 pb-2">
-          <View className="flex-row items-center bg-muted rounded-lg px-3" onTouchEnd={handleSearchPress}>
-            <Search size={20} className="text-muted-foreground" />
-            <Input
-              placeholder="Search movies, TV shows..."
-              className="flex-1 border-0 bg-transparent"
-              editable={false}
-              pointerEvents="none"
-            />
-          </View>
+          <Pressable onPress={handleSearchPress}>
+            <View className="flex-row items-center bg-muted rounded-lg px-3">
+              <Search size={20} className="text-muted-foreground" />
+              <Input
+                placeholder="Search movies, TV shows..."
+                className="flex-1 border-0 bg-transparent"
+                editable={false}
+                pointerEvents="none"
+              />
+            </View>
+          </Pressable>
         </View>
 
         {/* Continue Watching */}
