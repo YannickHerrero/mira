@@ -169,7 +169,7 @@ export function AudioPreferenceItem() {
           description={displayText}
         />
       </BottomSheetOpenTrigger>
-      <BottomSheetContent snapPoints={["70%"]}>
+      <BottomSheetContent snapPoints={["70%"]} enableDynamicSizing={false}>
         <BottomSheetHeader className="bg-background">
           <Text className="text-foreground text-xl font-bold pb-1">
             Audio Language Preferences
@@ -179,7 +179,7 @@ export function AudioPreferenceItem() {
           </Text>
         </BottomSheetHeader>
         <BottomSheetView className="bg-background flex-1">
-          <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+          <ScrollView className="flex-1" showsVerticalScrollIndicator={true}>
             {/* Selected languages (ordered) */}
             {preferredAudioLanguages.length > 0 && (
               <View className="mb-4">
@@ -266,7 +266,7 @@ export function SubtitlePreferenceItem() {
           description={displayText}
         />
       </BottomSheetOpenTrigger>
-      <BottomSheetContent snapPoints={["70%"]}>
+      <BottomSheetContent snapPoints={["70%"]} enableDynamicSizing={false}>
         <BottomSheetHeader className="bg-background">
           <Text className="text-foreground text-xl font-bold pb-1">
             Subtitle Language Preferences
@@ -276,7 +276,7 @@ export function SubtitlePreferenceItem() {
           </Text>
         </BottomSheetHeader>
         <BottomSheetView className="bg-background flex-1">
-          <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+          <ScrollView className="flex-1" showsVerticalScrollIndicator={true}>
             {/* Selected languages (ordered) */}
             {preferredSubtitleLanguages.length > 0 && (
               <View className="mb-4">
