@@ -15,6 +15,31 @@
  */
 
 const RD_API_URL = "https://api.real-debrid.com/rest/1.0";
+const RD_PROXY_URL = "/api/rd";
+
+/**
+ * Determine if we should use the proxy for Real-Debrid API calls.
+ * We use the proxy on deployed web to avoid CORS issues.
+ * Local development and native platforms call the API directly.
+ */
+function shouldUseProxy(): boolean {
+  // Not in browser (native or SSR) - no proxy needed
+  if (typeof window === "undefined") return false;
+
+  // Local development - no proxy needed (no CORS issues)
+  const hostname = window.location.hostname;
+  if (hostname === "localhost" || hostname === "127.0.0.1") return false;
+
+  // Deployed web - use proxy to avoid CORS
+  return true;
+}
+
+/**
+ * Get the base URL for Real-Debrid API calls
+ */
+function getApiBaseUrl(): string {
+  return shouldUseProxy() ? RD_PROXY_URL : RD_API_URL;
+}
 
 // ============================================
 // Response Types
@@ -55,7 +80,8 @@ export class RealDebridClient {
     endpoint: string,
     options?: RequestInit
   ): Promise<T> {
-    const url = `${RD_API_URL}${endpoint}`;
+    const baseUrl = getApiBaseUrl();
+    const url = `${baseUrl}${endpoint}`;
 
     const response = await fetch(url, {
       ...options,
