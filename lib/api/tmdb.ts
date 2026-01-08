@@ -353,6 +353,134 @@ export class TMDBClient {
   }
 
   /**
+   * Get similar TV shows for a given TV show
+   */
+  async getSimilarTv(tmdbId: number): Promise<Media[]> {
+    const response = await this.fetch<TMDBSearchResponse<TMDBTvResult>>(
+      `/tv/${tmdbId}/similar`
+    );
+    return response.results.map((t) => this.mapTvResult(t));
+  }
+
+  /**
+   * Get similar content for any media type
+   */
+  async getSimilar(tmdbId: number, mediaType: MediaType): Promise<Media[]> {
+    if (mediaType === "movie") {
+      return this.getSimilarMovies(tmdbId);
+    }
+    return this.getSimilarTv(tmdbId);
+  }
+
+  /**
+   * Get recommendations for a movie (collaborative filtering - higher quality than similar)
+   */
+  async getMovieRecommendations(tmdbId: number): Promise<Media[]> {
+    const response = await this.fetch<TMDBSearchResponse<TMDBMovieResult>>(
+      `/movie/${tmdbId}/recommendations`
+    );
+    return response.results.map((m) => this.mapMovieResult(m));
+  }
+
+  /**
+   * Get recommendations for a TV show (collaborative filtering - higher quality than similar)
+   */
+  async getTvRecommendations(tmdbId: number): Promise<Media[]> {
+    const response = await this.fetch<TMDBSearchResponse<TMDBTvResult>>(
+      `/tv/${tmdbId}/recommendations`
+    );
+    return response.results.map((t) => this.mapTvResult(t));
+  }
+
+  /**
+   * Get recommendations for any media type
+   */
+  async getRecommendations(tmdbId: number, mediaType: MediaType): Promise<Media[]> {
+    if (mediaType === "movie") {
+      return this.getMovieRecommendations(tmdbId);
+    }
+    return this.getTvRecommendations(tmdbId);
+  }
+
+  /**
+   * Discover movies with filters (genres, year range, rating, etc.)
+   */
+  async discoverMovies(options: {
+    genreIds?: number[];
+    minRating?: number;
+    minVoteCount?: number;
+    yearGte?: number;
+    yearLte?: number;
+    sortBy?: "popularity.desc" | "vote_average.desc" | "primary_release_date.desc";
+  } = {}): Promise<Media[]> {
+    const params: Record<string, string> = {
+      include_adult: "false",
+      sort_by: options.sortBy || "popularity.desc",
+    };
+
+    if (options.genreIds?.length) {
+      params.with_genres = options.genreIds.join("|"); // OR logic
+    }
+    if (options.minRating !== undefined) {
+      params["vote_average.gte"] = options.minRating.toString();
+    }
+    if (options.minVoteCount !== undefined) {
+      params["vote_count.gte"] = options.minVoteCount.toString();
+    }
+    if (options.yearGte !== undefined) {
+      params["primary_release_date.gte"] = `${options.yearGte}-01-01`;
+    }
+    if (options.yearLte !== undefined) {
+      params["primary_release_date.lte"] = `${options.yearLte}-12-31`;
+    }
+
+    const response = await this.fetch<TMDBSearchResponse<TMDBMovieResult>>(
+      "/discover/movie",
+      params
+    );
+    return response.results.map((m) => this.mapMovieResult(m));
+  }
+
+  /**
+   * Discover TV shows with filters (genres, year range, rating, etc.)
+   */
+  async discoverTv(options: {
+    genreIds?: number[];
+    minRating?: number;
+    minVoteCount?: number;
+    yearGte?: number;
+    yearLte?: number;
+    sortBy?: "popularity.desc" | "vote_average.desc" | "first_air_date.desc";
+  } = {}): Promise<Media[]> {
+    const params: Record<string, string> = {
+      include_adult: "false",
+      sort_by: options.sortBy || "popularity.desc",
+    };
+
+    if (options.genreIds?.length) {
+      params.with_genres = options.genreIds.join("|"); // OR logic
+    }
+    if (options.minRating !== undefined) {
+      params["vote_average.gte"] = options.minRating.toString();
+    }
+    if (options.minVoteCount !== undefined) {
+      params["vote_count.gte"] = options.minVoteCount.toString();
+    }
+    if (options.yearGte !== undefined) {
+      params["first_air_date.gte"] = `${options.yearGte}-01-01`;
+    }
+    if (options.yearLte !== undefined) {
+      params["first_air_date.lte"] = `${options.yearLte}-12-31`;
+    }
+
+    const response = await this.fetch<TMDBSearchResponse<TMDBTvResult>>(
+      "/discover/tv",
+      params
+    );
+    return response.results.map((t) => this.mapTvResult(t));
+  }
+
+  /**
    * Validate API key by making a simple request
    */
   async validateApiKey(): Promise<boolean> {
