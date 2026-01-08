@@ -232,16 +232,16 @@ export default function MediaDetailScreen() {
     fetchMovieProgress();
   }, [media, getProgress]);
 
-  // Fetch similar content (movies or TV shows)
+  // Fetch recommended content (movies or TV shows)
   React.useEffect(() => {
     if (!media || !tmdbApiKey) return;
 
-    const fetchSimilarContent = async () => {
+    const fetchRecommendations = async () => {
       setIsLoadingSimilar(true);
       try {
         const client = createTMDBClient(tmdbApiKey);
-        const similar = await client.getSimilar(media.id, media.mediaType);
-        setSimilarMovies(similar.slice(0, 10)); // Limit to 10 items
+        const recommendations = await client.getRecommendations(media.id, media.mediaType);
+        setSimilarMovies(recommendations.slice(0, 10)); // Limit to 10 items
       } catch {
         // Silently ignore errors
       } finally {
@@ -249,7 +249,7 @@ export default function MediaDetailScreen() {
       }
     };
 
-    fetchSimilarContent();
+    fetchRecommendations();
   }, [media, tmdbApiKey]);
 
   const handleToggleFavorite = async () => {
@@ -452,20 +452,6 @@ export default function MediaDetailScreen() {
           </Button>
         </View>
 
-        {/* Similar Content */}
-        {similarMovies.length > 0 && (
-          <View className="mt-6">
-            {isLoadingSimilar ? (
-              <MediaSectionSkeleton />
-            ) : (
-              <MediaSection
-                title="You Might Also Like"
-                items={similarMovies}
-              />
-            )}
-          </View>
-        )}
-
         {/* TV Show: Season picker and episodes */}
         {mediaType === "tv" && seasons.length > 0 && (
           <View className="mt-6">
@@ -501,6 +487,20 @@ export default function MediaDetailScreen() {
                 })
               )}
             </View>
+          </View>
+        )}
+
+        {/* Similar Content */}
+        {similarMovies.length > 0 && (
+          <View className="mt-6">
+            {isLoadingSimilar ? (
+              <MediaSectionSkeleton />
+            ) : (
+              <MediaSection
+                title="You Might Also Like"
+                items={similarMovies}
+              />
+            )}
           </View>
         )}
 
