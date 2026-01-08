@@ -12,19 +12,20 @@ import {
 import { BottomSheet } from "@/components/primitives/bottomSheet/bottom-sheet.native";
 import {
   useContinueWatching,
-  useWatchlist,
   useFavorites,
 } from "@/hooks/useLibrary";
+import { useLists, useListActions } from "@/hooks/useLists";
 import { useDownloads, useDownloadsList } from "@/hooks/useDownloads";
 import { useMediaPlayer } from "@/hooks/useSettings";
-import { Play, Plus, Heart, Clock, Download } from "@/lib/icons";
-import { selectionChanged, mediumImpact } from "@/lib/haptics";
+import { Play, Plus, Heart, Clock, Download, List, ChevronRight } from "@/lib/icons";
+import { selectionChanged, mediumImpact, lightImpact } from "@/lib/haptics";
 import { fileExists } from "@/lib/download-manager";
 import { cn } from "@/lib/utils";
 import type { Media, MediaType } from "@/lib/types";
 import type { DownloadItem } from "@/stores/downloads";
+import type { ListWithCount } from "@/hooks/useLists";
 
-type TabType = "continue" | "watchlist" | "favorites" | "downloads";
+type TabType = "continue" | "lists" | "favorites" | "downloads";
 
 export default function LibraryScreen() {
   const router = useRouter();
@@ -32,11 +33,22 @@ export default function LibraryScreen() {
   const [refreshing, setRefreshing] = React.useState(false);
 
   const { items: continueItems, isLoading: loadingContinue, refetch: refetchContinue } = useContinueWatching();
-  const { items: watchlistItems, isLoading: loadingWatchlist, refetch: refetchWatchlist } = useWatchlist();
+  const { lists, isLoading: loadingLists, refetch: refetchLists } = useLists();
+  const { ensureDefaultList, migrateFromWatchlist } = useListActions();
   const { items: favoriteItems, isLoading: loadingFavorites, refetch: refetchFavorites } = useFavorites();
   const { items: downloadItems, isLoading: loadingDownloads } = useDownloadsList();
   const { deleteDownload, retryDownload } = useDownloads();
   const { playMedia } = useMediaPlayer();
+
+  // Ensure default list exists and migrate old watchlist on first load
+  React.useEffect(() => {
+    const initLists = async () => {
+      await ensureDefaultList();
+      await migrateFromWatchlist();
+      refetchLists();
+    };
+    initLists();
+  }, [ensureDefaultList, migrateFromWatchlist, refetchLists]);
 
   // Bottom sheet for download info
   const [selectedDownload, setSelectedDownload] = React.useState<DownloadItem | null>(null);
@@ -46,16 +58,21 @@ export default function LibraryScreen() {
   useFocusEffect(
     React.useCallback(() => {
       refetchContinue();
-      refetchWatchlist();
+      refetchLists();
       refetchFavorites();
-    }, [refetchContinue, refetchWatchlist, refetchFavorites])
+    }, [refetchContinue, refetchLists, refetchFavorites])
   );
 
   const handleRefresh = React.useCallback(async () => {
     setRefreshing(true);
-    await Promise.all([refetchContinue(), refetchWatchlist(), refetchFavorites()]);
+    await Promise.all([refetchContinue(), refetchLists(), refetchFavorites()]);
     setRefreshing(false);
-  }, [refetchContinue, refetchWatchlist, refetchFavorites]);
+  }, [refetchContinue, refetchLists, refetchFavorites]);
+
+  const handleListPress = (listId: string) => {
+    lightImpact();
+    router.push(`/lists/${listId}`);
+  };
 
   const handleDownloadPress = React.useCallback(
     async (download: DownloadItem) => {
@@ -139,22 +156,23 @@ export default function LibraryScreen() {
           />
         );
 
-      case "watchlist":
-        if (loadingWatchlist && watchlistItems.length === 0) {
-          return <LoadingState />;
+      case "lists":
+        if (loadingLists && lists.length === 0) {
+          return <ListsLoadingState />;
         }
-        if (watchlistItems.length === 0) {
+        if (lists.length === 0) {
           return (
             <EmptyState
-              icon={<Plus size={48} className="text-muted-foreground" />}
-              title="Watchlist is empty"
-              description="Add movies and TV shows to watch later"
+              icon={<List size={48} className="text-muted-foreground" />}
+              title="No lists yet"
+              description="Create lists to organize your movies and TV shows"
             />
           );
         }
         return (
-          <MediaGridFromJoin
-            items={watchlistItems.map((item) => item.media)}
+          <ListsGrid
+            lists={lists}
+            onListPress={handleListPress}
             refreshing={refreshing}
             onRefresh={handleRefresh}
           />
@@ -224,11 +242,11 @@ export default function LibraryScreen() {
           badge={continueItems.length > 0 ? continueItems.length : undefined}
         />
         <TabButton
-          label="Watchlist"
-          icon={<Plus size={16} />}
-          isActive={activeTab === "watchlist"}
-          onPress={() => setActiveTab("watchlist")}
-          badge={watchlistItems.length > 0 ? watchlistItems.length : undefined}
+          label="Lists"
+          icon={<List size={16} />}
+          isActive={activeTab === "lists"}
+          onPress={() => setActiveTab("lists")}
+          badge={lists.length > 0 ? lists.length : undefined}
         />
         <TabButton
           label="Favorites"
@@ -339,6 +357,71 @@ function DownloadLoadingState() {
         </View>
       ))}
     </View>
+  );
+}
+
+function ListsLoadingState() {
+  return (
+    <View className="flex-1 px-4 pt-4">
+      {Array.from({ length: 4 }).map((_, i) => (
+        <View
+          key={i}
+          className="flex-row items-center bg-card rounded-lg mb-3 border border-border p-4"
+        >
+          <View className="w-10 h-10 bg-muted rounded-lg animate-pulse mr-3" />
+          <View className="flex-1">
+            <View className="h-4 bg-muted rounded w-1/3 animate-pulse mb-2" />
+            <View className="h-3 bg-muted rounded w-1/4 animate-pulse" />
+          </View>
+        </View>
+      ))}
+    </View>
+  );
+}
+
+interface ListsGridProps {
+  lists: ListWithCount[];
+  onListPress: (listId: string) => void;
+  refreshing?: boolean;
+  onRefresh?: () => void;
+}
+
+function ListsGrid({ lists, onListPress, refreshing, onRefresh }: ListsGridProps) {
+  return (
+    <ScrollView
+      className="flex-1"
+      contentContainerStyle={{ padding: 16 }}
+      showsVerticalScrollIndicator={false}
+      refreshControl={
+        onRefresh ? (
+          <RefreshControl refreshing={refreshing ?? false} onRefresh={onRefresh} />
+        ) : undefined
+      }
+    >
+      {lists.map((list) => (
+        <Pressable
+          key={list.id}
+          onPress={() => onListPress(list.id)}
+          className="flex-row items-center bg-card rounded-lg mb-3 border border-border p-4 active:opacity-70"
+        >
+          <View className="w-10 h-10 bg-primary/10 rounded-lg items-center justify-center mr-3">
+            <List size={20} className="text-primary" />
+          </View>
+          <View className="flex-1">
+            <Text className="text-base font-medium text-foreground">
+              {list.name}
+              {list.isDefault && (
+                <Text className="text-muted-foreground"> (Default)</Text>
+              )}
+            </Text>
+            <Text className="text-sm text-muted-foreground">
+              {list.itemCount} {list.itemCount === 1 ? "item" : "items"}
+            </Text>
+          </View>
+          <ChevronRight size={20} className="text-muted-foreground" />
+        </Pressable>
+      ))}
+    </ScrollView>
   );
 }
 

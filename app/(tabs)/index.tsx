@@ -7,7 +7,8 @@ import { MediaSection } from "@/components/library";
 import { useMigrationHelper } from "@/db/drizzle";
 import { useApiKeys } from "@/hooks/useApiKeys";
 import { useTrending } from "@/hooks/useTrending";
-import { useContinueWatching, useWatchlist } from "@/hooks/useLibrary";
+import { useContinueWatching } from "@/hooks/useLibrary";
+import { useLists, useListItems, useListActions, DEFAULT_WATCHLIST_NAME } from "@/hooks/useLists";
 import { Search, Film, Tv, Settings } from "@/lib/icons";
 import type { Media, MediaType } from "@/lib/types";
 
@@ -24,13 +25,28 @@ export default function HomeScreen() {
   } = useTrending();
 
   const { items: continueItems, refetch: refetchContinue } = useContinueWatching();
-  const { items: watchlistItems, refetch: refetchWatchlist } = useWatchlist();
+  const { lists, refetch: refetchLists } = useLists();
+  const { ensureDefaultList, migrateFromWatchlist } = useListActions();
+
+  // Find the default watchlist
+  const defaultList = lists.find((l) => l.isDefault);
+  const { items: watchlistItems, refetch: refetchWatchlist } = useListItems(defaultList?.id ?? null);
 
   const [refreshing, setRefreshing] = React.useState(false);
 
+  // Ensure default list exists on first load
+  React.useEffect(() => {
+    const initLists = async () => {
+      await ensureDefaultList();
+      await migrateFromWatchlist();
+      refetchLists();
+    };
+    initLists();
+  }, [ensureDefaultList, migrateFromWatchlist, refetchLists]);
+
   const handleRefresh = async () => {
     setRefreshing(true);
-    await Promise.all([refetchTrending(), refetchContinue(), refetchWatchlist()]);
+    await Promise.all([refetchTrending(), refetchContinue(), refetchLists(), refetchWatchlist()]);
     setRefreshing(false);
   };
 
@@ -66,10 +82,10 @@ export default function HomeScreen() {
     id: item.media.tmdbId,
     mediaType: item.media.mediaType as MediaType,
     title: item.media.title,
-    posterPath: item.media.posterPath,
-    backdropPath: item.media.backdropPath,
-    year: item.media.year,
-    score: item.media.score,
+    posterPath: item.media.posterPath ?? undefined,
+    backdropPath: item.media.backdropPath ?? undefined,
+    year: item.media.year ?? undefined,
+    score: item.media.score ?? undefined,
     genres: item.media.genres ? JSON.parse(item.media.genres) : [],
   }));
 

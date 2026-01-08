@@ -46,3 +46,5 @@ export { Trash } from "./Trash";
 export { Subtitles } from "./Subtitles";
 export { ChevronUp } from "./ChevronUp";
 export { ChevronDown } from "./ChevronDown";
+export { Pencil } from "./Pencil";
+export { MoreVertical } from "./MoreVertical";

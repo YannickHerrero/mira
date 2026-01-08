@@ -22,8 +22,10 @@ import {
 } from "@/components/media";
 import { MediaSection } from "@/components/library";
 import { SourceList } from "@/components/stream";
-import { Play, Heart, Plus, Check, Eye, EyeOff, ListChecks } from "@/lib/icons";
+import { ListSelectorSheet } from "@/components/lists";
+import { Play, Heart, Plus, Check, Eye, EyeOff, ListChecks, List } from "@/lib/icons";
 import { useLibraryActions } from "@/hooks/useLibrary";
+import { useListActions } from "@/hooks/useLists";
 import { useWatchProgress } from "@/hooks/useWatchProgress";
 import { useApiKeyStore } from "@/stores/api-keys";
 import { createTMDBClient } from "@/lib/api/tmdb";
@@ -114,7 +116,6 @@ export default function MediaDetailScreen() {
   const [error, setError] = React.useState<string | null>(null);
   const [viewMode, setViewMode] = React.useState<ViewMode>("details");
   const [isFavorite, setIsFavorite] = React.useState(false);
-  const [isInWatchlist, setIsInWatchlist] = React.useState(false);
   const [episodeProgress, setEpisodeProgress] = React.useState<
     Map<string, { position: number; duration: number; completed: boolean }>
   >(new Map());
@@ -122,16 +123,16 @@ export default function MediaDetailScreen() {
   const [similarMovies, setSimilarMovies] = React.useState<Media[]>([]);
   const [isLoadingSimilar, setIsLoadingSimilar] = React.useState(false);
   const [actionSheetEpisode, setActionSheetEpisode] = React.useState<Episode | null>(null);
+  const [isInAnyList, setIsInAnyList] = React.useState(false);
   const actionSheetRef = React.useRef<BottomSheetModal>(null);
+  const listSelectorSheetRef = React.useRef<BottomSheetModal>(null);
 
   const tmdbApiKey = useApiKeyStore((s) => s.tmdbApiKey);
   const {
     toggleFavorite,
-    addToWatchlist,
-    removeFromWatchlist,
     checkIsFavorite,
-    checkIsInWatchlist,
   } = useLibraryActions();
+  const { checkIsInAnyList } = useListActions();
   const { getShowProgress, getProgress, markAsCompleted, clearProgress, markEpisodesAsCompleted } = useWatchProgress();
   const mediaType = type || "movie";
   const tmdbId = id ? parseInt(id, 10) : 0;
@@ -196,25 +197,25 @@ export default function MediaDetailScreen() {
     fetchMedia();
   }, [tmdbApiKey, tmdbId, mediaType]);
 
-  // Check favorite and watchlist status when media loads
+  // Check favorite and list status when media loads
   React.useEffect(() => {
     if (!media) return;
 
     const checkStatus = async () => {
       try {
-        const [favorite, watchlist] = await Promise.all([
+        const [favorite, inList] = await Promise.all([
           checkIsFavorite(media.id, media.mediaType),
-          checkIsInWatchlist(media.id, media.mediaType),
+          checkIsInAnyList(media.id, media.mediaType),
         ]);
         setIsFavorite(favorite);
-        setIsInWatchlist(watchlist);
+        setIsInAnyList(inList);
       } catch {
         // Silently ignore errors
       }
     };
 
     checkStatus();
-  }, [media, checkIsFavorite, checkIsInWatchlist]);
+  }, [media, checkIsFavorite, checkIsInAnyList]);
 
   // Fetch episode watch progress for TV shows
   React.useEffect(() => {
@@ -281,18 +282,15 @@ export default function MediaDetailScreen() {
     }
   };
 
-  const handleToggleWatchlist = async () => {
+  const handleOpenListSelector = () => {
+    listSelectorSheetRef.current?.present();
+  };
+
+  const handleListSelectorComplete = async () => {
     if (!media) return;
-    try {
-      if (isInWatchlist) {
-        await removeFromWatchlist(media.id, media.mediaType);
-      } else {
-        await addToWatchlist(media, imdbId ?? undefined);
-      }
-      setIsInWatchlist((prev) => !prev);
-    } catch {
-      // Silently ignore errors
-    }
+    // Refresh list status
+    const inList = await checkIsInAnyList(media.id, media.mediaType);
+    setIsInAnyList(inList);
   };
 
   const handleWatchMovie = () => {
@@ -510,12 +508,12 @@ export default function MediaDetailScreen() {
             variant="outline"
             size="icon"
             className="w-12 h-12"
-            onPress={handleToggleWatchlist}
+            onPress={handleOpenListSelector}
           >
-            {isInWatchlist ? (
+            {isInAnyList ? (
               <Check size={20} className="text-primary" />
             ) : (
-              <Plus size={20} className="text-foreground" />
+              <List size={20} className="text-foreground" />
             )}
           </Button>
 
@@ -611,6 +609,16 @@ export default function MediaDetailScreen() {
               handleMarkWatchedUpToHere(actionSheetEpisode);
             }
           }}
+        />
+      </BottomSheet>
+
+      {/* List Selector Sheet */}
+      <BottomSheet>
+        <ListSelectorSheet
+          sheetRef={listSelectorSheetRef}
+          media={media}
+          imdbId={imdbId ?? undefined}
+          onComplete={handleListSelectorComplete}
         />
       </BottomSheet>
     </View>

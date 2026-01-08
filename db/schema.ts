@@ -149,3 +149,46 @@ export const downloadsTable = sqliteTable("downloads", {
 
 export const DownloadSchema = createSelectSchema(downloadsTable);
 export type DownloadRecord = z.infer<typeof DownloadSchema>;
+
+// ============================================
+// Custom Lists
+// ============================================
+
+/**
+ * User-created lists for organizing media.
+ * "Watchlist" is a special default list that cannot be deleted.
+ */
+export const listsTable = sqliteTable("lists", {
+  id: text("id").primaryKey(), // cuid2 unique ID
+  name: text("name").notNull(),
+  isDefault: integer("is_default", { mode: "boolean" }).default(false), // true for "Watchlist"
+  createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`),
+  updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`),
+});
+
+export const ListSchema = createSelectSchema(listsTable);
+export type ListRecord = z.infer<typeof ListSchema>;
+
+/**
+ * Junction table linking media items to lists.
+ * A media item can belong to multiple lists.
+ */
+export const listItemsTable = sqliteTable(
+  "list_items",
+  {
+    listId: text("list_id")
+      .notNull()
+      .references(() => listsTable.id, { onDelete: "cascade" }),
+    tmdbId: integer("tmdb_id").notNull(),
+    mediaType: text("media_type", { enum: ["movie", "tv"] }).notNull(),
+    addedAt: text("added_at").default(sql`(CURRENT_TIMESTAMP)`),
+  },
+  (table) => [
+    primaryKey({
+      columns: [table.listId, table.tmdbId, table.mediaType],
+    }),
+  ]
+);
+
+export const ListItemSchema = createSelectSchema(listItemsTable);
+export type ListItemRecord = z.infer<typeof ListItemSchema>;
