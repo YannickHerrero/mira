@@ -252,15 +252,15 @@ export default function MediaDetailScreen() {
     fetchMovieProgress();
   }, [media, getProgress]);
 
-  // Fetch similar movies
+  // Fetch similar content (movies or TV shows)
   React.useEffect(() => {
-    if (!media || media.mediaType !== "movie" || !tmdbApiKey) return;
+    if (!media || !tmdbApiKey) return;
 
-    const fetchSimilarMovies = async () => {
+    const fetchSimilarContent = async () => {
       setIsLoadingSimilar(true);
       try {
         const client = createTMDBClient(tmdbApiKey);
-        const similar = await client.getSimilarMovies(media.id);
+        const similar = await client.getSimilar(media.id, media.mediaType);
         setSimilarMovies(similar.slice(0, 10)); // Limit to 10 items
       } catch {
         // Silently ignore errors
@@ -269,7 +269,7 @@ export default function MediaDetailScreen() {
       }
     };
 
-    fetchSimilarMovies();
+    fetchSimilarContent();
   }, [media, tmdbApiKey]);
 
   const handleToggleFavorite = async () => {
@@ -531,8 +531,8 @@ export default function MediaDetailScreen() {
           </Button>
         </View>
 
-        {/* Similar Movies (movies only) */}
-        {mediaType === "movie" && (
+        {/* Similar Content */}
+        {similarMovies.length > 0 && (
           <View className="mt-6">
             {isLoadingSimilar ? (
               <MediaSectionSkeleton />

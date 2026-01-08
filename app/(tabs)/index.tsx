@@ -8,8 +8,9 @@ import { useMigrationHelper } from "@/db/drizzle";
 import { useApiKeys } from "@/hooks/useApiKeys";
 import { useTrending } from "@/hooks/useTrending";
 import { useContinueWatching } from "@/hooks/useLibrary";
-import { useLists, useListItems, useListActions, DEFAULT_WATCHLIST_NAME } from "@/hooks/useLists";
-import { Search, Film, Tv, Settings } from "@/lib/icons";
+import { useLists, useListItems, useListActions } from "@/hooks/useLists";
+import { useRecommendations } from "@/hooks/useRecommendations";
+import { Search, Settings } from "@/lib/icons";
 import type { Media, MediaType } from "@/lib/types";
 
 export default function HomeScreen() {
@@ -27,6 +28,14 @@ export default function HomeScreen() {
   const { items: continueItems, refetch: refetchContinue } = useContinueWatching();
   const { lists, refetch: refetchLists } = useLists();
   const { ensureDefaultList, migrateFromWatchlist } = useListActions();
+
+  // Personalized recommendations
+  const {
+    sections: recommendationSections,
+    isLoading: loadingRecommendations,
+    hasPersonalization,
+    refetch: refetchRecommendations,
+  } = useRecommendations();
 
   // Find the default watchlist
   const defaultList = lists.find((l) => l.isDefault);
@@ -46,7 +55,13 @@ export default function HomeScreen() {
 
   const handleRefresh = async () => {
     setRefreshing(true);
-    await Promise.all([refetchTrending(), refetchContinue(), refetchLists(), refetchWatchlist()]);
+    await Promise.all([
+      refetchTrending(),
+      refetchContinue(),
+      refetchLists(),
+      refetchWatchlist(),
+      refetchRecommendations(),
+    ]);
     setRefreshing(false);
   };
 
@@ -161,6 +176,15 @@ export default function HomeScreen() {
             onSeeAll={() => router.push("/library" as any)}
           />
         )}
+
+        {/* Personalized Recommendations */}
+        {hasPersonalization && recommendationSections.map((section) => (
+          <MediaSection
+            key={section.id}
+            title={section.title}
+            items={section.items}
+          />
+        ))}
 
         {/* Trending Movies */}
         {loadingTrending ? (
