@@ -1,11 +1,6 @@
 import * as React from "react";
 import { View, Pressable, Image } from "react-native";
 import { useRouter } from "expo-router";
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-} from "react-native-reanimated";
 import { Text } from "@/components/ui/text";
 import { Badge } from "@/components/ui/badge";
 import { Star, Film, Tv } from "@/lib/icons";
@@ -13,8 +8,6 @@ import { lightImpact } from "@/lib/haptics";
 import type { Media } from "@/lib/types";
 import { getPosterUrl } from "@/lib/types";
 import { cn } from "@/lib/utils";
-
-const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 interface MediaCardProps {
   media: Media;
@@ -45,20 +38,6 @@ export function MediaCard({
   const { width, height } = SIZES[size];
   const posterUrl = getPosterUrl(media.posterPath, "medium");
 
-  const scale = useSharedValue(1);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }));
-
-  const handlePressIn = () => {
-    scale.value = withSpring(0.95, { damping: 15, stiffness: 400 });
-  };
-
-  const handlePressOut = () => {
-    scale.value = withSpring(1, { damping: 15, stiffness: 400 });
-  };
-
   const handlePress = () => {
     lightImpact();
     router.push({
@@ -71,12 +50,10 @@ export function MediaCard({
   };
 
   return (
-    <AnimatedPressable
+    <Pressable
       onPress={handlePress}
-      onPressIn={handlePressIn}
-      onPressOut={handlePressOut}
       className={cn("", className)}
-      style={[{ width }, animatedStyle]}
+      style={{ width }}
     >
       {/* Poster */}
       <View
@@ -144,6 +121,6 @@ export function MediaCard({
           </Text>
         )}
       </View>
-    </AnimatedPressable>
+    </Pressable>
   );
 }

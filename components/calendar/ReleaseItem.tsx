@@ -1,11 +1,6 @@
 import * as React from "react";
 import { View, Pressable, Image } from "react-native";
 import { useRouter } from "expo-router";
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-} from "react-native-reanimated";
 import { Text } from "@/components/ui/text";
 import { Badge } from "@/components/ui/badge";
 import { Film, Tv } from "@/lib/icons";
@@ -14,8 +9,6 @@ import { getPosterUrl } from "@/lib/types";
 import type { UpcomingRelease } from "@/lib/api/tmdb";
 import { cn } from "@/lib/utils";
 
-const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
-
 interface ReleaseItemProps {
   release: UpcomingRelease;
 }
@@ -23,20 +16,6 @@ interface ReleaseItemProps {
 export function ReleaseItem({ release }: ReleaseItemProps) {
   const router = useRouter();
   const posterUrl = getPosterUrl(release.media.posterPath, "small");
-
-  const scale = useSharedValue(1);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }));
-
-  const handlePressIn = () => {
-    scale.value = withSpring(0.95, { damping: 15, stiffness: 400 });
-  };
-
-  const handlePressOut = () => {
-    scale.value = withSpring(1, { damping: 15, stiffness: 400 });
-  };
 
   const handlePress = () => {
     lightImpact();
@@ -50,12 +29,9 @@ export function ReleaseItem({ release }: ReleaseItemProps) {
   };
 
   return (
-    <AnimatedPressable
+    <Pressable
       onPress={handlePress}
-      onPressIn={handlePressIn}
-      onPressOut={handlePressOut}
       className="flex-row bg-card rounded-lg border border-border p-3 mb-3 active:opacity-70"
-      style={animatedStyle}
     >
       {/* Poster */}
       <View className="w-16 h-24 rounded-md overflow-hidden bg-muted mr-3">
@@ -106,6 +82,6 @@ export function ReleaseItem({ release }: ReleaseItemProps) {
           )}
         </View>
       </View>
-    </AnimatedPressable>
+    </Pressable>
   );
 }
