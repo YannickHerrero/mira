@@ -38,16 +38,28 @@ export default function HomeScreen() {
     router.push("/search" as any);
   };
 
-  // Convert database records to Media type
-  const continueWatchingMedia: Media[] = continueItems.map((item) => ({
-    id: item.media.tmdbId,
-    mediaType: item.media.mediaType as MediaType,
-    title: item.media.title,
-    posterPath: item.media.posterPath,
-    backdropPath: item.media.backdropPath,
-    year: item.media.year,
-    score: item.media.score,
-    genres: item.media.genres ? JSON.parse(item.media.genres) : [],
+  // Convert database records to Media type with episode info for continue watching
+  const continueWatchingItems = continueItems.map((item) => ({
+    media: {
+      id: item.media.tmdbId,
+      mediaType: item.media.mediaType as MediaType,
+      title: item.media.title,
+      posterPath: item.media.posterPath,
+      backdropPath: item.media.backdropPath,
+      year: item.media.year,
+      score: item.media.score,
+      genres: item.media.genres ? JSON.parse(item.media.genres) : [],
+    } as Media,
+    // Include episode info for TV shows
+    episodeInfo:
+      item.media.mediaType === "tv" &&
+      item.progress.seasonNumber != null &&
+      item.progress.episodeNumber != null
+        ? {
+            seasonNumber: item.progress.seasonNumber,
+            episodeNumber: item.progress.episodeNumber,
+          }
+        : undefined,
   }));
 
   const watchlistMedia: Media[] = watchlistItems.map((item) => ({
@@ -118,10 +130,10 @@ export default function HomeScreen() {
         </View>
 
         {/* Continue Watching */}
-        {continueWatchingMedia.length > 0 && (
+        {continueWatchingItems.length > 0 && (
           <MediaSection
             title="Continue Watching"
-            items={continueWatchingMedia}
+            items={continueWatchingItems}
           />
         )}
 

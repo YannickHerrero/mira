@@ -5,11 +5,24 @@ import { MediaCard } from "@/components/media";
 import { ChevronRight } from "@/lib/icons";
 import type { Media } from "@/lib/types";
 
+export interface MediaSectionItem {
+  media: Media;
+  episodeInfo?: {
+    seasonNumber: number;
+    episodeNumber: number;
+  };
+}
+
 interface MediaSectionProps {
   title: string;
-  items: Media[];
+  items: Media[] | MediaSectionItem[];
   onSeeAll?: () => void;
   emptyMessage?: string;
+}
+
+// Type guard to check if item is MediaSectionItem (has media property)
+function isMediaSectionItem(item: Media | MediaSectionItem): item is MediaSectionItem {
+  return "media" in item;
 }
 
 export function MediaSection({
@@ -41,11 +54,21 @@ export function MediaSection({
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={{ paddingHorizontal: 12 }}
       >
-        {items.map((item) => (
-          <View key={`${item.mediaType}-${item.id}`} className="px-1.5">
-            <MediaCard media={item} size="medium" showBadge={false} />
-          </View>
-        ))}
+        {items.map((item) => {
+          const media = isMediaSectionItem(item) ? item.media : item;
+          const episodeInfo = isMediaSectionItem(item) ? item.episodeInfo : undefined;
+
+          return (
+            <View key={`${media.mediaType}-${media.id}`} className="px-1.5">
+              <MediaCard
+                media={media}
+                size="medium"
+                showBadge={false}
+                episodeInfo={episodeInfo}
+              />
+            </View>
+          );
+        })}
       </ScrollView>
     </View>
   );

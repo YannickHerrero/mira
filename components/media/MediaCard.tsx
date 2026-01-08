@@ -21,6 +21,11 @@ interface MediaCardProps {
   size?: "small" | "medium" | "large";
   showBadge?: boolean;
   className?: string;
+  /** Episode info for continue watching (TV shows only) */
+  episodeInfo?: {
+    seasonNumber: number;
+    episodeNumber: number;
+  };
 }
 
 const SIZES = {
@@ -34,6 +39,7 @@ export function MediaCard({
   size = "medium",
   showBadge = true,
   className,
+  episodeInfo,
 }: MediaCardProps) {
   const router = useRouter();
   const { width, height } = SIZES[size];
@@ -110,6 +116,15 @@ export function MediaCard({
             <Star size={10} className="text-yellow-400 mr-0.5" fill="#facc15" />
             <Text className="text-[10px] text-white font-medium">
               {media.score.toFixed(1)}
+            </Text>
+          </View>
+        )}
+
+        {/* Episode info badge for continue watching */}
+        {episodeInfo && (
+          <View className="absolute bottom-0 left-0 right-0 bg-black/80 px-2 py-1.5">
+            <Text className="text-[11px] text-white font-medium">
+              S{episodeInfo.seasonNumber} E{episodeInfo.episodeNumber}
             </Text>
           </View>
         )}

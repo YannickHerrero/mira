@@ -132,8 +132,8 @@ export default function LibraryScreen() {
           );
         }
         return (
-          <MediaGridFromJoin
-            items={continueItems.map((item) => item.media)}
+          <ContinueWatchingGrid
+            items={continueItems}
             refreshing={refreshing}
             onRefresh={handleRefresh}
           />
@@ -384,6 +384,57 @@ function MediaGridFromJoin({ items, refreshing, onRefresh }: MediaGridLocalProps
             <MediaCard media={dbRecordToMedia(item)} size="medium" />
           </View>
         ))}
+      </View>
+    </ScrollView>
+  );
+}
+
+interface ContinueWatchingGridProps {
+  items: Array<{
+    progress: {
+      seasonNumber: number | null;
+      episodeNumber: number | null;
+    };
+    media: any;
+  }>;
+  refreshing?: boolean;
+  onRefresh?: () => void;
+}
+
+function ContinueWatchingGrid({ items, refreshing, onRefresh }: ContinueWatchingGridProps) {
+  return (
+    <ScrollView
+      className="flex-1"
+      contentContainerStyle={{ padding: 12 }}
+      showsVerticalScrollIndicator={false}
+      refreshControl={
+        onRefresh ? (
+          <RefreshControl refreshing={refreshing ?? false} onRefresh={onRefresh} />
+        ) : undefined
+      }
+    >
+      <View className="flex-row flex-wrap">
+        {items.map((item) => {
+          const episodeInfo =
+            item.media.mediaType === "tv" &&
+            item.progress.seasonNumber != null &&
+            item.progress.episodeNumber != null
+              ? {
+                  seasonNumber: item.progress.seasonNumber,
+                  episodeNumber: item.progress.episodeNumber,
+                }
+              : undefined;
+
+          return (
+            <View key={`${item.media.tmdbId}-${item.media.mediaType}`} className="p-1.5">
+              <MediaCard
+                media={dbRecordToMedia(item.media)}
+                size="medium"
+                episodeInfo={episodeInfo}
+              />
+            </View>
+          );
+        })}
       </View>
     </ScrollView>
   );

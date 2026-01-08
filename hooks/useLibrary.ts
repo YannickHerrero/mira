@@ -4,29 +4,78 @@ import { useDatabase } from "@/db/provider";
 import { mediaTable, watchProgressTable, watchlistTable } from "@/db/schema";
 import type { Media, MediaType } from "@/lib/types";
 
+export interface ContinueWatchingProgress {
+  tmdbId: number;
+  mediaType: "movie" | "tv";
+  seasonNumber: number | null;
+  episodeNumber: number | null;
+  position: number;
+  duration: number;
+  completed: boolean | null;
+  watchedAt: string | null;
+  updatedAt: string | null;
+}
+
+export interface ContinueWatchingItem {
+  progress: ContinueWatchingProgress;
+  media: {
+    tmdbId: number;
+    mediaType: string;
+    title: string;
+    titleOriginal: string | null;
+    imdbId: string | null;
+    year: number | null;
+    score: number | null;
+    posterPath: string | null;
+    backdropPath: string | null;
+    description: string | null;
+    genres: string | null;
+    seasonCount: number | null;
+    episodeCount: number | null;
+    isFavorite: boolean | null;
+    addedAt: string | null;
+    updatedAt: string | null;
+  };
+}
+
 /**
  * Hook to get media currently being watched (not completed)
+ * For TV shows, only shows the most recently watched episode per show
  */
 export function useContinueWatching() {
   const { db } = useDatabase();
-  const [items, setItems] = useState<any[]>([]);
+  const [items, setItems] = useState<ContinueWatchingItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchData = useCallback(async () => {
     if (!db) return;
 
     try {
-      // Get progress entries
+      // Get progress entries ordered by most recent
       const progressResult = await db
         .select()
         .from(watchProgressTable)
         .where(eq(watchProgressTable.completed, false))
-        .orderBy(desc(watchProgressTable.updatedAt))
-        .limit(10);
+        .orderBy(desc(watchProgressTable.updatedAt));
+
+      // Deduplicate: keep only the most recent episode per TV show
+      // Movies are unique by nature, TV shows should only appear once
+      const seenMedia = new Map<string, (typeof progressResult)[0]>();
+
+      for (const progress of progressResult) {
+        const key = `${progress.tmdbId}-${progress.mediaType}`;
+        // Only keep the first (most recent) entry per media
+        if (!seenMedia.has(key)) {
+          seenMedia.set(key, progress);
+        }
+      }
+
+      // Get unique progress entries, limited to 20
+      const uniqueProgress = Array.from(seenMedia.values()).slice(0, 20);
 
       // For each progress, get the media
-      const itemsWithMedia = [];
-      for (const progress of progressResult) {
+      const itemsWithMedia: ContinueWatchingItem[] = [];
+      for (const progress of uniqueProgress) {
         const mediaResult = await db
           .select()
           .from(mediaTable)
