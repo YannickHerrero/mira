@@ -8,7 +8,7 @@ import Slider from "@react-native-community/slider";
 import { Text } from "@/components/ui/text";
 import { Play, ChevronLeft, Lock, Unlock } from "@/lib/icons";
 import { lightImpact, selectionChanged } from "@/lib/haptics";
-import type { PlayerState } from "./VLCVideoPlayer";
+import type { PlayerState } from "./VLCVideoPlayer.types";
 import { SelectedTrackType, type SelectedTrack } from "react-native-video";
 
 interface PlayerControlsProps {

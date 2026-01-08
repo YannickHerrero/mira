@@ -1,11 +1,16 @@
 import * as React from "react";
-import { View, StatusBar, ActivityIndicator } from "react-native";
+import { View, StatusBar, ActivityIndicator, Platform } from "react-native";
 import { useLocalSearchParams, Stack, useRouter } from "expo-router";
-import * as ScreenOrientation from "expo-screen-orientation";
 import { VLCVideoPlayer } from "@/components/player";
 import { Text } from "@/components/ui/text";
 import { useWatchProgress } from "@/hooks/useWatchProgress";
 import type { MediaType } from "@/lib/types";
+
+// Conditionally import screen orientation for native only
+let ScreenOrientation: typeof import("expo-screen-orientation") | null = null;
+if (Platform.OS !== "web") {
+  ScreenOrientation = require("expo-screen-orientation");
+}
 
 // Save progress every 15 seconds
 const PROGRESS_SAVE_INTERVAL = 15;
@@ -82,12 +87,14 @@ export default function PlayerScreen() {
     });
   }, [url, title, parsedTmdbId, mediaType, parsedSeasonNumber, parsedEpisodeNumber]);
 
-  // Unlock orientation when entering player, lock to portrait when leaving
+  // Unlock orientation when entering player, lock to portrait when leaving (native only)
   React.useEffect(() => {
+    if (Platform.OS === "web" || !ScreenOrientation) return;
+
     ScreenOrientation.unlockAsync();
 
     return () => {
-      ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
+      ScreenOrientation?.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
     };
   }, []);
 

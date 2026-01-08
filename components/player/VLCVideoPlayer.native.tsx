@@ -12,29 +12,9 @@ import { findBestAudioTrack, findBestSubtitleTrack } from "@/lib/language-utils"
 // Debug logging
 const LOG_PREFIX = "[VLCPlayer]";
 
-interface VLCVideoPlayerProps {
-  url: string;
-  title?: string;
-  initialPosition?: number;
-  onProgress?: (position: number, duration: number) => void;
-  onEnd?: () => void;
-  onBack?: () => void;
-}
-
-export interface PlayerState {
-  isPlaying: boolean;
-  isBuffering: boolean;
-  position: number;
-  duration: number;
-  volume: number;
-  brightness: number;
-  playbackRate: number;
-  audioTracks: AudioTrack[];
-  textTracks: TextTrack[];
-  selectedAudioTrack?: SelectedTrack;
-  selectedTextTrack?: SelectedTrack;
-  isLocked: boolean;
-}
+// Re-export types from shared types file
+export type { PlayerState, VLCVideoPlayerProps } from "./VLCVideoPlayer.types";
+import type { VLCVideoPlayerProps, PlayerState } from "./VLCVideoPlayer.types";
 
 export function VLCVideoPlayer({
   url,
