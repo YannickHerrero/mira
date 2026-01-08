@@ -7,6 +7,7 @@ A cross-platform media streaming app that allows users to search and stream movi
 - Search movies and TV shows via TMDB
 - Stream content via Real-Debrid integration
 - Track watch progress across episodes
+- Download content for offline viewing
 - Manage watchlist and favorites
 - Multiple audio track and subtitle support
 - Gesture controls (seek, volume, brightness)
