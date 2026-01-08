@@ -1,7 +1,8 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
+import { useFocusEffect } from "expo-router";
 import { eq } from "drizzle-orm";
 import { useDatabase } from "@/db/provider";
-import { listsTable, listItemsTable, mediaTable } from "@/db/schema";
+import { listsTable, listItemsTable } from "@/db/schema";
 import { useApiKeyStore } from "@/stores/api-keys";
 import { createTMDBClient } from "@/lib/api/tmdb";
 import type { UpcomingRelease } from "@/lib/api/tmdb";
@@ -24,13 +25,22 @@ export function useUpcomingReleases(): UseUpcomingReleasesReturn {
   const [releasesByDate, setReleasesByDate] = useState<Map<string, UpcomingRelease[]>>(new Map());
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const isFetchingRef = useRef(false);
+  const hasFetchedRef = useRef(false);
 
-  const fetchData = useCallback(async () => {
+  const fetchData = useCallback(async (force = false) => {
     if (!db || !tmdbApiKey) {
       setIsLoading(false);
       setError(tmdbApiKey ? "Database not ready" : "TMDB API key not configured");
       return;
     }
+
+    // Prevent concurrent fetches and re-fetches unless forced
+    if (isFetchingRef.current || (hasFetchedRef.current && !force)) {
+      return;
+    }
+
+    isFetchingRef.current = true;
 
     try {
       setError(null);
@@ -113,28 +123,35 @@ export function useUpcomingReleases(): UseUpcomingReleasesReturn {
       }
 
       setReleasesByDate(groupedByDate);
+      hasFetchedRef.current = true;
     } catch (err) {
       console.error("Failed to fetch upcoming releases:", err);
       setError(err instanceof Error ? err.message : "Failed to fetch upcoming releases");
       setReleasesByDate(new Map());
     } finally {
       setIsLoading(false);
+      isFetchingRef.current = false;
     }
   }, [db, tmdbApiKey]);
 
-  useEffect(() => {
-    if (db && tmdbApiKey) {
-      fetchData();
-    }
-  }, [db, tmdbApiKey, fetchData]);
+  useFocusEffect(
+    useCallback(() => {
+      if (db && tmdbApiKey) {
+        fetchData();
+      }
+    }, [db, tmdbApiKey, fetchData])
+  );
+
+  const refetch = useCallback(async () => {
+    setIsLoading(true);
+    hasFetchedRef.current = false;
+    await fetchData(true);
+  }, [fetchData]);
 
   return {
     releasesByDate,
     isLoading,
     error,
-    refetch: async () => {
-      setIsLoading(true);
-      await fetchData();
-    },
+    refetch,
   };
 }
