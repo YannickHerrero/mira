@@ -1,0 +1,111 @@
+import * as React from "react";
+import { View, Pressable, Image } from "react-native";
+import { useRouter } from "expo-router";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+} from "react-native-reanimated";
+import { Text } from "@/components/ui/text";
+import { Badge } from "@/components/ui/badge";
+import { Film, Tv } from "@/lib/icons";
+import { lightImpact } from "@/lib/haptics";
+import { getPosterUrl } from "@/lib/types";
+import type { UpcomingRelease } from "@/lib/api/tmdb";
+import { cn } from "@/lib/utils";
+
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+
+interface ReleaseItemProps {
+  release: UpcomingRelease;
+}
+
+export function ReleaseItem({ release }: ReleaseItemProps) {
+  const router = useRouter();
+  const posterUrl = getPosterUrl(release.media.posterPath, "small");
+
+  const scale = useSharedValue(1);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  const handlePressIn = () => {
+    scale.value = withSpring(0.95, { damping: 15, stiffness: 400 });
+  };
+
+  const handlePressOut = () => {
+    scale.value = withSpring(1, { damping: 15, stiffness: 400 });
+  };
+
+  const handlePress = () => {
+    lightImpact();
+    router.push({
+      pathname: "/media/[id]",
+      params: {
+        id: release.media.id.toString(),
+        type: release.media.mediaType,
+      },
+    } as any);
+  };
+
+  return (
+    <AnimatedPressable
+      onPress={handlePress}
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
+      className="flex-row bg-card rounded-lg border border-border p-3 mb-3 active:opacity-70"
+      style={animatedStyle}
+    >
+      {/* Poster */}
+      <View className="w-16 h-24 rounded-md overflow-hidden bg-muted mr-3">
+        {posterUrl ? (
+          <Image
+            source={{ uri: posterUrl }}
+            style={{ width: 64, height: 96 }}
+            resizeMode="cover"
+          />
+        ) : (
+          <View className="flex-1 items-center justify-center">
+            {release.media.mediaType === "movie" ? (
+              <Film size={24} className="text-muted-foreground" />
+            ) : (
+              <Tv size={24} className="text-muted-foreground" />
+            )}
+          </View>
+        )}
+      </View>
+
+      {/* Info */}
+      <View className="flex-1 justify-center">
+        <Text className="text-sm font-medium text-foreground mb-1">
+          {release.media.title}
+        </Text>
+
+        {/* Release info */}
+        {release.releaseType === "episode" && release.episodeInfo ? (
+          <Text className="text-xs text-muted-foreground">
+            S{release.episodeInfo.seasonNumber} E{release.episodeInfo.episodeNumber}{" "}
+            • {release.episodeInfo.episodeName}
+          </Text>
+        ) : (
+          <Text className="text-xs text-muted-foreground">Movie Release</Text>
+        )}
+
+        {/* Media type badge */}
+        <View className="flex-row items-center mt-2 gap-2">
+          <Badge variant="secondary" className="px-1.5 py-0.5 bg-primary/10">
+            <Text className="text-[10px] text-primary uppercase font-medium">
+              {release.media.mediaType === "movie" ? "Movie" : "TV"}
+            </Text>
+          </Badge>
+          {release.media.score !== undefined && release.media.score > 0 && (
+            <Text className="text-xs text-muted-foreground">
+              {release.media.score.toFixed(1)}★
+            </Text>
+          )}
+        </View>
+      </View>
+    </AnimatedPressable>
+  );
+}

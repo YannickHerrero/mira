@@ -13,6 +13,17 @@ import {
   GENRE_MAP,
 } from "@/lib/types";
 
+export interface UpcomingRelease {
+  media: Media;
+  releaseDate: string;
+  releaseType: "episode" | "movie";
+  episodeInfo?: {
+    seasonNumber: number;
+    episodeNumber: number;
+    episodeName: string;
+  };
+}
+
 const TMDB_API_URL = "https://api.themoviedb.org/3";
 
 // ============================================
@@ -66,6 +77,15 @@ interface TMDBMovieDetails {
   overview?: string;
   genres: { id: number; name: string }[];
   runtime?: number;
+  status?: string;
+}
+
+interface TMDBEpisodeAirInfo {
+  air_date: string;
+  episode_number: number;
+  season_number: number;
+  name: string;
+  overview?: string;
 }
 
 interface TMDBTvDetails {
@@ -81,6 +101,8 @@ interface TMDBTvDetails {
   number_of_seasons: number;
   number_of_episodes: number;
   seasons: TMDBSeasonInfo[];
+  status?: string;
+  next_episode_to_air?: TMDBEpisodeAirInfo | null;
 }
 
 interface TMDBSeasonInfo {
@@ -480,17 +502,98 @@ export class TMDBClient {
     return response.results.map((t) => this.mapTvResult(t));
   }
 
-  /**
-   * Validate API key by making a simple request
-   */
-  async validateApiKey(): Promise<boolean> {
-    try {
-      await this.fetch<{ status_message?: string }>("/configuration");
-      return true;
-    } catch {
-      return false;
-    }
-  }
+   /**
+    * Get TV show's next episode air date
+    */
+   async getTvUpcomingEpisode(tmdbId: number): Promise<UpcomingRelease | null> {
+     try {
+       const details = await this.fetch<TMDBTvDetails>(`/tv/${tmdbId}`);
+
+       if (!details.next_episode_to_air) {
+         return null;
+       }
+
+       const media: Media = {
+         id: details.id,
+         mediaType: "tv",
+         title: details.name,
+         titleOriginal: details.original_name,
+         year: details.first_air_date
+           ? parseInt(details.first_air_date.slice(0, 4), 10)
+           : undefined,
+         score: details.vote_average,
+         posterPath: details.poster_path ?? undefined,
+         backdropPath: details.backdrop_path ?? undefined,
+         description: details.overview ?? undefined,
+         genres: details.genres.map((g) => g.name),
+         seasonCount: details.number_of_seasons,
+         episodeCount: details.number_of_episodes,
+       };
+
+       return {
+         media,
+         releaseDate: details.next_episode_to_air.air_date,
+         releaseType: "episode",
+         episodeInfo: {
+           seasonNumber: details.next_episode_to_air.season_number,
+           episodeNumber: details.next_episode_to_air.episode_number,
+           episodeName: details.next_episode_to_air.name,
+         },
+       };
+     } catch (err) {
+       console.error(`Failed to get TV upcoming episode for ${tmdbId}:`, err);
+       return null;
+     }
+   }
+
+   /**
+    * Get movie release info
+    */
+   async getMovieReleaseInfo(tmdbId: number): Promise<UpcomingRelease | null> {
+     try {
+       const details = await this.fetch<TMDBMovieDetails>(`/movie/${tmdbId}`);
+
+       if (!details.release_date) {
+         return null;
+       }
+
+       const media: Media = {
+         id: details.id,
+         mediaType: "movie",
+         title: details.title,
+         titleOriginal: details.original_title,
+         year: details.release_date
+           ? parseInt(details.release_date.slice(0, 4), 10)
+           : undefined,
+         score: details.vote_average,
+         posterPath: details.poster_path ?? undefined,
+         backdropPath: details.backdrop_path ?? undefined,
+         description: details.overview ?? undefined,
+         genres: details.genres.map((g) => g.name),
+       };
+
+       return {
+         media,
+         releaseDate: details.release_date,
+         releaseType: "movie",
+       };
+     } catch (err) {
+       console.error(`Failed to get movie release info for ${tmdbId}:`, err);
+       return null;
+     }
+   }
+
+   /**
+    * Validate API key by making a simple request
+    */
+   async validateApiKey(): Promise<boolean> {
+     try {
+       await this.fetch<{ status_message?: string }>("/configuration");
+       return true;
+     } catch {
+       return false;
+     }
+   }
 
   // ============================================
   // Private helpers

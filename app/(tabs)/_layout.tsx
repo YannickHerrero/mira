@@ -1,5 +1,6 @@
 import { Home } from "@/lib/icons/Home";
 import { Search } from "@/lib/icons/Search";
+import { CalendarDays } from "@/lib/icons/CalendarDays";
 import { Library } from "@/lib/icons/Library";
 import { Settings } from "@/lib/icons/Settings";
 import { Tabs } from "expo-router";
@@ -36,6 +37,13 @@ export default function TabLayout() {
         options={{
           title: "Search",
           tabBarIcon: ({ color, size }) => <Search color={color} size={size} />,
+        }}
+      />
+      <Tabs.Screen
+        name="calendar"
+        options={{
+          title: "Calendar",
+          tabBarIcon: ({ color, size }) => <CalendarDays color={color} size={size} />,
         }}
       />
       <Tabs.Screen
