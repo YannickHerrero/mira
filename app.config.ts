@@ -52,7 +52,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ],
   experiments: {
     typedRoutes: true,
-    baseUrl: "/mira",
   },
   extra: {
     eas: {
