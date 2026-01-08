@@ -11,8 +11,10 @@ import { BookOpen, Shield, Star, Send, MonitorPlay } from "@/lib/icons";
 import { ThemeSettingItem } from "@/components/settings/ThemeItem";
 import { ApiKeyItem } from "@/components/settings/ApiKeyItem";
 import { QualityFilterItem, LanguageFilterItem } from "@/components/settings/SourceFilterItem";
+import { AudioPreferenceItem, SubtitlePreferenceItem } from "@/components/settings/StreamingPreferenceItem";
 import { useApiKeys } from "@/hooks/useApiKeys";
 import { useSettings } from "@/hooks/useSettings";
+import { useStreamingPreferences } from "@/hooks/useStreamingPreferences";
 import { selectionChanged } from "@/lib/haptics";
 
 export default function Settings() {
@@ -30,6 +32,7 @@ export default function Settings() {
   } = useApiKeys();
 
   const { useVlcPlayer, setUseVlcPlayer, isLoading: isLoadingSettings } = useSettings();
+  const { isLoading: isLoadingStreamingPrefs } = useStreamingPreferences();
 
   const handleVlcToggle = (checked: boolean) => {
     selectionChanged();
@@ -44,7 +47,7 @@ export default function Settings() {
     }
   };
 
-  if (isLoading || isLoadingSettings) {
+  if (isLoading || isLoadingSettings || isLoadingStreamingPrefs) {
     return (
       <View className="flex-1 bg-background items-center justify-center">
         <ActivityIndicator size="large" />
@@ -110,6 +113,13 @@ export default function Settings() {
             />
           )}
         />
+
+        {/* Streaming Preferences */}
+        <ListHeader className="pt-8">
+          <Muted>STREAMING PREFERENCES</Muted>
+        </ListHeader>
+        <AudioPreferenceItem />
+        <SubtitlePreferenceItem />
 
         {/* App Settings */}
         <ListHeader className="pt-8">

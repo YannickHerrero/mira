@@ -6,6 +6,8 @@ import { useKeepAwake } from "expo-keep-awake";
 import { PlayerControls } from "./PlayerControls";
 import { PlayerGestures } from "./PlayerGestures";
 import { SelectedTrackType, type SelectedTrack, type AudioTrack, type TextTrack } from "react-native-video";
+import { useStreamingPreferencesStore } from "@/stores/streaming-preferences";
+import { findBestAudioTrack, findBestSubtitleTrack } from "@/lib/language-utils";
 
 // Debug logging
 const LOG_PREFIX = "[VLCPlayer]";
@@ -173,25 +175,63 @@ export function VLCVideoPlayer({
       videoSize: event.videoSize,
     });
 
+    // Convert VLC tracks to our AudioTrack/TextTrack format
+    const audioTracks: AudioTrack[] = (event.audioTracks || []).map((t: Track) => ({
+      index: t.id,
+      title: t.name,
+      language: t.name,
+      type: "audio" as const,
+      selected: false,
+    }));
+
+    const textTracks: TextTrack[] = (event.textTracks || []).map((t: Track) => ({
+      index: t.id,
+      title: t.name,
+      language: t.name,
+      type: "text" as const,
+      selected: false,
+    }));
+
+    // Get user's streaming preferences
+    const { preferredAudioLanguages, preferredSubtitleLanguages } =
+      useStreamingPreferencesStore.getState();
+
+    // Auto-select best audio track based on preferences
+    let selectedAudioTrack: SelectedTrack | undefined;
+    if (preferredAudioLanguages.length > 0 && audioTracks.length > 0) {
+      const bestAudio = findBestAudioTrack(audioTracks, preferredAudioLanguages);
+      if (bestAudio) {
+        console.log(LOG_PREFIX, "Auto-selecting audio track:", bestAudio.title);
+        selectedAudioTrack = { type: SelectedTrackType.INDEX, value: bestAudio.index };
+      }
+    }
+
+    // Auto-select best subtitle track based on preferences
+    let selectedTextTrack: SelectedTrack | undefined;
+    if (preferredSubtitleLanguages.length > 0 && textTracks.length > 0) {
+      const { track: bestSubtitle, shouldDisable } = findBestSubtitleTrack(
+        textTracks,
+        preferredSubtitleLanguages
+      );
+      if (shouldDisable) {
+        console.log(LOG_PREFIX, "Auto-disabling subtitles (preference)");
+        selectedTextTrack = { type: SelectedTrackType.DISABLED, value: undefined };
+      } else if (bestSubtitle) {
+        console.log(LOG_PREFIX, "Auto-selecting subtitle track:", bestSubtitle.title);
+        selectedTextTrack = { type: SelectedTrackType.INDEX, value: bestSubtitle.index };
+      }
+    }
+
     setIsLoaded(true);
     setPlayerState((prev) => ({
       ...prev,
       duration: event.duration / 1000, // Convert ms to seconds
-      audioTracks: (event.audioTracks || []).map((t: Track) => ({
-        index: t.id,
-        title: t.name,
-        language: t.name,
-        type: "audio" as const,
-        selected: false,
-      })),
-      textTracks: (event.textTracks || []).map((t: Track) => ({
-        index: t.id,
-        title: t.name,
-        language: t.name,
-        type: "text" as const,
-        selected: false,
-      })),
+      audioTracks,
+      textTracks,
       isBuffering: false,
+      // Apply auto-selected tracks
+      ...(selectedAudioTrack && { selectedAudioTrack }),
+      ...(selectedTextTrack && { selectedTextTrack }),
     }));
 
     // Seek to initial position if provided

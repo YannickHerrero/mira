@@ -43,3 +43,6 @@ export { EyeOff } from "./EyeOff";
 export { ListChecks } from "./ListChecks";
 export { Download } from "./Download";
 export { Trash } from "./Trash";
+export { Subtitles } from "./Subtitles";
+export { ChevronUp } from "./ChevronUp";
+export { ChevronDown } from "./ChevronDown";
