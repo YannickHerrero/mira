@@ -9,8 +9,10 @@ import { SourceActionSheet } from "./SourceActionSheet";
 import { useDownloads, useDownloadStatus } from "@/hooks/useDownloads";
 import { useMediaPlayer } from "@/hooks/useSettings";
 import { mediumImpact } from "@/lib/haptics";
-import { Check, Play } from "@/lib/icons";
+import { Check, Play, Eye } from "@/lib/icons";
 import type { Stream, MediaType } from "@/lib/types";
+import { useSourceFilters } from "@/hooks/useSourceFilters";
+import { filterStreams, hasActiveFilters } from "@/lib/filter-streams";
 
 interface SourceListProps {
   streams: Stream[];
@@ -39,6 +41,7 @@ export function SourceList({
   posterPath,
 }: SourceListProps) {
   const [selectedStream, setSelectedStream] = React.useState<Stream | null>(null);
+  const [showAllSources, setShowAllSources] = React.useState(false);
   const actionSheetRef = React.useRef<BottomSheetModal>(null);
   
   const { queueDownload } = useDownloads();
@@ -49,18 +52,34 @@ export function SourceList({
   );
   const { playMedia } = useMediaPlayer();
 
+  // Get filter settings from store (hook loads filters on mount)
+  const { qualities, languages } = useSourceFilters();
+  const filters = React.useMemo(
+    () => ({ qualities, languages }),
+    [qualities, languages]
+  );
+  const filtersActive = hasActiveFilters(filters);
+
+  // Apply filters to streams (unless "Show All" is active)
+  const filteredStreams = React.useMemo(() => {
+    if (showAllSources || !filtersActive) {
+      return streams;
+    }
+    return filterStreams(streams, filters);
+  }, [streams, filters, showAllSources, filtersActive]);
+
   // Sort streams to show downloaded source at top
   const sortedStreams = React.useMemo(() => {
-    if (!download || download.status !== "completed") return streams;
+    if (!download || download.status !== "completed") return filteredStreams;
     
     // Find the downloaded stream by URL and move it to top
-    const downloadedIndex = streams.findIndex(s => s.url === download.streamUrl);
-    if (downloadedIndex === -1) return streams;
+    const downloadedIndex = filteredStreams.findIndex(s => s.url === download.streamUrl);
+    if (downloadedIndex === -1) return filteredStreams;
     
-    const downloadedStream = streams[downloadedIndex];
-    const otherStreams = streams.filter((_, i) => i !== downloadedIndex);
+    const downloadedStream = filteredStreams[downloadedIndex];
+    const otherStreams = filteredStreams.filter((_, i) => i !== downloadedIndex);
     return [downloadedStream, ...otherStreams];
-  }, [streams, download]);
+  }, [filteredStreams, download]);
 
   // Handler to play downloaded content
   const handlePlayDownloaded = React.useCallback(async () => {
@@ -186,6 +205,30 @@ export function SourceList({
     );
   }
 
+  // All sources filtered out - show message with "Show All" button
+  if (filteredStreams.length === 0 && filtersActive && !showAllSources) {
+    return (
+      <View className="flex-1 items-center justify-center py-12 px-6">
+        <Text className="text-muted-foreground text-center">
+          No sources match your filters.
+        </Text>
+        <Text className="text-muted-foreground text-center text-sm mt-2">
+          {streams.length} source{streams.length !== 1 ? "s" : ""} available
+        </Text>
+        <Button
+          variant="outline"
+          className="flex-row items-center justify-center mt-4"
+          onPress={() => setShowAllSources(true)}
+        >
+          <Eye size={16} className="text-foreground mr-2" />
+          <Text className="text-foreground">
+            Show All {streams.length} Sources
+          </Text>
+        </Button>
+      </View>
+    );
+  }
+
   return (
     <>
       <FlatList
@@ -219,7 +262,16 @@ export function SourceList({
             )}
 
             <Text className="text-sm text-muted-foreground mb-1">
-              {streams.length} source{streams.length !== 1 ? "s" : ""} found
+              {filtersActive && !showAllSources ? (
+                <>
+                  Showing {filteredStreams.length} of {streams.length} source
+                  {streams.length !== 1 ? "s" : ""} (filtered)
+                </>
+              ) : (
+                <>
+                  {streams.length} source{streams.length !== 1 ? "s" : ""} found
+                </>
+              )}
             </Text>
             {Platform.OS !== "web" && !isDownloaded && (
               <Text className="text-xs text-muted-foreground mb-3">
@@ -227,6 +279,22 @@ export function SourceList({
               </Text>
             )}
           </View>
+        }
+        ListFooterComponent={
+          filtersActive && !showAllSources && filteredStreams.length < streams.length ? (
+            <View className="mt-4 mb-8">
+              <Button
+                variant="outline"
+                className="flex-row items-center justify-center"
+                onPress={() => setShowAllSources(true)}
+              >
+                <Eye size={16} className="text-foreground mr-2" />
+                <Text className="text-foreground">
+                  Show All {streams.length} Sources
+                </Text>
+              </Button>
+            </View>
+          ) : null
         }
       />
 

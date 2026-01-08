@@ -10,6 +10,7 @@ import { Muted } from "@/components/ui/typography";
 import { BookOpen, Shield, Star, Send, MonitorPlay } from "@/lib/icons";
 import { ThemeSettingItem } from "@/components/settings/ThemeItem";
 import { ApiKeyItem } from "@/components/settings/ApiKeyItem";
+import { QualityFilterItem, LanguageFilterItem } from "@/components/settings/SourceFilterItem";
 import { useApiKeys } from "@/hooks/useApiKeys";
 import { useSettings } from "@/hooks/useSettings";
 import { selectionChanged } from "@/lib/haptics";
@@ -85,6 +86,13 @@ export default function Settings() {
           }
           onSave={setRealDebridKey}
         />
+
+        {/* Source Filters */}
+        <ListHeader className="pt-8">
+          <Muted>SOURCE FILTERS</Muted>
+        </ListHeader>
+        <QualityFilterItem />
+        <LanguageFilterItem />
 
         {/* Playback Settings */}
         <ListHeader className="pt-8">
