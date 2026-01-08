@@ -1,39 +1,105 @@
 # Mira
 
-A cross-platform media streaming app that allows users to search and stream movies and TV shows. Built with Expo and React Native.
+> Cross-platform streaming app for movies and TV shows
 
-## Features
+A media streaming application built with React Native and Expo. Search movies and TV shows via TMDB, fetch torrent sources via Torrentio, and stream content through Real-Debrid — all from a single, unified interface across Android, iOS, and Web.
 
-- Search movies and TV shows via TMDB
-- Stream content via Real-Debrid integration
-- Track watch progress across episodes
-- Download content for offline viewing
-- Manage watchlist and favorites
-- Multiple audio track and subtitle support
-- Streaming preferences (preferred audio/subtitle languages with priority ordering)
-- Source filtering (quality and language filters for stream sources)
-- Gesture controls (seek, volume, brightness)
-- Screen lock during playback
-- Dark and light mode support
-- Cross-platform (Android, iOS, Web)
+## Screenshots
+
+![Mira Demo](docs/demo.gif)
+
+<!-- TODO: Add demo GIF or screenshots -->
+
+## Highlights
+
+- **Search & Discover** — Browse movies and TV shows with metadata from TMDB
+- **Stream via Real-Debrid** — High-quality streaming through debrid service integration
+- **Track Your Progress** — Automatic watch progress tracking across episodes
+- **Full Player Controls** — Gestures for seek, volume, brightness, plus screen lock
+- **Offline Support** — Download content for offline viewing
+- **Cross-Platform** — Works on Android, iOS, and Web from a single codebase
+
+## Overview
+
+Mira bridges the gap between content discovery and streaming. It combines TMDB's extensive movie and TV database with Torrentio's source aggregation and Real-Debrid's premium streaming capabilities. The result is a seamless experience where you can search for any title, select your preferred source quality and language, and start streaming immediately.
+
+The app handles the complexity of managing multiple services behind a clean, intuitive interface — complete with watch history, favorites, and personalized streaming preferences.
+
+### Author
+
+Created by [Yannick Herrero](https://github.com/YannickHerrero)
 
 ## Tech Stack
 
-- **Framework**: Expo v54 + React Native 0.81.4
-- **Routing**: Expo Router (file-based routing)
-- **Styling**: NativeWind v4 (Tailwind CSS for React Native)
-- **Database**: Expo SQLite (native) + sql.js (web) with Drizzle ORM
-- **State**: Zustand for global state
-- **Video**: VLC Media Player (react-native-vlc-media-player)
-- **APIs**: TMDB (metadata), Real-Debrid (streaming), Torrentio (sources)
+| Component | Tool | Description |
+|-----------|------|-------------|
+| Framework | [Expo](https://expo.dev/) v54 + React Native | Cross-platform mobile/web development |
+| Routing | [Expo Router](https://docs.expo.dev/router/introduction/) | File-based navigation |
+| Styling | [NativeWind](https://www.nativewind.dev/) v4 | Tailwind CSS for React Native |
+| Database | Expo SQLite + [Drizzle ORM](https://orm.drizzle.team/) | Local storage with sql.js for web |
+| State | [Zustand](https://zustand-demo.pmnd.rs/) | Lightweight global state management |
+| Video | VLC Media Player | Hardware-accelerated playback |
+| Metadata | [TMDB API](https://www.themoviedb.org/) | Movie and TV show information |
+| Sources | Torrentio | Torrent source aggregation |
+| Streaming | [Real-Debrid](http://real-debrid.com/?id=16544328) | Premium debrid service |
 
-## Requirements
+## Features
 
-- Node.js 20+ and Bun
+### Streaming & Sources
+
+- Stream content via Real-Debrid integration
+- Source filtering by quality (4K, 1080p, 720p, etc.)
+- Language filters for stream sources
+- Multiple audio track support
+- Subtitle support with language selection
+
+### Player Controls
+
+- Gesture controls for seek, volume, and brightness
+- Screen lock during playback
+- Streaming preferences with priority ordering
+- Preferred audio and subtitle language settings
+
+### Library & Progress
+
+- Automatic watch progress tracking
+- Resume playback across episodes
+- Manage watchlist and favorites
+- Download content for offline viewing
+
+### Appearance
+
+- Dark and light mode support
+- Clean, intuitive interface
+
+## Repository Structure
+
+```
+mira/
+├── app/                    # Expo Router pages (file-based routing)
+│   ├── (tabs)/             # Tab navigation (home, search, library, settings)
+│   ├── media/[id].tsx      # Media detail screen
+│   └── player.tsx          # Video player screen
+├── components/
+│   ├── media/              # Media cards, grids, episode pickers
+│   ├── player/             # VLC player, controls, gestures
+│   └── ui/                 # Reusable UI components
+├── lib/
+│   └── api/                # API clients (TMDB, Real-Debrid, Torrentio)
+├── db/                     # Database schema and providers
+├── stores/                 # Zustand stores
+└── hooks/                  # Custom React hooks
+```
+
+## Installation
+
+### Prerequisites
+
+- Node.js 20+ and [Bun](https://bun.sh/)
 - [iOS Simulator](https://docs.expo.dev/workflow/ios-simulator/) (for iOS development)
 - [Android Studio Emulator](https://docs.expo.dev/workflow/android-studio-emulator/) (for Android development)
 
-## Getting Started
+### Setup
 
 1. Clone the repository:
 
@@ -49,10 +115,10 @@ bun install
 ```
 
 3. Configure API keys in the app settings:
-   - TMDB API key (for movie/TV metadata)
-   - Real-Debrid API key (for streaming)
+   - **TMDB API key** — Get one at [themoviedb.org](https://www.themoviedb.org/settings/api)
+   - **Real-Debrid API key** — Create an account at [real-debrid.com](http://real-debrid.com/?id=16544328)
 
-4. Run the app:
+### Running
 
 ```bash
 # Start Expo development server
@@ -68,30 +134,15 @@ bun run ios
 bun run build:web
 ```
 
-## Project Structure
+## Notes
 
-```
-app/                    # Expo Router pages (file-based routing)
-  (tabs)/              # Tab navigation (home, search, library, settings)
-  media/[id].tsx       # Media detail screen
-  player.tsx           # Video player screen
+- **API Keys Required**: Both TMDB and Real-Debrid API keys must be configured in the app settings before streaming
+- **Real-Debrid Subscription**: A premium Real-Debrid subscription is required for streaming functionality
+- **Web Platform**: Uses sql.js for SQLite compatibility in browsers
 
-components/
-  media/               # Media cards, grids, episode pickers
-  player/              # VLC player, controls, gestures
-  ui/                  # Reusable UI components
+## Feedback
 
-lib/
-  api/                 # API clients (TMDB, Real-Debrid, Torrentio)
-
-db/                    # Database schema and providers
-stores/                # Zustand stores
-hooks/                 # Custom React hooks
-```
-
-## Contributing
-
-Contributions are welcome! Feel free to open an issue or submit a pull request.
+If you have questions or suggestions, feel free to [open an issue](https://github.com/YannickHerrero/mira/issues).
 
 ## License
 
