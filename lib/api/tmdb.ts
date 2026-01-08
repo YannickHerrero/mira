@@ -365,37 +365,7 @@ export class TMDBClient {
   }
 
   /**
-   * Get similar movies for a given movie
-   */
-  async getSimilarMovies(tmdbId: number): Promise<Media[]> {
-    const response = await this.fetch<TMDBSearchResponse<TMDBMovieResult>>(
-      `/movie/${tmdbId}/similar`
-    );
-    return response.results.map((m) => this.mapMovieResult(m));
-  }
-
-  /**
-   * Get similar TV shows for a given TV show
-   */
-  async getSimilarTv(tmdbId: number): Promise<Media[]> {
-    const response = await this.fetch<TMDBSearchResponse<TMDBTvResult>>(
-      `/tv/${tmdbId}/similar`
-    );
-    return response.results.map((t) => this.mapTvResult(t));
-  }
-
-  /**
-   * Get similar content for any media type
-   */
-  async getSimilar(tmdbId: number, mediaType: MediaType): Promise<Media[]> {
-    if (mediaType === "movie") {
-      return this.getSimilarMovies(tmdbId);
-    }
-    return this.getSimilarTv(tmdbId);
-  }
-
-  /**
-   * Get recommendations for a movie (collaborative filtering - higher quality than similar)
+   * Get recommendations for a movie (collaborative filtering)
    */
   async getMovieRecommendations(tmdbId: number): Promise<Media[]> {
     const response = await this.fetch<TMDBSearchResponse<TMDBMovieResult>>(
@@ -405,7 +375,7 @@ export class TMDBClient {
   }
 
   /**
-   * Get recommendations for a TV show (collaborative filtering - higher quality than similar)
+   * Get recommendations for a TV show (collaborative filtering)
    */
   async getTvRecommendations(tmdbId: number): Promise<Media[]> {
     const response = await this.fetch<TMDBSearchResponse<TMDBTvResult>>(
