@@ -64,7 +64,7 @@ function ListActionsSheet({
 
   return (
     <BottomSheetContent ref={sheetRef}>
-      <BottomSheetView className="px-4 pb-8 bg-background" hadHeader={false}>
+      <BottomSheetView className="px-4 pb-8 bg-background">
         <Text className="text-lg font-semibold text-foreground mb-4">
           {listName}
         </Text>
@@ -125,7 +125,7 @@ function RenameSheet({ sheetRef, currentName, onSave }: RenameSheetProps) {
           Rename List
         </Text>
       </BottomSheetHeader>
-      <BottomSheetView className="px-4 pb-6" hadHeader>
+      <BottomSheetView className="px-4 pb-6">
         <BottomSheetTextInput
           placeholder="List name"
           value={name}

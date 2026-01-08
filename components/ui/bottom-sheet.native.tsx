@@ -87,6 +87,7 @@ const BottomSheetContent = React.forwardRef<
       backdropProps,
       backgroundStyle,
       android_keyboardInputMode = "adjustResize",
+      children,
       ...props
     },
     ref,
@@ -139,6 +140,15 @@ const BottomSheetContent = React.forwardRef<
       [backdropProps, colors],
     );
 
+    // Wrap children in GBottomSheetView for proper dynamic sizing measurement
+    const wrappedChildren = enableDynamicSizing ? (
+      <GBottomSheetView style={{paddingBottom: insets.bottom}}>
+        {children as React.ReactNode}
+      </GBottomSheetView>
+    ) : (
+      children
+    );
+
     return (
       <BottomSheetModal
         ref={sheetRef}
@@ -153,7 +163,9 @@ const BottomSheetContent = React.forwardRef<
         topInset={insets.top}
         android_keyboardInputMode={android_keyboardInputMode}
         {...props}
-      />
+      >
+        {wrappedChildren}
+      </BottomSheetModal>
     );
   },
 );
@@ -191,38 +203,22 @@ const BottomSheetCloseTrigger = React.forwardRef<
   return <Trigger ref={ref} onPress={handleOnPress} {...props} />;
 });
 
-const BOTTOM_SHEET_HEADER_HEIGHT = 60; // BottomSheetHeader height
-
-type BottomSheetViewProps = Omit<
-  React.ComponentPropsWithoutRef<typeof GBottomSheetView>,
-  "style"
-> & {
-  hadHeader?: boolean;
-  style?: ViewStyle;
-};
+type BottomSheetViewProps = React.ComponentPropsWithoutRef<typeof View>;
 
 function BottomSheetView({
   className,
   children,
-  hadHeader = true,
   style,
   ...props
 }: BottomSheetViewProps) {
-  const insets = useSafeAreaInsets();
   return (
-    <GBottomSheetView
-      style={[
-        {
-          paddingBottom:
-            insets.bottom + (hadHeader ? BOTTOM_SHEET_HEADER_HEIGHT : 0),
-        },
-        style,
-      ]}
+    <View
+      style={style}
       className={cn(`px-4`, className)}
       {...props}
     >
       {children}
-    </GBottomSheetView>
+    </View>
   );
 }
 

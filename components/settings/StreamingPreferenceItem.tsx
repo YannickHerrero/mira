@@ -178,7 +178,7 @@ export function AudioPreferenceItem() {
             Set your preferred audio languages in priority order
           </Text>
         </BottomSheetHeader>
-        <BottomSheetView className="pt-4 bg-background flex-1">
+        <BottomSheetView className="bg-background flex-1">
           <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
             {/* Selected languages (ordered) */}
             {preferredAudioLanguages.length > 0 && (
@@ -275,7 +275,7 @@ export function SubtitlePreferenceItem() {
             Set your preferred subtitle languages in priority order
           </Text>
         </BottomSheetHeader>
-        <BottomSheetView className="pt-4 bg-background flex-1">
+        <BottomSheetView className="bg-background flex-1">
           <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
             {/* Selected languages (ordered) */}
             {preferredSubtitleLanguages.length > 0 && (

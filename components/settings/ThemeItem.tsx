@@ -95,7 +95,7 @@ export const ThemeSettingItem = () => {
             Select Theme
           </Text>
         </BottomSheetHeader>
-        <BottomSheetView className='gap-5 pt-6 bg-background'>
+        <BottomSheetView className='gap-5 bg-background'>
           {themes.map((theme) => (
             <ThemeItem
               key={theme.title}

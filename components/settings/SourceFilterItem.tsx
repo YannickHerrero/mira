@@ -91,7 +91,7 @@ export function QualityFilterItem() {
             Select Quality
           </Text>
         </BottomSheetHeader>
-        <BottomSheetView className="gap-1 pt-4 bg-background">
+        <BottomSheetView className="gap-1 bg-background">
           {/* All option */}
           <MultiSelectItem
             label="All"

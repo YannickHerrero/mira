@@ -116,7 +116,7 @@ export function ListSelectorSheet({
           Add to List
         </Text>
       </BottomSheetHeader>
-      <BottomSheetView className="px-4 pb-6" hadHeader>
+      <BottomSheetView className="px-4 pb-6">
         {isLoading ? (
           <View className="py-8 items-center">
             <ActivityIndicator size="small" />
