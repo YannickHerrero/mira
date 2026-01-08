@@ -1,5 +1,6 @@
 import * as React from "react";
-import { View, Pressable, ActivityIndicator } from "react-native";
+import { View, Pressable, ActivityIndicator, TextInput } from "react-native";
+import { useFocusEffect } from "expo-router";
 import { Text } from "@/components/ui/text";
 import { Input } from "@/components/ui/input";
 import { MediaGrid } from "@/components/media";
@@ -17,6 +18,7 @@ type FilterType = "all" | "movie" | "tv";
 export default function SearchScreen() {
   const { isConfigured, isLoading: isLoadingKeys } = useApiKeys();
   const [filter, setFilter] = React.useState<FilterType>("all");
+  const inputRef = React.useRef<TextInput>(null);
 
   const {
     query,
@@ -29,6 +31,18 @@ export default function SearchScreen() {
   } = useSearch({
     mediaType: filter === "all" ? undefined : (filter as MediaType),
   });
+
+  // Auto-focus search input when screen comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      // Small delay to ensure the screen is fully mounted
+      const timer = setTimeout(() => {
+        inputRef.current?.focus();
+      }, 100);
+
+      return () => clearTimeout(timer);
+    }, [])
+  );
 
   // Filter results based on selected filter
   const filteredResults = React.useMemo(() => {
@@ -60,6 +74,7 @@ export default function SearchScreen() {
         <View className="flex-row items-center bg-muted rounded-lg px-3">
           <Search size={20} className="text-muted-foreground" />
           <Input
+            ref={inputRef}
             value={query}
             onChangeText={setQuery}
             placeholder="Search movies, TV shows, anime..."
