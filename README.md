@@ -10,6 +10,8 @@ A cross-platform media streaming app that allows users to search and stream movi
 - Download content for offline viewing
 - Manage watchlist and favorites
 - Multiple audio track and subtitle support
+- Streaming preferences (preferred audio/subtitle languages with priority ordering)
+- Source filtering (quality and language filters for stream sources)
 - Gesture controls (seek, volume, brightness)
 - Screen lock during playback
 - Dark and light mode support
