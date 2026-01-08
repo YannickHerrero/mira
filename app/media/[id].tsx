@@ -21,21 +21,16 @@ import {
   MediaSectionSkeleton,
 } from "@/components/media";
 import { MediaSection } from "@/components/library";
-import { SourceList } from "@/components/stream";
 import { ListSelectorSheet } from "@/components/lists";
-import { Play, Heart, Plus, Check, Eye, EyeOff, ListChecks, List } from "@/lib/icons";
+import { Play, Heart, Check, Eye, EyeOff, ListChecks, List } from "@/lib/icons";
 import { useLibraryActions } from "@/hooks/useLibrary";
 import { useListActions } from "@/hooks/useLists";
 import { useWatchProgress } from "@/hooks/useWatchProgress";
 import { useApiKeyStore } from "@/stores/api-keys";
 import { createTMDBClient } from "@/lib/api/tmdb";
-import { useSources } from "@/hooks/useSources";
 import { useEpisodes } from "@/hooks/useMedia";
-import { useMediaPlayer } from "@/hooks/useSettings";
 import type { Media, MediaType, Season, Episode } from "@/lib/types";
 import type { BottomSheetModal } from "@gorhom/bottom-sheet";
-
-type ViewMode = "details" | "sources";
 
 interface EpisodeActionSheetProps {
   sheetRef: React.RefObject<BottomSheetModal | null>;
@@ -105,16 +100,13 @@ function EpisodeActionSheet({
 export default function MediaDetailScreen() {
   const router = useRouter();
   const { id, type } = useLocalSearchParams<{ id: string; type: MediaType }>();
-  const { playMedia } = useMediaPlayer();
 
   const [media, setMedia] = React.useState<Media | null>(null);
   const [imdbId, setImdbId] = React.useState<string | null>(null);
   const [seasons, setSeasons] = React.useState<Season[]>([]);
   const [selectedSeason, setSelectedSeason] = React.useState(1);
-  const [selectedEpisode, setSelectedEpisode] = React.useState<Episode | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
-  const [viewMode, setViewMode] = React.useState<ViewMode>("details");
   const [isFavorite, setIsFavorite] = React.useState(false);
   const [episodeProgress, setEpisodeProgress] = React.useState<
     Map<string, { position: number; duration: number; completed: boolean }>
@@ -142,18 +134,6 @@ export default function MediaDetailScreen() {
     tmdbId,
     mediaType === "tv" ? selectedSeason : 0
   );
-
-  // Fetch sources when in sources mode
-  const {
-    streams,
-    isLoading: isLoadingSources,
-    error: sourcesError,
-  } = useSources({
-    imdbId,
-    season: mediaType === "tv" ? selectedEpisode?.seasonNumber : undefined,
-    episode: mediaType === "tv" ? selectedEpisode?.episodeNumber : undefined,
-    enabled: viewMode === "sources" && !!imdbId,
-  });
 
   // Fetch media details
   React.useEffect(() => {
@@ -294,7 +274,7 @@ export default function MediaDetailScreen() {
   };
 
   const handleWatchMovie = () => {
-    setViewMode("sources");
+    router.push(`/media/${tmdbId}/sources?type=${mediaType}` as any);
   };
 
   const handleToggleMovieWatched = async () => {
@@ -319,30 +299,9 @@ export default function MediaDetailScreen() {
   };
 
   const handleWatchEpisode = (episode: Episode) => {
-    setSelectedEpisode(episode);
-    setViewMode("sources");
-  };
-
-  const handleSelectStream = async (stream: { url?: string }) => {
-    if (!stream.url || !media) {
-      return;
-    }
-
-    await playMedia({
-      url: stream.url,
-      title: selectedEpisode
-        ? `${media.title} - S${selectedEpisode.seasonNumber}E${selectedEpisode.episodeNumber}`
-        : media.title,
-      tmdbId: media.id,
-      mediaType: media.mediaType,
-      seasonNumber: selectedEpisode?.seasonNumber,
-      episodeNumber: selectedEpisode?.episodeNumber,
-    });
-  };
-
-  const handleBackToDetails = () => {
-    setViewMode("details");
-    setSelectedEpisode(null);
+    router.push(
+      `/media/${tmdbId}/sources?type=${mediaType}&season=${episode.seasonNumber}&episode=${episode.episodeNumber}` as any
+    );
   };
 
   const handleEpisodeLongPress = (episode: Episode) => {
@@ -424,44 +383,6 @@ export default function MediaDetailScreen() {
     );
   }
 
-  // Sources view
-  if (viewMode === "sources") {
-    return (
-      <View className="flex-1 bg-background">
-        <Stack.Screen
-          options={{
-            title: selectedEpisode
-              ? `S${selectedEpisode.seasonNumber} E${selectedEpisode.episodeNumber}`
-              : "Select Source",
-            headerTransparent: false,
-            headerLeft: () => (
-              <Pressable onPress={handleBackToDetails} className="mr-4">
-                <Text className="text-primary">Back</Text>
-              </Pressable>
-            ),
-          }}
-        />
-        <SourceList
-          streams={streams}
-          isLoading={isLoadingSources}
-          error={sourcesError}
-          onSelectStream={handleSelectStream}
-          tmdbId={media.id}
-          mediaType={mediaType}
-          seasonNumber={selectedEpisode?.seasonNumber}
-          episodeNumber={selectedEpisode?.episodeNumber}
-          title={
-            selectedEpisode
-              ? `${media.title} - S${selectedEpisode.seasonNumber}E${selectedEpisode.episodeNumber}`
-              : media.title
-          }
-          posterPath={media.posterPath}
-        />
-      </View>
-    );
-  }
-
-  // Details view
   return (
     <View className="flex-1 bg-background">
       <Stack.Screen options={{ title: "", headerTransparent: true }} />

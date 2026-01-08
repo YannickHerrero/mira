@@ -92,6 +92,12 @@ export default function RootLayout() {
                 }}
               />
               <Stack.Screen
+                name="media/[id]/sources"
+                options={{
+                  title: "Select Source",
+                }}
+              />
+              <Stack.Screen
                 name="player"
                 options={{
                   headerShown: false,
