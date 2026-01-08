@@ -81,9 +81,22 @@ export function useUpcomingReleases(): UseUpcomingReleasesReturn {
       for (const item of listItems) {
         try {
           if (item.mediaType === "tv") {
-            const release = await tmdbClient.getTvUpcomingEpisode(item.tmdbId);
-            if (release) {
-              releases.push(release);
+            // Fetch both upcoming and last aired episodes for TV shows
+            const [upcomingRelease, lastRelease] = await Promise.all([
+              tmdbClient.getTvUpcomingEpisode(item.tmdbId),
+              tmdbClient.getTvLastEpisode(item.tmdbId),
+            ]);
+            if (upcomingRelease) {
+              releases.push(upcomingRelease);
+            }
+            if (lastRelease) {
+              // Avoid duplicates if last and next episode are the same
+              const isDuplicate = upcomingRelease &&
+                upcomingRelease.episodeInfo?.seasonNumber === lastRelease.episodeInfo?.seasonNumber &&
+                upcomingRelease.episodeInfo?.episodeNumber === lastRelease.episodeInfo?.episodeNumber;
+              if (!isDuplicate) {
+                releases.push(lastRelease);
+              }
             }
           } else if (item.mediaType === "movie") {
             const release = await tmdbClient.getMovieReleaseInfo(item.tmdbId);

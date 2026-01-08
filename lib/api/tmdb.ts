@@ -103,6 +103,7 @@ interface TMDBTvDetails {
   seasons: TMDBSeasonInfo[];
   status?: string;
   next_episode_to_air?: TMDBEpisodeAirInfo | null;
+  last_episode_to_air?: TMDBEpisodeAirInfo | null;
 }
 
 interface TMDBSeasonInfo {
@@ -512,6 +513,50 @@ export class TMDBClient {
        };
      } catch (err) {
        console.error(`Failed to get TV upcoming episode for ${tmdbId}:`, err);
+       return null;
+     }
+   }
+
+   /**
+    * Get TV show's last aired episode
+    */
+   async getTvLastEpisode(tmdbId: number): Promise<UpcomingRelease | null> {
+     try {
+       const details = await this.fetch<TMDBTvDetails>(`/tv/${tmdbId}`);
+
+       if (!details.last_episode_to_air) {
+         return null;
+       }
+
+       const media: Media = {
+         id: details.id,
+         mediaType: "tv",
+         title: details.name,
+         titleOriginal: details.original_name,
+         year: details.first_air_date
+           ? parseInt(details.first_air_date.slice(0, 4), 10)
+           : undefined,
+         score: details.vote_average,
+         posterPath: details.poster_path ?? undefined,
+         backdropPath: details.backdrop_path ?? undefined,
+         description: details.overview ?? undefined,
+         genres: details.genres.map((g) => g.name),
+         seasonCount: details.number_of_seasons,
+         episodeCount: details.number_of_episodes,
+       };
+
+       return {
+         media,
+         releaseDate: details.last_episode_to_air.air_date,
+         releaseType: "episode",
+         episodeInfo: {
+           seasonNumber: details.last_episode_to_air.season_number,
+           episodeNumber: details.last_episode_to_air.episode_number,
+           episodeName: details.last_episode_to_air.name,
+         },
+       };
+     } catch (err) {
+       console.error(`Failed to get TV last episode for ${tmdbId}:`, err);
        return null;
      }
    }

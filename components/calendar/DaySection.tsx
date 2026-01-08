@@ -16,6 +16,7 @@ export function DaySection({ date, releases }: DaySectionProps) {
 
   const isToday = dateObj.toDateString() === today.toDateString();
   const isTomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000).toDateString() === dateObj.toDateString();
+  const isYesterday = new Date(today.getTime() - 24 * 60 * 60 * 1000).toDateString() === dateObj.toDateString();
 
   // Format date for display
   const dayName = dateObj.toLocaleDateString("en-US", { weekday: "long" });
@@ -29,6 +30,8 @@ export function DaySection({ date, releases }: DaySectionProps) {
     dateLabel = `Today, ${monthDay}`;
   } else if (isTomorrow) {
     dateLabel = `Tomorrow, ${monthDay}`;
+  } else if (isYesterday) {
+    dateLabel = `Yesterday, ${monthDay}`;
   }
 
   return (
