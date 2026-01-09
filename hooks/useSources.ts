@@ -1,17 +1,22 @@
 import { useState, useEffect, useCallback } from "react";
-import type { Stream } from "@/lib/types";
+import type { Stream, MediaType } from "@/lib/types";
 import { createTorrentioClient } from "@/lib/api/torrentio";
 import { useApiKeyStore } from "@/stores/api-keys";
+import { calculateSourceScore, getRecommendedSources } from "@/lib/api/source-scoring";
+import { useStreamingPreferences } from "@/hooks/useStreamingPreferences";
 
 interface UseSourcesOptions {
   imdbId: string | null;
+  mediaType: MediaType;
   season?: number;
   episode?: number;
+  isAnime?: boolean;
   enabled?: boolean;
 }
 
 interface UseSourcesResult {
   streams: Stream[];
+  recommendedStreams: Stream[];
   isLoading: boolean;
   error: string | null;
   refetch: () => Promise<void>;
@@ -19,15 +24,19 @@ interface UseSourcesResult {
 
 export function useSources({
   imdbId,
+  mediaType,
   season,
   episode,
+  isAnime = false,
   enabled = true,
 }: UseSourcesOptions): UseSourcesResult {
   const [streams, setStreams] = useState<Stream[]>([]);
+  const [recommendedStreams, setRecommendedStreams] = useState<Stream[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const realDebridApiKey = useApiKeyStore((s) => s.realDebridApiKey);
+  const { preferredAudioLanguages } = useStreamingPreferences();
 
   const fetchSources = useCallback(async () => {
     if (!imdbId || !realDebridApiKey || !enabled) {
@@ -49,8 +58,26 @@ export function useSources({
         results = await client.getMovieStreams(imdbId);
       }
 
-      // Sort by quality (4K > 1080p > 720p) and then by size (smallest first)
+      const scoringOptions = {
+        mediaType,
+        isAnime,
+        preferredLanguages: preferredAudioLanguages,
+      };
+
+      // Get recommended sources
+      const recommended = getRecommendedSources(results, scoringOptions);
+      setRecommendedStreams(recommended);
+
+      // Sort all streams by score
       results.sort((a, b) => {
+        const scoreA = calculateSourceScore(a, scoringOptions);
+        const scoreB = calculateSourceScore(b, scoringOptions);
+        
+        if (scoreA !== scoreB) {
+          return scoreB - scoreA; // Higher score first
+        }
+
+        // Tie-breaker: original quality sort
         const qualityOrder: Record<string, number> = {
           "2160p": 4,
           "4K": 4,
@@ -64,10 +91,9 @@ export function useSources({
         const bQuality = qualityOrder[b.quality ?? ""] ?? -1;
 
         if (aQuality !== bQuality) {
-          return bQuality - aQuality; // Higher quality first
+          return bQuality - aQuality;
         }
 
-        // If same quality, sort by size (smallest first for faster downloads)
         return a.sizeBytes - b.sizeBytes;
       });
 
@@ -75,10 +101,11 @@ export function useSources({
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load sources");
       setStreams([]);
+      setRecommendedStreams([]);
     } finally {
       setIsLoading(false);
     }
-  }, [imdbId, season, episode, realDebridApiKey, enabled]);
+  }, [imdbId, mediaType, season, episode, isAnime, realDebridApiKey, enabled, preferredAudioLanguages]);
 
   useEffect(() => {
     if (enabled && imdbId) {
@@ -88,6 +115,7 @@ export function useSources({
 
   return {
     streams,
+    recommendedStreams,
     isLoading,
     error,
     refetch: fetchSources,

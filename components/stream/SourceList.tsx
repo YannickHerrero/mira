@@ -16,6 +16,7 @@ import { filterStreams, hasActiveFilters } from "@/lib/filter-streams";
 
 interface SourceListProps {
   streams: Stream[];
+  recommendedStreams?: Stream[];
   isLoading: boolean;
   error: string | null;
   onSelectStream: (stream: Stream) => void;
@@ -30,6 +31,7 @@ interface SourceListProps {
 
 export function SourceList({
   streams,
+  recommendedStreams = [],
   isLoading,
   error,
   onSelectStream,
@@ -68,18 +70,31 @@ export function SourceList({
     return filterStreams(streams, filters);
   }, [streams, filters, showAllSources, filtersActive]);
 
-  // Sort streams to show downloaded source at top
+  // Sort streams to show downloaded source at top, followed by recommended
   const sortedStreams = React.useMemo(() => {
-    if (!download || download.status !== "completed") return filteredStreams;
+    let result = [...filteredStreams];
     
-    // Find the downloaded stream by URL and move it to top
-    const downloadedIndex = filteredStreams.findIndex(s => s.url === download.streamUrl);
-    if (downloadedIndex === -1) return filteredStreams;
+    // 1. Move recommended to top
+    if (recommendedStreams.length > 0) {
+      const recommendedUrls = new Set(recommendedStreams.map(s => s.url));
+      const recommended = result.filter(s => recommendedUrls.has(s.url));
+      const others = result.filter(s => !recommendedUrls.has(s.url));
+      result = [...recommended, ...others];
+    }
+
+    // 2. Move downloaded to very top (overrides recommended)
+    if (download && download.status === "completed") {
+      const downloadedIndex = result.findIndex(s => s.url === download.streamUrl);
+      if (downloadedIndex !== -1) {
+        const downloadedStream = result[downloadedIndex];
+        const otherStreams = result.filter((_, i) => i !== downloadedIndex);
+        result = [downloadedStream, ...otherStreams];
+      }
+    }
     
-    const downloadedStream = filteredStreams[downloadedIndex];
-    const otherStreams = filteredStreams.filter((_, i) => i !== downloadedIndex);
-    return [downloadedStream, ...otherStreams];
-  }, [filteredStreams, download]);
+    return result;
+  }, [filteredStreams, download, recommendedStreams]);
+
 
   // Handler to play downloaded content
   const handlePlayDownloaded = React.useCallback(async () => {
@@ -147,6 +162,10 @@ export function SourceList({
         download?.status === "completed" && 
         download.streamUrl === item.url;
       
+      const isRecommended = recommendedStreams.some(
+        (s) => s.url === item.url && s.title === item.title
+      );
+      
       // For download status indicator (downloading/pending)
       const streamDownloadStatus = isThisStreamDownloaded
         ? "completed"
@@ -164,10 +183,11 @@ export function SourceList({
           downloadStatus={streamDownloadStatus}
           downloadProgress={download?.progress}
           isDownloadedSource={isThisStreamDownloaded}
+          isRecommended={isRecommended}
         />
       );
     },
-    [onSelectStream, handleLongPress, download]
+    [onSelectStream, handleLongPress, download, recommendedStreams]
   );
 
   const keyExtractor = React.useCallback(
@@ -273,6 +293,11 @@ export function SourceList({
                 </>
               )}
             </Text>
+            {recommendedStreams.length > 0 && !showAllSources && (
+              <Text className="text-xs font-semibold text-amber-500 mb-2 uppercase tracking-wider">
+                Recommended for you
+              </Text>
+            )}
             {Platform.OS !== "web" && !isDownloaded && (
               <Text className="text-xs text-muted-foreground mb-3">
                 Long press a source to download for offline viewing

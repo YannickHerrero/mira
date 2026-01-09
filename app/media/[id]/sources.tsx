@@ -24,6 +24,7 @@ export default function SourcesScreen() {
   const [imdbId, setImdbId] = React.useState<string | null>(null);
   const [mediaTitle, setMediaTitle] = React.useState<string>("");
   const [posterPath, setPosterPath] = React.useState<string | undefined>();
+  const [isAnime, setIsAnime] = React.useState(false);
   const [isLoadingMedia, setIsLoadingMedia] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
 
@@ -52,15 +53,21 @@ export default function SourcesScreen() {
         setImdbId(externalId ?? null);
 
         // Fetch media details for title and poster
+        let genres: string[] = [];
         if (mediaType === "tv") {
           const { media } = await client.getTvDetailsById(tmdbId);
           setMediaTitle(media.title);
           setPosterPath(media.posterPath);
+          genres = media.genres;
         } else {
           const media = await client.getMovieDetails(tmdbId);
           setMediaTitle(media.title);
           setPosterPath(media.posterPath);
+          genres = media.genres;
         }
+
+        // Check if it's anime (genre ID 16 is Animation)
+        setIsAnime(genres.includes("Animation"));
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load media");
       } finally {
@@ -74,12 +81,15 @@ export default function SourcesScreen() {
   // Fetch sources
   const {
     streams,
+    recommendedStreams,
     isLoading: isLoadingSources,
     error: sourcesError,
   } = useSources({
     imdbId,
+    mediaType,
     season: seasonNumber,
     episode: episodeNumber,
+    isAnime,
     enabled: !!imdbId,
   });
 
@@ -153,6 +163,7 @@ export default function SourcesScreen() {
       />
       <SourceList
         streams={streams}
+        recommendedStreams={recommendedStreams}
         isLoading={isLoadingSources}
         error={sourcesError}
         onSelectStream={handleSelectStream}

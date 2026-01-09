@@ -2,7 +2,7 @@ import * as React from "react";
 import { View, Pressable, Platform } from "react-native";
 import { Text } from "@/components/ui/text";
 import { Badge } from "@/components/ui/badge";
-import { Play, Download, Check } from "@/lib/icons";
+import { Play, Download, Check, Star } from "@/lib/icons";
 import type { Stream } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -13,6 +13,7 @@ interface SourceCardProps {
   downloadStatus?: "downloading" | "completed" | "pending" | null;
   downloadProgress?: number;
   isDownloadedSource?: boolean;
+  isRecommended?: boolean;
 }
 
 export function SourceCard({
@@ -22,6 +23,7 @@ export function SourceCard({
   downloadStatus,
   downloadProgress,
   isDownloadedSource,
+  isRecommended,
 }: SourceCardProps) {
   const showDownloadIndicator =
     Platform.OS !== "web" &&
@@ -80,6 +82,15 @@ export function SourceCard({
             {isDownloadedSource && (
               <Badge variant="default" className="px-2 py-0.5 bg-green-600">
                 <Text className="text-xs font-medium text-white">Downloaded</Text>
+              </Badge>
+            )}
+
+            {isRecommended && (
+              <Badge variant="default" className="px-2 py-0.5 bg-amber-500">
+                <View className="flex-row items-center gap-1">
+                  <Star size={10} className="text-white fill-white" />
+                  <Text className="text-xs font-bold text-white">Recommended</Text>
+                </View>
               </Badge>
             )}
           </View>
