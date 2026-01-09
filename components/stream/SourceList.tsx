@@ -175,17 +175,18 @@ export function SourceList({
             ? "completed" // Another source is downloaded, show muted state
             : null;
 
-      return (
-        <SourceCard
-          stream={item}
-          onPress={() => onSelectStream(item)}
-          onLongPress={() => handleLongPress(item)}
-          downloadStatus={streamDownloadStatus}
-          downloadProgress={download?.progress}
-          isDownloadedSource={isThisStreamDownloaded}
-          isRecommended={isRecommended}
-        />
-      );
+       return (
+         <SourceCard
+           stream={item}
+           onPress={() => onSelectStream(item)}
+           onLongPress={() => handleLongPress(item)}
+           downloadStatus={streamDownloadStatus}
+           downloadProgress={download?.progress}
+           isDownloadedSource={isThisStreamDownloaded}
+           isRecommended={isRecommended}
+           rawStreamName={item.rawStreamName}
+         />
+       );
     },
     [onSelectStream, handleLongPress, download, recommendedStreams]
   );

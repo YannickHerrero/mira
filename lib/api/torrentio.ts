@@ -161,18 +161,19 @@ export class TorrentioClient {
     return data.streams.map((stream) => this.parseStream(stream));
   }
 
-  /**
-   * Parse a Torrentio stream response into our Stream type
-   */
-  private parseStream(stream: TorrentioStream): Stream {
-    const combinedText = `${stream.name}\n${stream.title}`;
+   /**
+    * Parse a Torrentio stream response into our Stream type
+    */
+   private parseStream(stream: TorrentioStream): Stream {
+     const combinedText = `${stream.name}\n${stream.title}`;
 
-    // Check if cached (instant playback via Real-Debrid)
-    const isCached = stream.name.includes("[RD+]") || stream.name.includes("[⚡]");
+     // Check if cached (instant playback via Real-Debrid)
+     const isCached = stream.name.includes("[RD+]") || stream.name.includes("[⚡]");
 
-    // Extract provider from name (e.g., "[RD+] nyaasi" -> "nyaasi")
-    const providerMatch = stream.name.match(/\]\s*(\w+)/);
-    const provider = providerMatch?.[1] ?? "unknown";
+     // Extract provider from name (e.g., "[RD+] The Pirate Bay" -> "The Pirate Bay")
+     // Handles both single-word (nyaasi) and multi-word (The Pirate Bay) providers
+     const providerMatch = stream.name.match(/\]\s*(.+?)(?:\s*$|\n)/);
+     const provider = providerMatch?.[1]?.trim() ?? "unknown";
 
     // Parse seeders
     const seedersMatch = stream.title.match(PATTERNS.seeders);
@@ -247,6 +248,7 @@ export class TorrentioClient {
       languages,
       isCached,
       title: stream.title.split("\n")[0] ?? stream.title,
+      rawStreamName: stream.name, // Store raw name for RD+ detection
     };
   }
 

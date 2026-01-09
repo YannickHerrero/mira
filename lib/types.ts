@@ -52,6 +52,7 @@ export interface Stream {
   languages: string[];
   isCached: boolean;
   title: string; // Raw title from torrent
+  rawStreamName?: string; // Raw name from Torrentio (to detect RD+ prefix)
 }
 
 // Config types
