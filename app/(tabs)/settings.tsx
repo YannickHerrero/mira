@@ -56,7 +56,7 @@ export default function Settings() {
   }
 
   return (
-    <ScrollView className="flex-1 w-full px-6 bg-background pt-4">
+    <ScrollView className="flex-1 w-full px-6 bg-background pt-4" contentContainerStyle={{ paddingBottom: 96 }}>
       <List>
         {/* API Keys Section */}
         <ListHeader>
