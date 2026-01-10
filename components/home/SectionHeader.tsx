@@ -16,10 +16,10 @@ export function SectionHeader({ title, onSeeMore }: SectionHeaderProps) {
       </Text>
       {onSeeMore && (
         <Pressable onPress={onSeeMore} className="flex-row items-center">
-          <Text className="text-[10px] font-bold uppercase text-lavender">
+          <Text className="text-[10px] font-bold uppercase text-[#b7bdf8]">
             See more
           </Text>
-          <ChevronRight size={14} className="text-lavender" />
+          <ChevronRight size={14} color="#b7bdf8" />
         </Pressable>
       )}
     </View>
