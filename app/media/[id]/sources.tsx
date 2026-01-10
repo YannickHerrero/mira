@@ -211,7 +211,7 @@ export default function SourcesScreen() {
 
   // Hero section component to pass to SourceList
   const heroSection = (
-    <View style={{ height: heroHeight + insets.top, marginBottom: 40, marginHorizontal: -16 }}>
+    <View style={{ height: heroHeight + insets.top, marginBottom: 72, marginHorizontal: -16 }}>
       {/* Backdrop Image */}
       {backdropUrl && (
         <Image
