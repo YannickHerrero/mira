@@ -201,7 +201,14 @@
     "delete": "Delete list",
     "deleteConfirm": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone.",
     "deleteTitle": "Delete List",
-    "listName": "List name"
+    "listName": "List name",
+    "addToList": "Add to List",
+    "addToListDesc": "Choose where to save this title",
+    "defaultLabel": "Default",
+    "newList": "New list",
+    "create": "Create",
+    "createNew": "Create new list",
+    "createNewDesc": "Keep your library organized"
   },
   "empty": {
     "noItems": "No items"
@@ -220,7 +227,8 @@
     "delete": "Delete",
     "confirm": "Confirm",
     "loading": "Loading...",
-    "seeMore": "See more"
+    "seeMore": "See more",
+    "done": "Done"
   },
   "genres": {
     "Action": "Action",

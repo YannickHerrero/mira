@@ -201,7 +201,14 @@
     "delete": "Liste löschen",
     "deleteConfirm": "Bist du sicher, dass du \"{{name}}\" löschen möchtest? Diese Aktion kann nicht rückgängig gemacht werden.",
     "deleteTitle": "Liste löschen",
-    "listName": "Listenname"
+    "listName": "Listenname",
+    "addToList": "Zur Liste hinzufügen",
+    "addToListDesc": "Wähle, wo du diesen Titel speicherst",
+    "defaultLabel": "Standard",
+    "newList": "Neue Liste",
+    "create": "Erstellen",
+    "createNew": "Neue Liste erstellen",
+    "createNewDesc": "Halte deine Bibliothek organisiert"
   },
   "empty": {
     "noItems": "Keine Elemente"
@@ -220,7 +227,8 @@
     "delete": "Löschen",
     "confirm": "Bestätigen",
     "loading": "Laden...",
-    "seeMore": "Mehr anzeigen"
+    "seeMore": "Mehr anzeigen",
+    "done": "Fertig"
   },
   "genres": {
     "Action": "Action",

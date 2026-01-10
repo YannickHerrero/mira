@@ -2,6 +2,7 @@ import * as React from "react";
 import { View, Pressable, ActivityIndicator } from "react-native";
 import type { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useBottomSheetModal } from "@gorhom/bottom-sheet";
+import { useTranslation } from "react-i18next";
 import {
   BottomSheetContent,
   BottomSheetView,
@@ -44,6 +45,7 @@ export function ListSelectorSheet({
   onComplete,
 }: ListSelectorSheetProps) {
   const { dismiss } = useBottomSheetModal();
+  const { t } = useTranslation();
   const { createList, updateMediaLists, ensureDefaultList } = useListActions();
 
   const [selectedListIds, setSelectedListIds] = React.useState<Set<string>>(
@@ -123,10 +125,10 @@ export function ListSelectorSheet({
       <BottomSheetHeader>
         <View className="flex-1 gap-1">
           <Text className="text-lg font-semibold text-foreground">
-            Add to List
+            {t("list.addToList")}
           </Text>
           <Text className="text-xs text-muted-foreground">
-            Choose where to save this title
+            {t("list.addToListDesc")}
           </Text>
         </View>
       </BottomSheetHeader>
@@ -142,7 +144,10 @@ export function ListSelectorSheet({
               {lists.length === 0 ? (
                 <View className="rounded-2xl border border-dashed border-border/60 px-4 py-6">
                   <Text className="text-sm text-muted-foreground">
-                    No lists yet. Create one to get started.
+                    {t("library.noLists")}
+                  </Text>
+                  <Text className="text-xs text-muted-foreground mt-1">
+                    {t("library.noListsDesc")}
                   </Text>
                 </View>
               ) : (
@@ -171,14 +176,13 @@ export function ListSelectorSheet({
                           {list.isDefault && (
                             <View className="rounded-full bg-muted/40 px-2 py-0.5">
                               <Text className="text-[10px] uppercase tracking-wide text-muted-foreground">
-                                Default
+                                {t("list.defaultLabel")}
                               </Text>
                             </View>
                           )}
                         </View>
                         <Text className="text-xs text-muted-foreground mt-0.5">
-                          {list.itemCount}{" "}
-                          {list.itemCount === 1 ? "item" : "items"}
+                          {t("library.item", { count: list.itemCount })}
                         </Text>
                       </View>
                       {isSelected && (
@@ -196,10 +200,10 @@ export function ListSelectorSheet({
             {isCreatingList ? (
               <View className="mb-4 rounded-2xl border border-border/40 bg-muted/10 p-4">
                 <Text className="text-sm font-medium text-foreground mb-3">
-                  New list
+                  {t("list.newList")}
                 </Text>
                 <BottomSheetTextInput
-                  placeholder="List name"
+                  placeholder={t("list.listName")}
                   value={newListName}
                   onChangeText={setNewListName}
                   autoFocus
@@ -215,14 +219,14 @@ export function ListSelectorSheet({
                       setNewListName("");
                     }}
                   >
-                    <Text>Cancel</Text>
+                    <Text>{t("common.cancel")}</Text>
                   </Button>
                   <Button
                     className="flex-1"
                     onPress={handleCreateList}
                     disabled={!newListName.trim()}
                   >
-                    <Text className="text-primary-foreground">Create</Text>
+                    <Text className="text-primary-foreground">{t("list.create")}</Text>
                   </Button>
                 </View>
               </View>
@@ -239,10 +243,10 @@ export function ListSelectorSheet({
                 </View>
                 <View>
                   <Text className="text-base text-foreground font-medium">
-                    Create new list
+                    {t("list.createNew")}
                   </Text>
                   <Text className="text-xs text-muted-foreground">
-                    Keep your library organized
+                    {t("list.createNewDesc")}
                   </Text>
                 </View>
               </Pressable>
@@ -255,7 +259,7 @@ export function ListSelectorSheet({
                 className="flex-1"
                 onPress={handleCancel}
               >
-                <Text>Cancel</Text>
+                <Text>{t("common.cancel")}</Text>
               </Button>
               <Button
                 className="flex-1"
@@ -266,7 +270,7 @@ export function ListSelectorSheet({
                   <ActivityIndicator size="small" color="white" />
                 ) : (
                   <Text className="text-primary-foreground font-semibold">
-                    Done
+                    {t("common.done")}
                   </Text>
                 )}
               </Button>

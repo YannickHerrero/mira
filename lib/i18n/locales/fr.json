@@ -201,7 +201,14 @@
     "delete": "Supprimer la liste",
     "deleteConfirm": "Êtes-vous sûr de vouloir supprimer « {{name}} » ? Cette action est irréversible.",
     "deleteTitle": "Supprimer la liste",
-    "listName": "Nom de la liste"
+    "listName": "Nom de la liste",
+    "addToList": "Ajouter à la liste",
+    "addToListDesc": "Choisissez où enregistrer ce titre",
+    "defaultLabel": "Par défaut",
+    "newList": "Nouvelle liste",
+    "create": "Créer",
+    "createNew": "Créer une nouvelle liste",
+    "createNewDesc": "Gardez votre bibliothèque organisée"
   },
   "empty": {
     "noItems": "Aucun élément"
@@ -220,7 +227,8 @@
     "delete": "Supprimer",
     "confirm": "Confirmer",
     "loading": "Chargement...",
-    "seeMore": "Voir plus"
+    "seeMore": "Voir plus",
+    "done": "Terminé"
   },
   "genres": {
     "Action": "Action",

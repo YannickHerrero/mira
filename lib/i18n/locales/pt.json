@@ -201,7 +201,14 @@
     "delete": "Eliminar lista",
     "deleteConfirm": "Tem a certeza de que quer eliminar \"{{name}}\"? Esta ação não pode ser anulada.",
     "deleteTitle": "Eliminar lista",
-    "listName": "Nome da lista"
+    "listName": "Nome da lista",
+    "addToList": "Adicionar à lista",
+    "addToListDesc": "Escolha onde salvar este título",
+    "defaultLabel": "Padrão",
+    "newList": "Nova lista",
+    "create": "Criar",
+    "createNew": "Criar nova lista",
+    "createNewDesc": "Mantenha sua biblioteca organizada"
   },
   "empty": {
     "noItems": "Sem itens"
@@ -220,7 +227,8 @@
     "delete": "Eliminar",
     "confirm": "Confirmar",
     "loading": "A carregar...",
-    "seeMore": "Ver mais"
+    "seeMore": "Ver mais",
+    "done": "Concluído"
   },
   "genres": {
     "Action": "Ação",
