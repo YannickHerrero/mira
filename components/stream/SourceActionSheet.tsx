@@ -4,6 +4,7 @@ import { useBottomSheetModal } from "@gorhom/bottom-sheet";
 import type { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { Text } from "@/components/ui/text";
 import {
+  BottomSheetActionGroup,
   BottomSheetActionRow,
   BottomSheetContent,
   BottomSheetView,
@@ -101,46 +102,50 @@ export function SourceActionSheet({
             </View>
 
             {/* Actions */}
-            <View className="border-t border-border/60 pt-4 gap-3">
-              <BottomSheetActionRow
-                title="Play Now"
-                description="Stream directly"
-                icon={<Play size={20} className="text-foreground" />}
-                onPress={() => {
-                  onPlay();
-                  dismiss();
-                }}
-              />
-
-              {Platform.OS !== "web" && (
+            <View className="border-t border-border/60 pt-4">
+              <BottomSheetActionGroup>
                 <BottomSheetActionRow
-                  title={
-                    isDownloaded
-                      ? "Already Downloaded"
-                      : isDownloading
-                        ? "Downloading..."
-                        : "Download"
-                  }
-                  description={
-                    isDownloaded
-                      ? "Available offline"
-                      : isDownloading
-                        ? "Check progress in library"
-                        : stream.sizeBytes
-                          ? `${formatBytes(stream.sizeBytes)} will be saved`
-                          : "Save for offline viewing"
-                  }
-                  icon={<Download size={20} className="text-foreground" />}
-                  className={!canDownload ? "opacity-60" : undefined}
+                  layout="grouped"
+                  title="Play Now"
+                  description="Stream directly"
+                  icon={<Play size={20} className="text-foreground" />}
                   onPress={() => {
-                    if (canDownload) {
-                      onDownload();
-                      dismiss();
-                    }
+                    onPlay();
+                    dismiss();
                   }}
-                  disabled={!canDownload}
                 />
-              )}
+
+                {Platform.OS !== "web" && (
+                  <BottomSheetActionRow
+                    layout="grouped"
+                    title={
+                      isDownloaded
+                        ? "Already Downloaded"
+                        : isDownloading
+                          ? "Downloading..."
+                          : "Download"
+                    }
+                    description={
+                      isDownloaded
+                        ? "Available offline"
+                        : isDownloading
+                          ? "Check progress in library"
+                          : stream.sizeBytes
+                            ? `${formatBytes(stream.sizeBytes)} will be saved`
+                            : "Save for offline viewing"
+                    }
+                    icon={<Download size={20} className="text-foreground" />}
+                    className={!canDownload ? "opacity-60" : undefined}
+                    onPress={() => {
+                      if (canDownload) {
+                        onDownload();
+                        dismiss();
+                      }
+                    }}
+                    disabled={!canDownload}
+                  />
+                )}
+              </BottomSheetActionGroup>
             </View>
           </>
         )}

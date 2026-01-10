@@ -287,6 +287,7 @@ type BottomSheetActionRowProps = React.ComponentPropsWithoutRef<typeof Pressable
   description?: string;
   icon?: React.ReactNode;
   variant?: "default" | "destructive";
+  layout?: "card" | "grouped";
 };
 
 const BottomSheetActionRow = React.forwardRef<
@@ -294,16 +295,18 @@ const BottomSheetActionRow = React.forwardRef<
   BottomSheetActionRowProps
 >(
   (
-    {title, description, icon, variant = "default", className, ...props},
+    {title, description, icon, variant = "default", layout = "card", className, ...props},
     ref,
   ) => {
     const isDestructive = variant === "destructive";
+    const isGrouped = layout === "grouped";
     return (
       <Pressable
         ref={ref}
         className={cn(
-          "flex-row items-center gap-3 rounded-xl px-3 py-3 active:opacity-70",
-          isDestructive ? "bg-destructive/10" : "bg-muted/20",
+          "flex-row items-center gap-3 active:opacity-70",
+          isGrouped ? "px-4 py-4 border-b border-border/50 last:border-b-0" : "rounded-xl px-3 py-3",
+          !isGrouped && (isDestructive ? "bg-destructive/10" : "bg-muted/20"),
           className,
         )}
         {...props}
@@ -311,8 +314,9 @@ const BottomSheetActionRow = React.forwardRef<
         {icon ? (
           <View
             className={cn(
-              "h-10 w-10 items-center justify-center rounded-full",
-              isDestructive ? "bg-destructive/20" : "bg-muted/40",
+              "items-center justify-center",
+              isGrouped ? "h-6 w-6" : "h-10 w-10 rounded-full",
+              !isGrouped && (isDestructive ? "bg-destructive/20" : "bg-muted/40"),
             )}
           >
             {icon}
@@ -339,6 +343,24 @@ const BottomSheetActionRow = React.forwardRef<
 );
 
 BottomSheetActionRow.displayName = "BottomSheetActionRow";
+
+type BottomSheetActionGroupRef = React.ElementRef<typeof View>;
+type BottomSheetActionGroupProps = React.ComponentPropsWithoutRef<typeof View>;
+
+const BottomSheetActionGroup = React.forwardRef<
+  BottomSheetActionGroupRef,
+  BottomSheetActionGroupProps
+>(({className, ...props}, ref) => {
+  return (
+    <View
+      ref={ref}
+      className={cn("bg-muted/20 rounded-2xl overflow-hidden", className)}
+      {...props}
+    />
+  );
+});
+
+BottomSheetActionGroup.displayName = "BottomSheetActionGroup";
 
 type BottomSheetFooterRef = React.ElementRef<typeof View>;
 
@@ -391,6 +413,7 @@ export {
   BottomSheet,
   BottomSheetCloseTrigger,
   BottomSheetContent,
+  BottomSheetActionGroup,
   BottomSheetActionRow,
   BottomSheetFlatList,
   BottomSheetFooter,

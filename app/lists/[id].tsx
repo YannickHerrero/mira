@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { MediaGrid } from "@/components/media";
 import {
   BottomSheet,
+  BottomSheetActionGroup,
   BottomSheetActionRow,
   BottomSheetContent,
   BottomSheetView,
@@ -63,26 +64,30 @@ function ListActionsSheet({
           {listName}
         </Text>
 
-        <BottomSheetActionRow
-          title={t("list.rename")}
-          icon={<Pencil size={20} className="text-foreground" />}
-          onPress={() => {
-            dismiss();
-            onRename();
-          }}
-        />
-
-        {!isDefault && (
+        <BottomSheetActionGroup>
           <BottomSheetActionRow
-            title={t("list.delete")}
-            icon={<Trash size={20} className="text-destructive" />}
-            variant="destructive"
+            layout="grouped"
+            title={t("list.rename")}
+            icon={<Pencil size={20} className="text-foreground" />}
             onPress={() => {
               dismiss();
-              onDelete();
+              onRename();
             }}
           />
-        )}
+
+          {!isDefault && (
+            <BottomSheetActionRow
+              layout="grouped"
+              title={t("list.delete")}
+              icon={<Trash size={20} className="text-destructive" />}
+              variant="destructive"
+              onPress={() => {
+                dismiss();
+                onDelete();
+              }}
+            />
+          )}
+        </BottomSheetActionGroup>
       </BottomSheetView>
     </BottomSheetContent>
   );

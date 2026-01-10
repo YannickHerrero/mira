@@ -4,6 +4,7 @@ import { useBottomSheetModal } from "@gorhom/bottom-sheet";
 import type { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { Text } from "@/components/ui/text";
 import {
+  BottomSheetActionGroup,
   BottomSheetActionRow,
   BottomSheetContent,
   BottomSheetView,
@@ -102,9 +103,10 @@ export function DownloadInfoSheet({
         </View>
 
         {/* Actions */}
-        <View className="gap-3">
+        <BottomSheetActionGroup>
           {isCompleted && (
             <BottomSheetActionRow
+              layout="grouped"
               title="Play Now"
               description="Watch this download"
               icon={<Play size={20} className="text-foreground" />}
@@ -117,6 +119,7 @@ export function DownloadInfoSheet({
 
           {isFailed && onRetry && (
             <BottomSheetActionRow
+              layout="grouped"
               title="Retry Download"
               description="Try the download again"
               icon={<RefreshCw size={20} className="text-foreground" />}
@@ -128,6 +131,7 @@ export function DownloadInfoSheet({
           )}
 
           <BottomSheetActionRow
+            layout="grouped"
             title="Delete Download"
             description="Remove from device"
             icon={<Trash size={20} className="text-destructive" />}
@@ -137,7 +141,7 @@ export function DownloadInfoSheet({
               dismiss();
             }}
           />
-        </View>
+        </BottomSheetActionGroup>
       </BottomSheetView>
     </BottomSheetContent>
   );

@@ -12,6 +12,7 @@ import { Text } from "@/components/ui/text";
 import { Button } from "@/components/ui/button";
 import {
   BottomSheet,
+  BottomSheetActionGroup,
   BottomSheetActionRow,
   BottomSheetContent,
   BottomSheetHeader,
@@ -72,8 +73,9 @@ function EpisodeActionSheet({
       )}
       <BottomSheetView className="pb-8 gap-4">
         {episode && (
-          <>
+          <BottomSheetActionGroup>
             <BottomSheetActionRow
+              layout="grouped"
               title={isCompleted ? t("media.markUnwatched") : t("media.markWatched")}
               icon={
                 isCompleted ? (
@@ -89,6 +91,7 @@ function EpisodeActionSheet({
             />
 
             <BottomSheetActionRow
+              layout="grouped"
               title={t("media.markWatchedUpTo")}
               icon={<ListChecks size={20} className="text-foreground" />}
               onPress={() => {
@@ -96,7 +99,7 @@ function EpisodeActionSheet({
                 dismiss();
               }}
             />
-          </>
+          </BottomSheetActionGroup>
         )}
       </BottomSheetView>
     </BottomSheetContent>
