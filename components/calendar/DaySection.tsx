@@ -1,5 +1,6 @@
 import * as React from "react";
 import { View } from "react-native";
+import { useTranslation } from "react-i18next";
 import { Text } from "@/components/ui/text";
 import { ReleaseItem } from "./ReleaseItem";
 import type { UpcomingRelease } from "@/lib/api/tmdb";
@@ -10,6 +11,7 @@ interface DaySectionProps {
 }
 
 export function DaySection({ date, releases }: DaySectionProps) {
+  const { t, i18n } = useTranslation();
   const dateObj = new Date(date);
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -18,20 +20,20 @@ export function DaySection({ date, releases }: DaySectionProps) {
   const isTomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000).toDateString() === dateObj.toDateString();
   const isYesterday = new Date(today.getTime() - 24 * 60 * 60 * 1000).toDateString() === dateObj.toDateString();
 
-  // Format date for display
-  const dayName = dateObj.toLocaleDateString("en-US", { weekday: "long" });
-  const monthDay = dateObj.toLocaleDateString("en-US", {
+  // Format date for display using locale
+  const dayName = dateObj.toLocaleDateString(i18n.language, { weekday: "long" });
+  const monthDay = dateObj.toLocaleDateString(i18n.language, {
     month: "short",
     day: "numeric",
   });
 
-  let dateLabel = `${dayName}, ${monthDay}`;
+  let dateLabel = t("calendar.dateFormat", { weekday: dayName, date: monthDay });
   if (isToday) {
-    dateLabel = `Today, ${monthDay}`;
+    dateLabel = t("calendar.todayDate", { date: monthDay });
   } else if (isTomorrow) {
-    dateLabel = `Tomorrow, ${monthDay}`;
+    dateLabel = t("calendar.tomorrowDate", { date: monthDay });
   } else if (isYesterday) {
-    dateLabel = `Yesterday, ${monthDay}`;
+    dateLabel = t("calendar.yesterdayDate", { date: monthDay });
   }
 
   return (

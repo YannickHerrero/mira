@@ -1,6 +1,7 @@
 import * as React from "react";
 import { View } from "react-native";
 import { useRouter } from "expo-router";
+import { useTranslation } from "react-i18next";
 import { SectionHeader } from "./SectionHeader";
 import { ContinueWatchingItem } from "./ContinueWatchingItem";
 import type { ContinueWatchingItem as ContinueWatchingItemType } from "@/hooks/useLibrary";
@@ -15,6 +16,7 @@ export function ContinueWatchingList({
   maxItems = 3,
 }: ContinueWatchingListProps) {
   const router = useRouter();
+  const { t } = useTranslation();
 
   const handleSeeMore = () => {
     router.push("/library" as any);
@@ -28,7 +30,7 @@ export function ContinueWatchingList({
 
   return (
     <View>
-      <SectionHeader title="Continue watching" onSeeMore={handleSeeMore} />
+      <SectionHeader title={t("home.continueWatching")} onSeeMore={handleSeeMore} />
       <View className="gap-2">
         {displayItems.map((item) => (
           <ContinueWatchingItem

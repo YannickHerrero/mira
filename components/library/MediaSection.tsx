@@ -1,5 +1,6 @@
 import * as React from "react";
 import { View, ScrollView, Pressable } from "react-native";
+import { useTranslation } from "react-i18next";
 import { Text } from "@/components/ui/text";
 import { MediaCard } from "@/components/media";
 import { ChevronRight } from "@/lib/icons";
@@ -33,12 +34,14 @@ export function MediaSection({
   title,
   items,
   onSeeAll,
-  emptyMessage = "No items",
+  emptyMessage,
   headerStyle = "default",
   uppercase,
 }: MediaSectionProps) {
+  const { t } = useTranslation();
   const isMuted = headerStyle === "muted";
   const isUppercase = uppercase ?? isMuted;
+  const finalEmptyMessage = emptyMessage ?? t("empty.noItems");
   if (items.length === 0) {
     return null;
   }
@@ -67,7 +70,7 @@ export function MediaSection({
                   : "text-sm text-primary mr-1"
               }
             >
-              {isUppercase ? "SEE MORE" : "See more"}
+              {isUppercase ? t("common.seeMore").toUpperCase() : t("common.seeMore")}
             </Text>
             <ChevronRight size={isMuted ? 14 : 16} className={isMuted ? "text-lavender" : "text-primary"} />
           </Pressable>

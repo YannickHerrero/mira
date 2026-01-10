@@ -1,6 +1,7 @@
 import * as React from "react";
 import { View, Image, Pressable } from "react-native";
 import { useRouter } from "expo-router";
+import { useTranslation } from "react-i18next";
 import { Text } from "@/components/ui/text";
 import { Play, ChevronRight, Film, Tv } from "@/lib/icons";
 import { lightImpact } from "@/lib/haptics";
@@ -13,6 +14,7 @@ interface ContinueWatchingItemProps {
 
 export function ContinueWatchingItem({ item }: ContinueWatchingItemProps) {
   const router = useRouter();
+  const { t } = useTranslation();
   const { media, progress } = item;
   const posterUrl = getPosterUrl(media.posterPath, "small");
 
@@ -29,9 +31,9 @@ export function ContinueWatchingItem({ item }: ContinueWatchingItemProps) {
 
   const isTV = media.mediaType === "tv";
   const episodeLabel = isTV && progress.episodeNumber
-    ? `Episode ${progress.episodeNumber}`
+    ? t("home.episode", { number: progress.episodeNumber })
     : media.mediaType === "movie"
-      ? "Movie"
+      ? t("home.movie")
       : "";
 
   return (
@@ -75,7 +77,7 @@ export function ContinueWatchingItem({ item }: ContinueWatchingItemProps) {
           <View className="flex-row items-center gap-2">
             <Play size={14} className="text-foreground/50" />
             <Text variant="body" className="text-foreground/50">
-              Continue
+              {t("home.continue")}
             </Text>
           </View>
         </View>

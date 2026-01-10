@@ -6,8 +6,10 @@
  */
 
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 import { useApiKeys } from "@/hooks/useApiKeys";
 import { useUserPreferences, type WatchedMedia } from "@/hooks/useUserPreferences";
+import { useLanguageStore } from "@/stores/language";
 import { createTMDBClient } from "@/lib/api/tmdb";
 import { genreNamesToIds } from "@/lib/recommendations/scoring";
 import type { Media, MediaType } from "@/lib/types";
@@ -101,12 +103,17 @@ export interface UseRecommendationsResult {
   refetch: () => Promise<void>;
 }
 
+// Type for translation function
+type TFunction = (key: string, options?: Record<string, string>) => string;
+
 /**
  * Hook to get personalized recommendations
  */
 export function useRecommendations(): UseRecommendationsResult {
   const { tmdbApiKey } = useApiKeys();
+  const { t } = useTranslation();
   const preferences = useUserPreferences();
+  const resolvedLanguage = useLanguageStore((s) => s.resolvedLanguage);
 
   const [sections, setSections] = React.useState<RecommendationSection[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
@@ -128,7 +135,7 @@ export function useRecommendations(): UseRecommendationsResult {
       setIsLoading(true);
 
       try {
-        const client = createTMDBClient(tmdbApiKey);
+        const client = createTMDBClient(tmdbApiKey, resolvedLanguage);
         const newSections: RecommendationSection[] = [];
 
         // Check if user has enough history for personalization
@@ -139,7 +146,8 @@ export function useRecommendations(): UseRecommendationsResult {
           const becauseYouWatchedSections = await generateBecauseYouWatched(
             client,
             preferences.recentlyEnjoyed.slice(0, 2),
-            preferences.completedIds
+            preferences.completedIds,
+            t
           );
           newSections.push(...becauseYouWatchedSections);
 
@@ -149,7 +157,8 @@ export function useRecommendations(): UseRecommendationsResult {
             const genreSection = await generateGenreSection(
               client,
               topGenre.genre,
-              preferences.completedIds
+              preferences.completedIds,
+              t
             );
             if (genreSection) {
               newSections.push(genreSection);
@@ -171,7 +180,7 @@ export function useRecommendations(): UseRecommendationsResult {
         setIsLoading(false);
       }
     },
-    [tmdbApiKey, preferences]
+    [tmdbApiKey, preferences, t, resolvedLanguage]
   );
 
   // Fetch recommendations when preferences change
@@ -201,7 +210,8 @@ export function useRecommendations(): UseRecommendationsResult {
 async function generateBecauseYouWatched(
   client: ReturnType<typeof createTMDBClient>,
   recentlyEnjoyed: WatchedMedia[],
-  completedIds: Set<string>
+  completedIds: Set<string>,
+  t: TFunction
 ): Promise<RecommendationSection[]> {
   const sections: RecommendationSection[] = [];
 
@@ -223,9 +233,9 @@ async function generateBecauseYouWatched(
       if (filtered.length >= 3) {
         sections.push({
           id: `because-${sourceMedia.mediaType}-${sourceMedia.id}`,
-          title: `Because You Watched ${sourceMedia.title}`,
+          title: t("home.becauseYouWatched", { title: sourceMedia.title }),
           items: filtered.slice(0, 10),
-          reason: `Based on ${sourceMedia.title}`,
+          reason: t("home.basedOn", { title: sourceMedia.title }),
         });
       }
     } catch (error) {
@@ -245,7 +255,8 @@ async function generateBecauseYouWatched(
 async function generateGenreSection(
   client: ReturnType<typeof createTMDBClient>,
   genre: string,
-  completedIds: Set<string>
+  completedIds: Set<string>,
+  t: TFunction
 ): Promise<RecommendationSection | null> {
   try {
     const genreIds = genreNamesToIds([genre]);
@@ -281,11 +292,14 @@ async function generateGenreSection(
 
     if (filtered.length < 3) return null;
 
+    // Translate genre name (fallback to original if not found)
+    const translatedGenre = t(`genres.${genre}`, { defaultValue: genre });
+
     return {
       id: `genre-${genre.toLowerCase().replace(/\s+/g, "-")}`,
-      title: `More ${genre}`,
+      title: t("home.moreGenre", { genre: translatedGenre }),
       items: filtered.slice(0, 10),
-      reason: `Because you like ${genre}`,
+      reason: t("home.becauseLike", { genre: translatedGenre }),
     };
   } catch (error) {
     console.error(`[useRecommendations] Failed to generate genre section for ${genre}:`, error);

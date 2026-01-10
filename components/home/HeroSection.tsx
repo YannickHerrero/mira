@@ -2,6 +2,7 @@ import * as React from "react";
 import { View, Image, Pressable, useWindowDimensions } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
+import { useTranslation } from "react-i18next";
 import { Text } from "@/components/ui/text";
 import { Play } from "@/lib/icons";
 import { lightImpact } from "@/lib/haptics";
@@ -18,6 +19,7 @@ interface HeroSectionProps {
 
 export function HeroSection({ media, episodeInfo }: HeroSectionProps) {
   const router = useRouter();
+  const { t } = useTranslation();
   const { width: screenWidth } = useWindowDimensions();
   const backdropUrl = getBackdropUrl(media.backdropPath, "large");
 
@@ -107,8 +109,8 @@ export function HeroSection({ media, episodeInfo }: HeroSectionProps) {
           <Play size={16} className="text-[#24273a]" fill="#24273a" />
           <Text variant="button" className="text-[#24273a]">
             {episodeInfo
-              ? `Continue S${episodeInfo.seasonNumber} E${episodeInfo.episodeNumber}`
-              : "Continue watching"}
+              ? t("home.continueEpisode", { season: episodeInfo.seasonNumber, episode: episodeInfo.episodeNumber })
+              : t("home.continueWatching")}
           </Text>
         </Pressable>
       </View>

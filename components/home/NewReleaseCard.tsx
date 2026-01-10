@@ -2,31 +2,36 @@ import * as React from "react";
 import { View, Image, Pressable, ImageBackground, useWindowDimensions } from "react-native";
 import { BlurView } from "expo-blur";
 import { useRouter } from "expo-router";
+import { useTranslation } from "react-i18next";
 import { Text } from "@/components/ui/text";
 import { Play, Film } from "@/lib/icons";
 import { lightImpact } from "@/lib/haptics";
 import type { UpcomingRelease } from "@/lib/api/tmdb";
 import { getPosterUrl } from "@/lib/types";
 
-function formatReleaseDate(dateString: string): string {
-  const releaseDate = new Date(dateString + "T00:00:00");
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+function useFormatReleaseDate() {
+  const { t, i18n } = useTranslation();
 
-  const yesterday = new Date(today);
-  yesterday.setDate(yesterday.getDate() - 1);
+  return React.useCallback((dateString: string): string => {
+    const releaseDate = new Date(dateString + "T00:00:00");
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
-  if (releaseDate.getTime() === today.getTime()) {
-    return "Today";
-  }
-  if (releaseDate.getTime() === yesterday.getTime()) {
-    return "Yesterday";
-  }
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
 
-  return releaseDate.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-  });
+    if (releaseDate.getTime() === today.getTime()) {
+      return t("calendar.today");
+    }
+    if (releaseDate.getTime() === yesterday.getTime()) {
+      return t("calendar.yesterday");
+    }
+
+    return releaseDate.toLocaleDateString(i18n.language, {
+      month: "short",
+      day: "numeric",
+    });
+  }, [t, i18n.language]);
 }
 
 interface NewReleaseCardProps {
@@ -36,6 +41,8 @@ interface NewReleaseCardProps {
 
 export function NewReleaseCard({ release, cardWidth }: NewReleaseCardProps) {
   const router = useRouter();
+  const { t } = useTranslation();
+  const formatReleaseDate = useFormatReleaseDate();
   const { media, episodeInfo } = release;
   const posterUrl = getPosterUrl(media.posterPath, "medium");
 
@@ -103,7 +110,7 @@ export function NewReleaseCard({ release, cardWidth }: NewReleaseCardProps) {
               >
                 <Play size={14} className="text-[#24273a]" fill="#24273a" />
                 <Text variant="button" className="text-[#24273a]">
-                  Watch
+                  {t("home.watch")}
                 </Text>
               </Pressable>
             </View>

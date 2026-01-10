@@ -1,5 +1,6 @@
 import * as React from "react";
 import { View, FlatList, useWindowDimensions } from "react-native";
+import { useTranslation } from "react-i18next";
 import { SectionHeader } from "./SectionHeader";
 import { NewReleaseCard } from "./NewReleaseCard";
 import type { UpcomingRelease } from "@/lib/api/tmdb";
@@ -10,6 +11,7 @@ interface NewReleasesCarouselProps {
 
 export function NewReleasesCarousel({ releases }: NewReleasesCarouselProps) {
   const { width: screenWidth } = useWindowDimensions();
+  const { t } = useTranslation();
   const [activeIndex, setActiveIndex] = React.useState(0);
 
   // Card takes ~90% of screen width with some padding
@@ -28,7 +30,7 @@ export function NewReleasesCarousel({ releases }: NewReleasesCarouselProps) {
 
   return (
     <View>
-      <SectionHeader title="New releases" />
+      <SectionHeader title={t("home.newReleases")} />
 
       <FlatList
         data={releases}
