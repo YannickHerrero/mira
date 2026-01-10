@@ -162,8 +162,8 @@ export function ApiKeyItem({
                 {isSaving ? "Validating..." : value ? "Update" : "Save"}
               </Text>
             </Button>
-            <Button variant="outline" onPress={handleCancel} className="flex-1">
-              <Text className="font-medium">Cancel</Text>
+            <Button variant="secondary" onPress={handleCancel} className="flex-1">
+              <Text className="text-secondary-foreground font-medium">Cancel</Text>
             </Button>
           </View>
 
