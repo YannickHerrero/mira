@@ -31,6 +31,7 @@
     "placeholder": "Filme, Serien suchen...",
     "cancel": "Abbrechen",
     "mostSearched": "Am meisten gesucht",
+    "suggestedForYou": "Für dich empfohlen",
     "noResults": "Keine Ergebnisse",
     "apiRequired": "API-Schlüssel erforderlich",
     "apiRequiredDesc": "Bitte konfiguriere deine TMDB und Real-Debrid API-Schlüssel in den Einstellungen, um mit der Suche zu beginnen.",

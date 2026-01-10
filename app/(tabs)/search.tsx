@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { MediaGrid } from "@/components/media";
 import { ErrorState } from "@/components/ui/error-state";
 import { useSearch } from "@/hooks/useSearch";
-import { useTrending } from "@/hooks/useTrending";
+import { useSearchSuggestions } from "@/hooks/useSearchSuggestions";
 import { useApiKeys } from "@/hooks/useApiKeys";
 import { Search, Film, Tv } from "@/lib/icons";
 import { selectionChanged } from "@/lib/haptics";
@@ -22,7 +22,7 @@ export default function SearchScreen() {
   const { isConfigured, isLoading: isLoadingKeys } = useApiKeys();
   const [filter, setFilter] = React.useState<FilterType>("all");
   const inputRef = React.useRef<TextInput>(null);
-  const { trendingMovies } = useTrending();
+  const { suggestions, isPersonalized } = useSearchSuggestions();
 
   const {
     query,
@@ -149,19 +149,19 @@ export default function SearchScreen() {
             onRetry={() => setQuery(query)}
           />
         ) : !hasSearched ? (
-          // Default view: Most Searched suggestions
+          // Default view: Suggestions (personalized or trending)
           <ScrollView className="flex-1 px-4">
             <Text variant="sectionTitle" className="mt-4 mb-2">
-              {t("search.mostSearched")}
+              {isPersonalized ? t("search.suggestedForYou") : t("search.mostSearched")}
             </Text>
-            {trendingMovies.map((movie) => (
+            {suggestions.map((item) => (
               <Pressable
-                key={movie.id}
-                onPress={() => handleSuggestionTap(movie.title)}
+                key={`${item.mediaType}-${item.id}`}
+                onPress={() => handleSuggestionTap(item.title)}
                 className="py-3"
               >
                 <Text variant="cardTitle" className="font-normal">
-                  {movie.title}
+                  {item.title}
                 </Text>
               </Pressable>
             ))}

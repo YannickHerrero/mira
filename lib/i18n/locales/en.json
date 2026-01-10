@@ -31,6 +31,7 @@
     "placeholder": "Search movies, TV shows...",
     "cancel": "Cancel",
     "mostSearched": "Most searched",
+    "suggestedForYou": "Suggested for you",
     "noResults": "No results found",
     "apiRequired": "API Keys Required",
     "apiRequiredDesc": "Please configure your TMDB and Real-Debrid API keys in Settings to start searching.",
