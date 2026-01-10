@@ -67,6 +67,14 @@
     "default": "(Standard)"
   },
   "settings": {
+    "myProfile": "MEIN PROFIL",
+    "application": "ANWENDUNG",
+    "account": "Konto",
+    "appearance": "Erscheinungsbild",
+    "playbackSettings": "Wiedergabe",
+    "streamingSettings": "Streaming-Einstellungen",
+    "aboutMira": "Über",
+    "guest": "Gast",
     "apiConfiguration": "API-KONFIGURATION",
     "sourceFilters": "QUELLENFILTER",
     "playback": "WIEDERGABE",

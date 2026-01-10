@@ -67,6 +67,14 @@
     "default": "(Par défaut)"
   },
   "settings": {
+    "myProfile": "MON PROFIL",
+    "application": "APPLICATION",
+    "account": "Compte",
+    "appearance": "Apparence",
+    "playbackSettings": "Lecture",
+    "streamingSettings": "Préférences de streaming",
+    "aboutMira": "À propos",
+    "guest": "Invité",
     "apiConfiguration": "CONFIGURATION API",
     "sourceFilters": "FILTRES DE SOURCES",
     "playback": "LECTURE",

@@ -48,3 +48,6 @@ export { ChevronUp } from "./ChevronUp";
 export { ChevronDown } from "./ChevronDown";
 export { Pencil } from "./Pencil";
 export { MoreVertical } from "./MoreVertical";
+export { CircleUser } from "./CircleUser";
+export { Info } from "./Info";
+export { Paintbrush } from "./Paintbrush";
