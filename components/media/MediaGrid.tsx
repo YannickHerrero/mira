@@ -19,7 +19,9 @@ interface MediaGridProps {
 }
 
 const CARD_WIDTH = 130;
-const GAP = 12;
+const GAP = 16;
+const PADDING = 16;
+const TABLET_BREAKPOINT = 768;
 
 export function MediaGrid({
   data,
@@ -35,13 +37,17 @@ export function MediaGrid({
   const { width: screenWidth } = useWindowDimensions();
 
   // Calculate number of columns based on screen width
+  // 2 columns on mobile, more on tablet
   const numColumns =
-    customColumns ?? Math.max(2, Math.floor((screenWidth - 32) / (CARD_WIDTH + GAP)));
+    customColumns ??
+    (screenWidth >= TABLET_BREAKPOINT
+      ? Math.max(3, Math.floor((screenWidth - 2 * PADDING + GAP) / (CARD_WIDTH + GAP)))
+      : 2);
 
   const renderItem = React.useCallback(
     ({ item }: { item: Media }) => (
       <View style={{ flex: 1 / numColumns, padding: GAP / 2 }}>
-        <MediaCard media={item} size="medium" />
+        <MediaCard media={item} size="medium" fillWidth />
       </View>
     ),
     [numColumns]
@@ -55,15 +61,12 @@ export function MediaGrid({
   // Loading skeleton
   if (isLoading && data.length === 0) {
     return (
-      <View className="flex-1 px-4">
+      <View className="flex-1" style={{ paddingHorizontal: PADDING - GAP / 2 }}>
         {ListHeaderComponent}
-        <View
-          className="flex-row flex-wrap"
-          style={{ marginHorizontal: -GAP / 2 }}
-        >
+        <View className="flex-row flex-wrap">
           {Array.from({ length: 6 }).map((_, i) => (
-            <View key={i} style={{ padding: GAP / 2 }}>
-              <MediaCardSkeleton size="medium" />
+            <View key={i} style={{ flex: 1 / numColumns, padding: GAP / 2 }}>
+              <MediaCardSkeleton size="medium" fillWidth />
             </View>
           ))}
         </View>
@@ -74,7 +77,7 @@ export function MediaGrid({
   // Empty state
   if (!isLoading && data.length === 0) {
     return (
-      <View className="flex-1 px-4">
+      <View className="flex-1" style={{ paddingHorizontal: PADDING }}>
         {ListHeaderComponent}
         <EmptyState
           icon={emptyIcon ?? <Search size={48} className="text-muted-foreground" />}
@@ -91,7 +94,10 @@ export function MediaGrid({
       keyExtractor={keyExtractor}
       numColumns={numColumns}
       key={numColumns} // Re-render when columns change
-      contentContainerStyle={{ padding: GAP / 2 }}
+      contentContainerStyle={{
+        paddingHorizontal: PADDING - GAP / 2,
+        paddingVertical: GAP / 2,
+      }}
       onEndReached={onEndReached}
       onEndReachedThreshold={0.5}
       ListHeaderComponent={ListHeaderComponent}

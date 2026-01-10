@@ -14,6 +14,8 @@ interface MediaCardProps {
   size?: "small" | "medium" | "large";
   showBadge?: boolean;
   className?: string;
+  /** When true, card fills container width with 2:3 aspect ratio */
+  fillWidth?: boolean;
   /** Episode info for continue watching (TV shows only) */
   episodeInfo?: {
     seasonNumber: number;
@@ -32,11 +34,20 @@ export function MediaCard({
   size = "medium",
   showBadge = true,
   className,
+  fillWidth = false,
   episodeInfo,
 }: MediaCardProps) {
   const router = useRouter();
   const { width, height } = SIZES[size];
   const posterUrl = getPosterUrl(media.posterPath, "medium");
+
+  // When fillWidth is true, use flexible sizing with aspect ratio
+  const containerStyle = fillWidth
+    ? { width: "100%" as const }
+    : { width };
+  const posterStyle = fillWidth
+    ? { width: "100%" as const, aspectRatio: 2 / 3 }
+    : { width, height };
 
   const handlePress = () => {
     lightImpact();
@@ -53,17 +64,17 @@ export function MediaCard({
     <Pressable
       onPress={handlePress}
       className={cn("", className)}
-      style={{ width }}
+      style={containerStyle}
     >
       {/* Poster */}
       <View
         className="rounded-lg overflow-hidden bg-muted"
-        style={{ width, height }}
+        style={posterStyle}
       >
         {posterUrl ? (
           <Image
             source={{ uri: posterUrl }}
-            style={{ width, height }}
+            style={fillWidth ? { width: "100%", height: "100%" } : { width, height }}
             resizeMode="cover"
           />
         ) : (
@@ -108,7 +119,7 @@ export function MediaCard({
       </View>
 
       {/* Title and year */}
-      <View className="mt-2" style={{ width }}>
+      <View className="mt-2" style={fillWidth ? undefined : { width }}>
         <Text
           className="text-sm font-medium text-foreground"
           numberOfLines={2}
