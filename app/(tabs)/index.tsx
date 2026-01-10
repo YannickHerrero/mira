@@ -163,50 +163,50 @@ export default function HomeScreen() {
           />
         )}
 
-        {/* Continue Watching (list style) */}
-        {continueItems.length > 0 && (
-          <ContinueWatchingList items={continueItems} maxItems={3} />
-        )}
+        {/* Sections container with gap */}
+        <View className="gap-8 pb-8 mt-8">
+          {/* Continue Watching (list style) */}
+          {continueItems.length > 0 && (
+            <ContinueWatchingList items={continueItems} maxItems={3} />
+          )}
 
-        {/* New Releases */}
-        {recentReleases.length > 0 && (
-          <NewReleasesCarousel releases={recentReleases} />
-        )}
+          {/* New Releases */}
+          {recentReleases.length > 0 && (
+            <NewReleasesCarousel releases={recentReleases} />
+          )}
 
-        {/* Personalized Recommendations */}
-        {hasPersonalization &&
-          recommendationSections.map((section) => (
-            <MediaSection
-              key={section.id}
-              title={section.title}
-              items={section.items}
-              headerStyle="muted"
-            />
-          ))}
+          {/* Personalized Recommendations */}
+          {hasPersonalization &&
+            recommendationSections.map((section) => (
+              <MediaSection
+                key={section.id}
+                title={section.title}
+                items={section.items}
+                headerStyle="muted"
+              />
+            ))}
 
-        {/* Trending Movies */}
-        {loadingTrending ? (
-          <View className="py-8 items-center">
-            <ActivityIndicator size="small" />
-          </View>
-        ) : (
-          <>
-            <MediaSection
-              title="Trending Movies"
-              items={trendingMovies}
-              headerStyle="muted"
-            />
+          {/* Trending Movies */}
+          {loadingTrending ? (
+            <View className="py-8 items-center">
+              <ActivityIndicator size="small" />
+            </View>
+          ) : (
+            <>
+              <MediaSection
+                title="Trending Movies"
+                items={trendingMovies}
+                headerStyle="muted"
+              />
 
-            <MediaSection
-              title="Trending TV Shows"
-              items={trendingTv}
-              headerStyle="muted"
-            />
-          </>
-        )}
-
-        {/* Bottom padding */}
-        <View className="h-8" />
+              <MediaSection
+                title="Trending TV Shows"
+                items={trendingTv}
+                headerStyle="muted"
+              />
+            </>
+          )}
+        </View>
       </ScrollView>
     </View>
   );

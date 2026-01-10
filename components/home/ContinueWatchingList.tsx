@@ -27,7 +27,7 @@ export function ContinueWatchingList({
   const displayItems = items.slice(0, maxItems);
 
   return (
-    <View className="mt-12">
+    <View>
       <SectionHeader title="Continue watching" onSeeMore={handleSeeMore} />
       <View className="gap-2">
         {displayItems.map((item) => (

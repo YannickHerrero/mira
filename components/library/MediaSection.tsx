@@ -40,7 +40,7 @@ export function MediaSection({
   }
 
   return (
-    <View className="mb-12">
+    <View>
       {/* Header */}
       <View className="flex-row items-center justify-between px-4 mb-3">
         <Text

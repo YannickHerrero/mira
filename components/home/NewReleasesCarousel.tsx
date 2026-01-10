@@ -27,7 +27,7 @@ export function NewReleasesCarousel({ releases }: NewReleasesCarouselProps) {
   };
 
   return (
-    <View className="mt-12">
+    <View>
       <SectionHeader title="New releases" />
 
       <FlatList
