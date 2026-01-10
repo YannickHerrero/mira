@@ -175,15 +175,17 @@ export function AudioPreferenceItem({ className }: PreferenceItemProps) {
         />
       </BottomSheetOpenTrigger>
       <BottomSheetContent snapPoints={["70%"]} enableDynamicSizing={false}>
-        <BottomSheetHeader className="bg-background">
-          <Text className="text-foreground text-xl font-bold pb-1">
-            Audio Language Preferences
-          </Text>
-          <Text className="text-muted-foreground text-sm">
-            Set your preferred audio languages in priority order
-          </Text>
+        <BottomSheetHeader>
+          <View className="flex-1 gap-1">
+            <Text className="text-foreground text-xl font-bold">
+              Audio Language Preferences
+            </Text>
+            <Text className="text-muted-foreground text-sm">
+              Set your preferred audio languages in priority order
+            </Text>
+          </View>
         </BottomSheetHeader>
-        <BottomSheetView className="bg-background flex-1">
+        <BottomSheetView className="flex-1 gap-4">
           <ScrollView className="flex-1" showsVerticalScrollIndicator={true}>
             {/* Selected languages (ordered) */}
             {preferredAudioLanguages.length > 0 && (
@@ -273,15 +275,17 @@ export function SubtitlePreferenceItem({ className }: PreferenceItemProps) {
         />
       </BottomSheetOpenTrigger>
       <BottomSheetContent snapPoints={["70%"]} enableDynamicSizing={false}>
-        <BottomSheetHeader className="bg-background">
-          <Text className="text-foreground text-xl font-bold pb-1">
-            Subtitle Language Preferences
-          </Text>
-          <Text className="text-muted-foreground text-sm">
-            Set your preferred subtitle languages in priority order
-          </Text>
+        <BottomSheetHeader>
+          <View className="flex-1 gap-1">
+            <Text className="text-foreground text-xl font-bold">
+              Subtitle Language Preferences
+            </Text>
+            <Text className="text-muted-foreground text-sm">
+              Set your preferred subtitle languages in priority order
+            </Text>
+          </View>
         </BottomSheetHeader>
-        <BottomSheetView className="bg-background flex-1">
+        <BottomSheetView className="flex-1 gap-4">
           <ScrollView className="flex-1" showsVerticalScrollIndicator={true}>
             {/* Selected languages (ordered) */}
             {preferredSubtitleLanguages.length > 0 && (

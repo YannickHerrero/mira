@@ -91,12 +91,12 @@ export function QualityFilterItem({ className }: FilterItemProps) {
         />
       </BottomSheetOpenTrigger>
       <BottomSheetContent>
-        <BottomSheetHeader className="bg-background">
+        <BottomSheetHeader>
           <Text className="text-foreground text-xl font-bold pb-1">
             Select Quality
           </Text>
         </BottomSheetHeader>
-        <BottomSheetView className="gap-1 bg-background">
+        <BottomSheetView className="gap-2">
           {/* All option */}
           <MultiSelectItem
             label="All"
@@ -177,7 +177,7 @@ export function LanguageFilterItem({ className }: FilterItemProps) {
         />
       </BottomSheetOpenTrigger>
       <BottomSheetContent snapPoints={["70%"]} enableDynamicSizing={false}>
-        <BottomSheetHeader className="bg-background">
+        <BottomSheetHeader>
           <Text className="text-foreground text-xl font-bold pb-1">
             Select Languages
           </Text>
@@ -186,7 +186,7 @@ export function LanguageFilterItem({ className }: FilterItemProps) {
           data={LANGUAGE_OPTIONS as unknown as LanguageOption[]}
           keyExtractor={(item: LanguageOption) => item}
           renderItem={renderLanguageItem}
-          className="px-4"
+          className="pb-2"
           ListHeaderComponent={
             <View>
               <MultiSelectItem

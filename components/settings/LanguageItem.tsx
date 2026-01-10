@@ -128,12 +128,12 @@ export function LanguageSettingItem({ className }: LanguageSettingItemProps) {
         />
       </BottomSheetOpenTrigger>
       <BottomSheetContent>
-        <BottomSheetHeader className="bg-background">
+        <BottomSheetHeader>
           <Text className="text-foreground text-xl font-bold pb-1">
             {t("language.select")}
           </Text>
         </BottomSheetHeader>
-        <BottomSheetView className="gap-5 bg-background">
+        <BottomSheetView className="gap-3">
           {languages.map((lang) => (
             <LanguageItemRow
               key={lang.value}

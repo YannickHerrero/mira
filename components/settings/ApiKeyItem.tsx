@@ -113,17 +113,19 @@ export function ApiKeyItem({
         />
       </BottomSheetOpenTrigger>
       <BottomSheetContent>
-        <BottomSheetHeader className="bg-background">
-          <Text className="text-foreground text-xl font-bold pb-1">
-            {label}
-          </Text>
-          {description && (
-            <Text className="text-muted-foreground text-sm">
-              {description}
+        <BottomSheetHeader>
+          <View className="flex-1 gap-1">
+            <Text className="text-foreground text-xl font-bold">
+              {label}
             </Text>
-          )}
+            {description && (
+              <Text className="text-muted-foreground text-sm">
+                {description}
+              </Text>
+            )}
+          </View>
         </BottomSheetHeader>
-        <BottomSheetView className="bg-background">
+        <BottomSheetView className="gap-4">
           {/* Extra info (like username for Real-Debrid) */}
           {extraInfo && isValid && (
             <View className="mb-4 p-3 bg-muted/30 rounded-lg">
@@ -141,15 +143,15 @@ export function ApiKeyItem({
             secureTextEntry
             autoCapitalize="none"
             autoCorrect={false}
-            className="mb-3"
+            className="mb-2"
           />
 
           {saveError && (
-            <Text className="text-sm text-destructive mb-3">{saveError}</Text>
+            <Text className="text-sm text-destructive mb-2">{saveError}</Text>
           )}
 
           {/* Action buttons */}
-          <View className="flex-row gap-3 mb-4">
+          <View className="flex-row gap-3">
             <Button
               variant="default"
               onPress={handleSave}

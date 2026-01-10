@@ -7,8 +7,9 @@ import {Moon, Palette, Smartphone, Sun} from '@/lib/icons';
 
 import ListItem from "@/components/ui/list-item";
 import {Check} from "@/lib/icons/Check";
-import {useCallback, useMemo, useState} from "react";
+import {useCallback, useMemo, useState, type ReactElement} from "react";
 import {useBottomSheetModal} from "@gorhom/bottom-sheet";
+
 import {getItem, setItem} from "@/lib/storage";
 
 import {useColorScheme} from "nativewind";
@@ -17,7 +18,7 @@ type ItemData = {
   title: string;
   subtitle: string;
   value: "light" | "dark" | "system";
-  icon: JSX.Element;
+  icon: ReactElement;
 };
 
 type ItemProps = {
@@ -94,12 +95,12 @@ export const ThemeSettingItem = ({ className }: ThemeSettingItemProps) => {
         />
       </BottomSheetOpenTrigger>
       <BottomSheetContent>
-        <BottomSheetHeader className="bg-background">
+        <BottomSheetHeader>
           <Text className="text-foreground text-xl font-bold  pb-1">
             Select Theme
           </Text>
         </BottomSheetHeader>
-        <BottomSheetView className='gap-5 bg-background'>
+        <BottomSheetView className="gap-3">
           {themes.map((theme) => (
             <ThemeItem
               key={theme.title}
