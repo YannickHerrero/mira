@@ -46,7 +46,11 @@ function LanguageItemRow({ item, onPress, selected }: ItemProps) {
   );
 }
 
-export function LanguageSettingItem() {
+interface LanguageSettingItemProps {
+  className?: string;
+}
+
+export function LanguageSettingItem({ className }: LanguageSettingItemProps) {
   const { t } = useTranslation();
   const { language, setLanguage } = useLanguage();
   const { dismiss } = useBottomSheetModal();
@@ -120,6 +124,7 @@ export function LanguageSettingItem() {
           itemLeft={(props) => <Globe {...props} />}
           label={t("settings.language")}
           description={getDisplayText()}
+          className={className}
         />
       </BottomSheetOpenTrigger>
       <BottomSheetContent>

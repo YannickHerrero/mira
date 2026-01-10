@@ -41,7 +41,11 @@ function ThemeItem({item, onPress, selected}: ItemProps) {
   );
 }
 
-export const ThemeSettingItem = () => {
+interface ThemeSettingItemProps {
+  className?: string;
+}
+
+export const ThemeSettingItem = ({ className }: ThemeSettingItemProps) => {
   const [selectedTheme, setSelectedTheme] = useState(getItem<"light" | "dark" | "system">("theme"),
   );
   const {colorScheme, setColorScheme} = useColorScheme();
@@ -84,9 +88,9 @@ export const ThemeSettingItem = () => {
     <BottomSheet >
       <BottomSheetOpenTrigger asChild>
         <ListItem
-          itemLeft={(props) => <Palette {...props} />} // props adds size and color attributes
+          itemLeft={(props) => <Palette {...props} />}
           label="Theme"
-
+          className={className}
         />
       </BottomSheetOpenTrigger>
       <BottomSheetContent>
