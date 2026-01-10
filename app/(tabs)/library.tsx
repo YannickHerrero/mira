@@ -1,6 +1,7 @@
 import * as React from "react";
 import { View, ScrollView, Pressable, RefreshControl, Platform } from "react-native";
 import { useFocusEffect, useRouter } from "expo-router";
+import { useTranslation } from "react-i18next";
 import type { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { Text } from "@/components/ui/text";
 import { MediaCard, MediaCardSkeleton, MediaGrid, useGridColumns, GRID_GAP, GRID_PADDING } from "@/components/media";
@@ -29,6 +30,7 @@ type TabType = "continue" | "lists" | "favorites" | "downloads";
 
 export default function LibraryScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = React.useState<TabType>("continue");
   const [refreshing, setRefreshing] = React.useState(false);
 
@@ -153,8 +155,8 @@ export default function LibraryScreen() {
           return (
             <EmptyState
               icon={<List size={48} className="text-muted-foreground" />}
-              title="No lists yet"
-              description="Create lists to organize your movies and TV shows"
+              title={t("library.noLists")}
+              description={t("library.noListsDesc")}
             />
           );
         }
@@ -172,7 +174,7 @@ export default function LibraryScreen() {
           <MediaGrid
             data={favoriteItems.map(dbRecordToMedia)}
             isLoading={loadingFavorites}
-            emptyMessage="No favorites yet"
+            emptyMessage={t("library.noFavorites")}
             emptyIcon={<Heart size={48} className="text-muted-foreground" />}
             onRefresh={handleRefresh}
             isRefreshing={refreshing}
@@ -187,8 +189,8 @@ export default function LibraryScreen() {
           return (
             <EmptyState
               icon={<Download size={48} className="text-muted-foreground" />}
-              title="No downloads"
-              description="Long press a source to download for offline viewing"
+              title={t("library.noDownloads")}
+              description={t("library.noDownloadsDesc")}
             />
           );
         }
@@ -215,21 +217,21 @@ export default function LibraryScreen() {
         contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 12 }}
       >
         <TabButton
-          label="Continue"
+          label={t("library.continue")}
           icon={<Clock size={16} />}
           isActive={activeTab === "continue"}
           onPress={() => setActiveTab("continue")}
           badge={continueItems.length > 0 ? continueItems.length : undefined}
         />
         <TabButton
-          label="Lists"
+          label={t("library.lists")}
           icon={<List size={16} />}
           isActive={activeTab === "lists"}
           onPress={() => setActiveTab("lists")}
           badge={lists.length > 0 ? lists.length : undefined}
         />
         <TabButton
-          label="Favorites"
+          label={t("library.favorites")}
           icon={<Heart size={16} />}
           isActive={activeTab === "favorites"}
           onPress={() => setActiveTab("favorites")}
@@ -237,7 +239,7 @@ export default function LibraryScreen() {
         />
         {showDownloadsTab && (
           <TabButton
-            label="Downloads"
+            label={t("library.downloads")}
             icon={<Download size={16} />}
             isActive={activeTab === "downloads"}
             onPress={() => setActiveTab("downloads")}
@@ -354,6 +356,7 @@ interface ListsGridProps {
 }
 
 function ListsGrid({ lists, onListPress, refreshing, onRefresh }: ListsGridProps) {
+  const { t } = useTranslation();
   return (
     <ScrollView
       className="flex-1"
@@ -378,11 +381,11 @@ function ListsGrid({ lists, onListPress, refreshing, onRefresh }: ListsGridProps
             <Text className="text-base font-medium text-foreground">
               {list.name}
               {list.isDefault && (
-                <Text className="text-muted-foreground"> (Default)</Text>
+                <Text className="text-muted-foreground"> {t("library.default")}</Text>
               )}
             </Text>
             <Text className="text-sm text-muted-foreground">
-              {list.itemCount} {list.itemCount === 1 ? "item" : "items"}
+              {t("library.item", { count: list.itemCount })}
             </Text>
           </View>
           <ChevronRight size={20} className="text-muted-foreground" />
@@ -427,6 +430,7 @@ interface ContinueWatchingGridProps {
 }
 
 function ContinueWatchingGrid({ items, isLoading, refreshing, onRefresh }: ContinueWatchingGridProps) {
+  const { t } = useTranslation();
   // Build a map from media id to episode info for custom rendering
   const episodeInfoMap = React.useMemo(() => {
     const map = new Map<string, { seasonNumber: number; episodeNumber: number }>();
@@ -464,7 +468,7 @@ function ContinueWatchingGrid({ items, isLoading, refreshing, onRefresh }: Conti
     <MediaGrid
       data={mediaItems}
       isLoading={isLoading}
-      emptyMessage="Nothing to continue"
+      emptyMessage={t("library.nothingToContinue")}
       emptyIcon={<Play size={48} className="text-muted-foreground" />}
       renderItem={renderItem}
       onRefresh={onRefresh}

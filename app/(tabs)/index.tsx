@@ -1,6 +1,7 @@
 import * as React from "react";
 import { View, ScrollView, RefreshControl, ActivityIndicator } from "react-native";
 import { useRouter } from "expo-router";
+import { useTranslation } from "react-i18next";
 import { Text } from "@/components/ui/text";
 import { MediaSection } from "@/components/library";
 import {
@@ -20,6 +21,7 @@ import type { Media, MediaType } from "@/lib/types";
 
 export default function HomeScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { success, error: migrationError } = useMigrationHelper();
   const { isConfigured, isLoading: loadingKeys } = useApiKeys();
 
@@ -116,7 +118,7 @@ export default function HomeScreen() {
   if (migrationError) {
     return (
       <View className="flex-1 bg-background items-center justify-center px-6">
-        <Text className="text-destructive">Migration error: {migrationError.message}</Text>
+        <Text className="text-destructive">{t("home.migrationError", { message: migrationError.message })}</Text>
       </View>
     );
   }
@@ -126,7 +128,7 @@ export default function HomeScreen() {
     return (
       <View className="flex-1 bg-background items-center justify-center px-6">
         <ActivityIndicator size="large" />
-        <Text className="text-muted-foreground mt-4">Loading...</Text>
+        <Text className="text-muted-foreground mt-4">{t("home.loading")}</Text>
       </View>
     );
   }
@@ -137,10 +139,10 @@ export default function HomeScreen() {
       <View className="flex-1 bg-background items-center justify-center px-6">
         <Settings size={48} className="text-muted-foreground mb-4" />
         <Text className="text-xl font-semibold text-foreground text-center">
-          Welcome to Mira
+          {t("home.welcome")}
         </Text>
         <Text className="text-muted-foreground mt-2 text-center">
-          To get started, configure your TMDB and Real-Debrid API keys in Settings.
+          {t("home.configureKeys")}
         </Text>
       </View>
     );
@@ -195,13 +197,13 @@ export default function HomeScreen() {
           ) : (
             <>
               <MediaSection
-                title="Trending Movies"
+                title={t("home.trendingMovies")}
                 items={trendingMovies}
                 headerStyle="muted"
               />
 
               <MediaSection
-                title="Trending TV Shows"
+                title={t("home.trendingTvShows")}
                 items={trendingTv}
                 headerStyle="muted"
               />

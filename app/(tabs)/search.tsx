@@ -2,6 +2,7 @@ import * as React from "react";
 import { View, Pressable, ActivityIndicator, TextInput, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect } from "expo-router";
+import { useTranslation } from "react-i18next";
 import { Text } from "@/components/ui/text";
 import { Input } from "@/components/ui/input";
 import { MediaGrid } from "@/components/media";
@@ -17,6 +18,7 @@ import { cn } from "@/lib/utils";
 type FilterType = "all" | "movie" | "tv";
 
 export default function SearchScreen() {
+  const { t } = useTranslation();
   const { isConfigured, isLoading: isLoadingKeys } = useApiKeys();
   const [filter, setFilter] = React.useState<FilterType>("all");
   const inputRef = React.useRef<TextInput>(null);
@@ -69,11 +71,10 @@ export default function SearchScreen() {
       <View className="flex-1 bg-background items-center justify-center px-6">
         <Search size={48} className="text-muted-foreground mb-4" />
         <Text className="text-xl font-semibold text-foreground text-center">
-          API Keys Required
+          {t("search.apiRequired")}
         </Text>
         <Text className="text-muted-foreground mt-2 text-center">
-          Please configure your TMDB and Real-Debrid API keys in Settings to
-          start searching.
+          {t("search.apiRequiredDesc")}
         </Text>
       </View>
     );
@@ -84,7 +85,7 @@ export default function SearchScreen() {
       {/* Page Title */}
       <View className="px-4 pt-4">
         <Text variant="pageTitle">
-          Search
+          {t("search.title")}
         </Text>
       </View>
 
@@ -98,7 +99,7 @@ export default function SearchScreen() {
               ref={inputRef}
               value={query}
               onChangeText={setQuery}
-              placeholder="Search movies, TV shows..."
+              placeholder={t("search.placeholder")}
               placeholderClassName="text-muted-foreground"
               className="flex-1 border-0 bg-transparent text-[11px] h-8"
               autoCapitalize="none"
@@ -110,7 +111,7 @@ export default function SearchScreen() {
           {query.length > 0 && (
             <Pressable onPress={handleCancel} className="px-2 py-4">
               <Text variant="body">
-                Cancel
+                {t("search.cancel")}
               </Text>
             </Pressable>
           )}
@@ -120,18 +121,18 @@ export default function SearchScreen() {
         {hasSearched && (
           <View className="flex-row mt-3 gap-2">
             <FilterButton
-              label="All"
+              label={t("search.filterAll")}
               isActive={filter === "all"}
               onPress={() => setFilter("all")}
             />
             <FilterButton
-              label="Movies"
+              label={t("search.filterMovies")}
               icon={<Film size={14} className={filter === "movie" ? "text-primary-foreground" : "text-muted-foreground"} />}
               isActive={filter === "movie"}
               onPress={() => setFilter("movie")}
             />
             <FilterButton
-              label="TV Shows"
+              label={t("search.filterTvShows")}
               icon={<Tv size={14} className={filter === "tv" ? "text-primary-foreground" : "text-muted-foreground"} />}
               isActive={filter === "tv"}
               onPress={() => setFilter("tv")}
@@ -151,7 +152,7 @@ export default function SearchScreen() {
           // Default view: Most Searched suggestions
           <ScrollView className="flex-1 px-4">
             <Text variant="sectionTitle" className="mt-4 mb-2">
-              Most searched
+              {t("search.mostSearched")}
             </Text>
             {trendingMovies.map((movie) => (
               <Pressable
@@ -169,7 +170,7 @@ export default function SearchScreen() {
           <MediaGrid
             data={filteredResults}
             isLoading={isLoading}
-            emptyMessage="No results found"
+            emptyMessage={t("search.noResults")}
             emptyIcon={<Search size={48} className="text-muted-foreground" />}
           />
         )}

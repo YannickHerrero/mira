@@ -2,6 +2,7 @@ import * as React from "react";
 import { View, Linking, Platform, ActivityIndicator } from "react-native";
 import { ScrollView } from "react-native-gesture-handler";
 import * as WebBrowser from "expo-web-browser";
+import { useTranslation } from "react-i18next";
 import List, { ListHeader } from "@/components/ui/list";
 import ListItem from "@/components/ui/list-item";
 import { Text } from "@/components/ui/text";
@@ -9,6 +10,7 @@ import { Switch } from "@/components/ui/switch";
 import { Muted } from "@/components/ui/typography";
 import { BookOpen, Shield, Star, Send, MonitorPlay } from "@/lib/icons";
 import { ThemeSettingItem } from "@/components/settings/ThemeItem";
+import { LanguageSettingItem } from "@/components/settings/LanguageItem";
 import { ApiKeyItem } from "@/components/settings/ApiKeyItem";
 import { QualityFilterItem, LanguageFilterItem } from "@/components/settings/SourceFilterItem";
 import { AudioPreferenceItem, SubtitlePreferenceItem } from "@/components/settings/StreamingPreferenceItem";
@@ -18,6 +20,7 @@ import { useStreamingPreferences } from "@/hooks/useStreamingPreferences";
 import { selectionChanged } from "@/lib/haptics";
 
 export default function Settings() {
+  const { t } = useTranslation();
   const {
     tmdbApiKey,
     realDebridApiKey,
@@ -60,31 +63,31 @@ export default function Settings() {
       <List>
         {/* API Keys Section */}
         <ListHeader>
-          <Muted>API CONFIGURATION</Muted>
+          <Muted>{t("settings.apiConfiguration")}</Muted>
         </ListHeader>
 
         <ApiKeyItem
-          label="TMDB"
-          description="For movie and TV show metadata"
+          label={t("settings.tmdb")}
+          description={t("settings.tmdbDesc")}
           value={tmdbApiKey}
           isValid={tmdbValid}
           isValidating={isValidating}
           helpUrl="https://www.themoviedb.org/settings/api"
-          helpLabel="Get TMDB key"
+          helpLabel={t("settings.getTmdbKey")}
           onSave={setTmdbKey}
         />
 
         <ApiKeyItem
-          label="Real-Debrid"
-          description="For streaming sources"
+          label={t("settings.realDebrid")}
+          description={t("settings.realDebridDesc")}
           value={realDebridApiKey}
           isValid={realDebridValid}
           isValidating={isValidating}
           helpUrl="https://real-debrid.com/apitoken"
-          helpLabel="Get Real-Debrid key"
+          helpLabel={t("settings.getRealDebridKey")}
           extraInfo={
             realDebridUsername
-              ? `Logged in as ${realDebridUsername}${realDebridPremium ? " (Premium)" : " (Free)"}`
+              ? `${t("settings.loggedInAs", { username: realDebridUsername })}${realDebridPremium ? ` ${t("settings.premium")}` : ` ${t("settings.free")}`}`
               : undefined
           }
           onSave={setRealDebridKey}
@@ -92,19 +95,19 @@ export default function Settings() {
 
         {/* Source Filters */}
         <ListHeader className="pt-8">
-          <Muted>SOURCE FILTERS</Muted>
+          <Muted>{t("settings.sourceFilters")}</Muted>
         </ListHeader>
         <QualityFilterItem />
         <LanguageFilterItem />
 
         {/* Playback Settings */}
         <ListHeader className="pt-8">
-          <Muted>PLAYBACK</Muted>
+          <Muted>{t("settings.playback")}</Muted>
         </ListHeader>
         <ListItem
           itemLeft={(props) => <MonitorPlay {...props} />}
-          label="Play in VLC"
-          description="Open videos in external VLC app (requires VLC installed)"
+          label={t("settings.playInVlc")}
+          description={t("settings.playInVlcDesc")}
           detail={false}
           itemRight={() => (
             <Switch
@@ -116,45 +119,46 @@ export default function Settings() {
 
         {/* Streaming Preferences */}
         <ListHeader className="pt-8">
-          <Muted>STREAMING PREFERENCES</Muted>
+          <Muted>{t("settings.streamingPreferences")}</Muted>
         </ListHeader>
         <AudioPreferenceItem />
         <SubtitlePreferenceItem />
 
         {/* App Settings */}
         <ListHeader className="pt-8">
-          <Muted>APP</Muted>
+          <Muted>{t("settings.app")}</Muted>
         </ListHeader>
         <ThemeSettingItem />
+        <LanguageSettingItem />
 
         {/* About */}
         <ListHeader className="pt-8">
-          <Muted>ABOUT</Muted>
+          <Muted>{t("settings.about")}</Muted>
         </ListHeader>
         <ListItem
           itemLeft={(props) => <Star {...props} />}
-          label="Rate Mira"
+          label={t("settings.rateMira")}
           onPress={() => openExternalURL("https://github.com/yherrero/mira")}
         />
         <ListItem
           itemLeft={(props) => <Send {...props} />}
-          label="Send Feedback"
+          label={t("settings.sendFeedback")}
           onPress={() => openExternalURL("https://github.com/yherrero/mira/issues")}
         />
         <ListItem
           itemLeft={(props) => <Shield {...props} />}
-          label="Privacy Policy"
+          label={t("settings.privacyPolicy")}
           onPress={() => openExternalURL("https://github.com/yherrero/mira")}
         />
         <ListItem
           itemLeft={(props) => <BookOpen {...props} />}
-          label="Terms of Service"
+          label={t("settings.termsOfService")}
           onPress={() => openExternalURL("https://github.com/yherrero/mira")}
         />
 
         {/* Version */}
         <View className="py-8 items-center">
-          <Text className="text-muted-foreground text-sm">Mira v1.0.0</Text>
+          <Text className="text-muted-foreground text-sm">{t("settings.version", { version: "1.0.0" })}</Text>
         </View>
       </List>
     </ScrollView>

@@ -6,6 +6,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { useFocusEffect } from "expo-router";
+import { useTranslation } from "react-i18next";
 import { Text } from "@/components/ui/text";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ReleaseItem } from "@/components/calendar";
@@ -19,6 +20,7 @@ interface Section {
 }
 
 export default function CalendarScreen() {
+  const { t } = useTranslation();
   const { releasesByDate, isLoading, error, refetch } = useUpcomingReleases();
   const [refreshing, setRefreshing] = React.useState(false);
   const sectionListRef = React.useRef<SectionList<UpcomingRelease, Section>>(null);
@@ -83,11 +85,11 @@ export default function CalendarScreen() {
 
       let dateLabel = `${dayName}, ${monthDay}`;
       if (isToday) {
-        dateLabel = `Today, ${monthDay}`;
+        dateLabel = `${t("calendar.today")}, ${monthDay}`;
       } else if (isTomorrow) {
-        dateLabel = `Tomorrow, ${monthDay}`;
+        dateLabel = `${t("calendar.tomorrow")}, ${monthDay}`;
       } else if (isYesterday) {
-        dateLabel = `Yesterday, ${monthDay}`;
+        dateLabel = `${t("calendar.yesterday")}, ${monthDay}`;
       }
 
       return (
@@ -132,7 +134,7 @@ export default function CalendarScreen() {
       <View className="flex-1 bg-background items-center justify-center">
         <ActivityIndicator size="large" color="hsl(0 0% 98%)" />
         <Text className="text-muted-foreground mt-4">
-          Loading releases...
+          {t("calendar.loading")}
         </Text>
       </View>
     );
@@ -152,8 +154,8 @@ export default function CalendarScreen() {
           ListEmptyComponent={
             <EmptyState
               icon={<CalendarDays size={48} className="text-muted-foreground" />}
-              title="No releases"
-              description="Add shows and movies to your watchlist to see their releases here"
+              title={t("calendar.noReleases")}
+              description={t("calendar.noReleasesDesc")}
             />
           }
         />

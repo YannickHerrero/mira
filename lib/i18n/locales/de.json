@@ -1,0 +1,204 @@
+{
+  "tabs": {
+    "home": "Start",
+    "search": "Suche",
+    "calendar": "Kalender",
+    "library": "Bibliothek",
+    "settings": "Einstellungen"
+  },
+  "home": {
+    "welcome": "Willkommen bei Mira",
+    "configureKeys": "Um zu beginnen, konfiguriere deine TMDB und Real-Debrid API-Schlüssel in den Einstellungen.",
+    "loading": "Laden...",
+    "migrationError": "Migrationsfehler: {{message}}",
+    "trendingMovies": "Beliebte Filme",
+    "trendingTvShows": "Beliebte Serien",
+    "continueWatching": "Weiterschauen",
+    "newReleases": "Neuerscheinungen",
+    "youMightAlsoLike": "Das könnte dir auch gefallen",
+    "becauseYouWatched": "Weil du {{title}} gesehen hast"
+  },
+  "search": {
+    "title": "Suche",
+    "placeholder": "Filme, Serien suchen...",
+    "cancel": "Abbrechen",
+    "mostSearched": "Am meisten gesucht",
+    "noResults": "Keine Ergebnisse",
+    "apiRequired": "API-Schlüssel erforderlich",
+    "apiRequiredDesc": "Bitte konfiguriere deine TMDB und Real-Debrid API-Schlüssel in den Einstellungen, um mit der Suche zu beginnen.",
+    "filterAll": "Alle",
+    "filterMovies": "Filme",
+    "filterTvShows": "Serien"
+  },
+  "calendar": {
+    "today": "Heute",
+    "tomorrow": "Morgen",
+    "yesterday": "Gestern",
+    "noReleases": "Keine Veröffentlichungen",
+    "noReleasesDesc": "Füge Serien und Filme zu deiner Liste hinzu, um ihre Veröffentlichungen hier zu sehen",
+    "loading": "Lade Veröffentlichungen..."
+  },
+  "library": {
+    "continue": "Fortsetzen",
+    "lists": "Listen",
+    "favorites": "Favoriten",
+    "downloads": "Downloads",
+    "nothingToContinue": "Nichts fortzusetzen",
+    "noLists": "Keine Listen",
+    "noListsDesc": "Erstelle Listen, um deine Filme und Serien zu organisieren",
+    "noFavorites": "Keine Favoriten",
+    "noDownloads": "Keine Downloads",
+    "noDownloadsDesc": "Halte eine Quelle gedrückt, um sie für die Offline-Wiedergabe herunterzuladen",
+    "listEmpty": "Liste leer",
+    "item_one": "{{count}} Element",
+    "item_other": "{{count}} Elemente",
+    "default": "(Standard)"
+  },
+  "settings": {
+    "apiConfiguration": "API-KONFIGURATION",
+    "sourceFilters": "QUELLENFILTER",
+    "playback": "WIEDERGABE",
+    "streamingPreferences": "STREAMING-EINSTELLUNGEN",
+    "app": "APP",
+    "about": "ÜBER",
+    "tmdb": "TMDB",
+    "tmdbDesc": "Für Film- und Serienmetadaten",
+    "getTmdbKey": "TMDB-Schlüssel holen",
+    "realDebrid": "Real-Debrid",
+    "realDebridDesc": "Für Streaming-Quellen",
+    "getRealDebridKey": "Real-Debrid-Schlüssel holen",
+    "loggedInAs": "Angemeldet als {{username}}",
+    "premium": "(Premium)",
+    "free": "(Kostenlos)",
+    "playInVlc": "In VLC abspielen",
+    "playInVlcDesc": "Videos in externer VLC-App öffnen (VLC erforderlich)",
+    "theme": "Design",
+    "language": "Sprache",
+    "rateMira": "Mira bewerten",
+    "sendFeedback": "Feedback senden",
+    "privacyPolicy": "Datenschutzrichtlinie",
+    "termsOfService": "Nutzungsbedingungen",
+    "version": "Mira v{{version}}"
+  },
+  "theme": {
+    "select": "Design auswählen",
+    "deviceSettings": "Geräteeinstellungen",
+    "deviceSettingsDesc": "Dem Erscheinungsbild deines Geräts folgen",
+    "darkMode": "Dunkelmodus",
+    "darkModeDesc": "Immer Dunkelmodus verwenden",
+    "lightMode": "Hellmodus",
+    "lightModeDesc": "Immer Hellmodus verwenden"
+  },
+  "language": {
+    "select": "Sprache auswählen",
+    "systemDefault": "Systemsprache",
+    "english": "Englisch",
+    "french": "Französisch",
+    "spanish": "Spanisch",
+    "german": "Deutsch",
+    "italian": "Italienisch",
+    "portuguese": "Portugiesisch"
+  },
+  "filters": {
+    "quality": "Qualität",
+    "selectQuality": "Qualität auswählen",
+    "all": "Alle",
+    "4k": "4K (2160p)",
+    "languages": "Sprachen",
+    "selectLanguages": "Sprachen auswählen",
+    "selected_one": "{{count}} ausgewählt",
+    "selected_other": "{{count}} ausgewählt"
+  },
+  "streaming": {
+    "preferredAudio": "Bevorzugter Ton",
+    "preferredSubtitles": "Bevorzugte Untertitel",
+    "audioLanguagePrefs": "Audio-Spracheinstellungen",
+    "subtitleLanguagePrefs": "Untertitel-Spracheinstellungen",
+    "setPrefOrderAudio": "Lege deine bevorzugten Audiosprachen in Prioritätsreihenfolge fest",
+    "setPrefOrderSubtitle": "Lege deine bevorzugten Untertitelsprachen in Prioritätsreihenfolge fest",
+    "yourPreferences": "Deine Einstellungen (in Reihenfolge)",
+    "addMoreLanguages": "Weitere Sprachen hinzufügen",
+    "selectLanguages": "Sprachen auswählen",
+    "disableOption": "Deaktivieren-Option",
+    "offDisable": "Aus (deaktivieren wenn keine Übereinstimmung)",
+    "audioInfo": "Der Player versucht, Audiospuren auszuwählen, die deinen Einstellungen in der Reihenfolge entsprechen. Wenn keine Übereinstimmung gefunden wird, wird die Standardspur verwendet.",
+    "subtitleInfo": "Der Player versucht, Untertitel zu aktivieren, die deinen Einstellungen in der Reihenfolge entsprechen. Füge \"Aus\" zu deiner Liste hinzu, um Untertitel zu deaktivieren, wenn keine deiner bevorzugten Sprachen verfügbar ist."
+  },
+  "apiKey": {
+    "change": "Ändern",
+    "add": "Hinzufügen",
+    "apiKey": "API-Schlüssel",
+    "enter": "API-Schlüssel eingeben",
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "validating": "Validiere...",
+    "pleaseEnter": "Bitte gib einen API-Schlüssel ein",
+    "invalid": "Ungültiger API-Schlüssel",
+    "failedValidate": "Schlüsselvalidierung fehlgeschlagen",
+    "getKey": "Schlüssel holen"
+  },
+  "media": {
+    "watchNow": "Jetzt ansehen",
+    "selectEpisode": "Wähle unten eine Episode zum Ansehen",
+    "episode": "Episode {{number}}",
+    "markWatched": "Als gesehen markieren",
+    "markUnwatched": "Als nicht gesehen markieren",
+    "markWatchedUpTo": "Bis hier als gesehen markieren",
+    "error": "Fehler",
+    "invalidMediaId": "Ungültige Medien-ID",
+    "failedToLoad": "Medium konnte nicht geladen werden"
+  },
+  "sources": {
+    "selectSource": "Quelle auswählen",
+    "loading": "Lade Quellen...",
+    "noSources": "Keine Quellen für diesen Titel gefunden.",
+    "tryDifferent": "Versuche eine andere Qualität oder komme später wieder.",
+    "noMatch": "Keine Quellen entsprechen deinen Filtern.",
+    "available_one": "{{count}} Quelle verfügbar",
+    "available_other": "{{count}} Quellen verfügbar",
+    "showAll": "Alle {{count}} Quellen anzeigen",
+    "found_one": "{{count}} Quelle gefunden",
+    "found_other": "{{count}} Quellen gefunden",
+    "filtered": "Zeige {{filtered}} von {{total}} Quellen (gefiltert)",
+    "recommendedForYou": "Empfohlen für dich",
+    "longPressToDownload": "Halte eine Quelle gedrückt, um sie für die Offline-Wiedergabe herunterzuladen",
+    "downloaded": "Heruntergeladen - Bereit zur Offline-Wiedergabe",
+    "playDownloaded": "Download abspielen"
+  },
+  "player": {
+    "noUrl": "Keine Video-URL angegeben"
+  },
+  "notFound": {
+    "title": "Hoppla!",
+    "message": "Diese Seite existiert nicht.",
+    "goHome": "Zur Startseite!"
+  },
+  "list": {
+    "notFound": "Liste nicht gefunden",
+    "renameList": "Liste umbenennen",
+    "rename": "Liste umbenennen",
+    "delete": "Liste löschen",
+    "deleteConfirm": "Bist du sicher, dass du \"{{name}}\" löschen möchtest? Diese Aktion kann nicht rückgängig gemacht werden.",
+    "deleteTitle": "Liste löschen",
+    "listName": "Listenname"
+  },
+  "empty": {
+    "noItems": "Keine Elemente"
+  },
+  "error": {
+    "somethingWrong": "Etwas ist schiefgelaufen",
+    "noConnection": "Keine Verbindung",
+    "checkConnection": "Bitte überprüfe deine Internetverbindung und versuche es erneut",
+    "unexpected": "Ein unerwarteter Fehler ist aufgetreten. Bitte versuche es erneut.",
+    "tryAgain": "Erneut versuchen",
+    "retrying": "Wird wiederholt..."
+  },
+  "common": {
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "delete": "Löschen",
+    "confirm": "Bestätigen",
+    "loading": "Laden...",
+    "seeMore": "Mehr anzeigen"
+  }
+}

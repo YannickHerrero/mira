@@ -7,6 +7,7 @@ import {
 } from "react-native";
 import { useLocalSearchParams, Stack, useRouter } from "expo-router";
 import { useBottomSheetModal } from "@gorhom/bottom-sheet";
+import { useTranslation } from "react-i18next";
 import { Text } from "@/components/ui/text";
 import { Button } from "@/components/ui/button";
 import {
@@ -48,6 +49,7 @@ function EpisodeActionSheet({
   onMarkWatchedUpToHere,
 }: EpisodeActionSheetProps) {
   const { dismiss } = useBottomSheetModal();
+  const { t } = useTranslation();
 
   return (
     <BottomSheetContent ref={sheetRef}>
@@ -55,7 +57,7 @@ function EpisodeActionSheet({
         {episode && (
           <>
             <Text className="text-lg font-semibold text-foreground mb-1">
-              Episode {episode.episodeNumber}
+              {t("media.episode", { number: episode.episodeNumber })}
             </Text>
             <Text className="text-sm text-muted-foreground mb-6" numberOfLines={1}>
               {episode.title}
@@ -74,7 +76,7 @@ function EpisodeActionSheet({
                 <Eye size={20} className="text-foreground mr-3" />
               )}
               <Text className="text-base text-foreground">
-                {isCompleted ? "Mark as unwatched" : "Mark as watched"}
+                {isCompleted ? t("media.markUnwatched") : t("media.markWatched")}
               </Text>
             </Pressable>
 
@@ -87,7 +89,7 @@ function EpisodeActionSheet({
             >
               <ListChecks size={20} className="text-foreground mr-3" />
               <Text className="text-base text-foreground">
-                Mark watched up to here
+                {t("media.markWatchedUpTo")}
               </Text>
             </Pressable>
           </>
@@ -99,6 +101,7 @@ function EpisodeActionSheet({
 
 export default function MediaDetailScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { id, type } = useLocalSearchParams<{ id: string; type: MediaType }>();
 
   const [media, setMedia] = React.useState<Media | null>(null);
@@ -138,7 +141,7 @@ export default function MediaDetailScreen() {
   // Fetch media details
   React.useEffect(() => {
     if (!tmdbApiKey || !tmdbId) {
-      setError("Invalid media ID");
+      setError(t("media.invalidMediaId"));
       setIsLoading(false);
       return;
     }
@@ -375,9 +378,9 @@ export default function MediaDetailScreen() {
   if (error || !media) {
     return (
       <View className="flex-1 bg-background items-center justify-center px-6">
-        <Stack.Screen options={{ title: "Error", headerTransparent: true }} />
+        <Stack.Screen options={{ title: t("media.error"), headerTransparent: true }} />
         <Text className="text-destructive text-center">
-          {error || "Failed to load media"}
+          {error || t("media.failedToLoad")}
         </Text>
       </View>
     );
@@ -400,12 +403,12 @@ export default function MediaDetailScreen() {
               disabled={!imdbId}
             >
               <Play size={18} className="text-primary-foreground mr-2" fill="currentColor" />
-              <Text className="text-primary-foreground font-semibold">Watch Now</Text>
+              <Text className="text-primary-foreground font-semibold">{t("media.watchNow")}</Text>
             </Button>
           ) : (
             <View className="flex-1">
               <Text className="text-sm text-muted-foreground mb-2">
-                Select an episode below to watch
+                {t("media.selectEpisode")}
               </Text>
             </View>
           )}
@@ -497,7 +500,7 @@ export default function MediaDetailScreen() {
               <MediaSectionSkeleton />
             ) : (
               <MediaSection
-                title="You Might Also Like"
+                title={t("home.youMightAlsoLike")}
                 items={similarMovies}
               />
             )}

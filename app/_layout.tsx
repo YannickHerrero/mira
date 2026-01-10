@@ -1,4 +1,5 @@
 import "./global.css";
+import "@/lib/i18n"; // Initialize i18n before app renders
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { type Theme, ThemeProvider } from "@react-navigation/native";
 import { SplashScreen, Stack } from "expo-router";
@@ -15,6 +16,7 @@ import { DARK_THEME, LIGHT_THEME } from "@/lib/constants";
 import { useColorScheme } from "@/lib/useColorScheme";
 import { getItem, setItem } from "@/lib/storage";
 import { useFrameworkReady } from "@/hooks/useFrameworkReady";
+import { useLanguage } from "@/hooks/useLanguage";
 import {
   Raleway_400Regular,
   Raleway_600SemiBold,
@@ -45,6 +47,9 @@ SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const { colorScheme, setColorScheme } = useColorScheme();
+
+  // Initialize language on app start
+  useLanguage();
 
   const [loaded, error] = useFonts({
     Raleway_400Regular,

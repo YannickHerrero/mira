@@ -7,18 +7,27 @@ import { Tabs } from "expo-router";
 import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import { View, Text, Pressable, StyleSheet } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useTranslation } from "react-i18next";
 import type { LucideIcon } from "lucide-react-native";
 
 export const unstable_settings = {
   initialRouteName: "index",
 };
 
-const TAB_CONFIG: Record<string, { title: string; Icon: LucideIcon }> = {
-  index: { title: "Home", Icon: Home },
-  search: { title: "Search", Icon: Search },
-  calendar: { title: "Calendar", Icon: CalendarDays },
-  library: { title: "Library", Icon: Library },
-  settings: { title: "Settings", Icon: Settings },
+const TAB_ICONS: Record<string, LucideIcon> = {
+  index: Home,
+  search: Search,
+  calendar: CalendarDays,
+  library: Library,
+  settings: Settings,
+};
+
+const TAB_KEYS: Record<string, string> = {
+  index: "tabs.home",
+  search: "tabs.search",
+  calendar: "tabs.calendar",
+  library: "tabs.library",
+  settings: "tabs.settings",
 };
 
 // Design system colors from global.css (Catppuccin Macchiato)
@@ -30,6 +39,7 @@ const COLORS = {
 
 function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
 
   return (
     <View
@@ -43,12 +53,13 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
       <View style={styles.tabBarInner}>
         {state.routes.map((route, index) => {
           const { options } = descriptors[route.key];
-          const config = TAB_CONFIG[route.name];
+          const Icon = TAB_ICONS[route.name];
+          const titleKey = TAB_KEYS[route.name];
           const isFocused = state.index === index;
 
-          if (!config) return null;
+          if (!Icon || !titleKey) return null;
 
-          const { title, Icon } = config;
+          const title = t(titleKey);
 
           const onPress = () => {
             const event = navigation.emit({

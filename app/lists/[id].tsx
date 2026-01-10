@@ -3,6 +3,7 @@ import { View, Pressable, Alert } from "react-native";
 import { useLocalSearchParams, Stack, useRouter } from "expo-router";
 import type { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useBottomSheetModal } from "@gorhom/bottom-sheet";
+import { useTranslation } from "react-i18next";
 import { Text } from "@/components/ui/text";
 import { Button } from "@/components/ui/button";
 import { MediaGrid } from "@/components/media";
@@ -52,6 +53,7 @@ function ListActionsSheet({
   onDelete,
 }: ListActionsSheetProps) {
   const { dismiss } = useBottomSheetModal();
+  const { t } = useTranslation();
 
   return (
     <BottomSheetContent ref={sheetRef}>
@@ -68,7 +70,7 @@ function ListActionsSheet({
           }}
         >
           <Pencil size={20} className="text-foreground mr-3" />
-          <Text className="text-base text-foreground">Rename list</Text>
+          <Text className="text-base text-foreground">{t("list.rename")}</Text>
         </Pressable>
 
         {!isDefault && (
@@ -80,7 +82,7 @@ function ListActionsSheet({
             }}
           >
             <Trash size={20} className="text-destructive mr-3" />
-            <Text className="text-base text-destructive">Delete list</Text>
+            <Text className="text-base text-destructive">{t("list.delete")}</Text>
           </Pressable>
         )}
       </BottomSheetView>
@@ -96,6 +98,7 @@ interface RenameSheetProps {
 
 function RenameSheet({ sheetRef, currentName, onSave }: RenameSheetProps) {
   const { dismiss } = useBottomSheetModal();
+  const { t } = useTranslation();
   const [name, setName] = React.useState(currentName);
 
   React.useEffect(() => {
@@ -113,12 +116,12 @@ function RenameSheet({ sheetRef, currentName, onSave }: RenameSheetProps) {
     <BottomSheetContent ref={sheetRef}>
       <BottomSheetHeader>
         <Text className="text-lg font-semibold text-foreground py-4">
-          Rename List
+          {t("list.renameList")}
         </Text>
       </BottomSheetHeader>
       <BottomSheetView className="px-4 pb-6">
         <BottomSheetTextInput
-          placeholder="List name"
+          placeholder={t("list.listName")}
           value={name}
           onChangeText={setName}
           autoFocus
@@ -127,14 +130,14 @@ function RenameSheet({ sheetRef, currentName, onSave }: RenameSheetProps) {
         />
         <View className="flex-row gap-3 mt-4">
           <Button variant="outline" className="flex-1" onPress={() => dismiss()}>
-            <Text>Cancel</Text>
+            <Text>{t("common.cancel")}</Text>
           </Button>
           <Button
             className="flex-1"
             onPress={handleSave}
             disabled={!name.trim() || name.trim() === currentName}
           >
-            <Text className="text-primary-foreground font-semibold">Save</Text>
+            <Text className="text-primary-foreground font-semibold">{t("common.save")}</Text>
           </Button>
         </View>
       </BottomSheetView>
@@ -144,6 +147,7 @@ function RenameSheet({ sheetRef, currentName, onSave }: RenameSheetProps) {
 
 export default function ListDetailScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { lists, refetch: refetchLists } = useLists();
   const { items, isLoading, refetch } = useListItems(id ?? null);
@@ -181,12 +185,12 @@ export default function ListDetailScreen() {
     if (!currentList || currentList.isDefault) return;
 
     Alert.alert(
-      "Delete List",
-      `Are you sure you want to delete "${currentList.name}"? This action cannot be undone.`,
+      t("list.deleteTitle"),
+      t("list.deleteConfirm", { name: currentList.name }),
       [
-        { text: "Cancel", style: "cancel" },
+        { text: t("common.cancel"), style: "cancel" },
         {
-          text: "Delete",
+          text: t("common.delete"),
           style: "destructive",
           onPress: async () => {
             await deleteList(id!);
@@ -201,8 +205,8 @@ export default function ListDetailScreen() {
   if (!currentList) {
     return (
       <View className="flex-1 bg-background items-center justify-center">
-        <Stack.Screen options={{ title: "List" }} />
-        <Text className="text-muted-foreground">List not found</Text>
+        <Stack.Screen options={{ title: t("library.lists") }} />
+        <Text className="text-muted-foreground">{t("list.notFound")}</Text>
       </View>
     );
   }
@@ -223,7 +227,7 @@ export default function ListDetailScreen() {
       <MediaGrid
         data={items.map((item) => dbRecordToMedia(item.media))}
         isLoading={isLoading}
-        emptyMessage="List is empty"
+        emptyMessage={t("library.listEmpty")}
         emptyIcon={<List size={48} className="text-muted-foreground" />}
         onRefresh={handleRefresh}
         isRefreshing={refreshing}
