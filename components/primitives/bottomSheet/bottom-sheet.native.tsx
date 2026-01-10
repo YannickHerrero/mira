@@ -19,13 +19,11 @@ import {
   type GestureResponderEvent,
   Keyboard,
   Pressable,
-  Text,
   View,
   type ViewStyle,
 } from "react-native";
 import {useSafeAreaInsets} from "react-native-safe-area-context";
-import {Button} from "../../ui";
-import {X} from "@/lib/icons/Times";
+import {Text} from "@/components/ui/text";
 import {useColorScheme} from "@/lib/useColorScheme";
 import {cn} from "@/lib/utils";
 
@@ -33,7 +31,7 @@ type BottomSheetRef = React.ElementRef<typeof View>;
 type BottomSheetProps = React.ComponentPropsWithoutRef<typeof View>;
 
 interface BottomSheetContext {
-  sheetRef: React.RefObject<BottomSheetModal>;
+  sheetRef: React.RefObject<BottomSheetModal | null>;
 }
 
 const BottomSheetContext = React.createContext({} as BottomSheetContext);
@@ -156,9 +154,9 @@ const BottomSheetContent = React.forwardRef<
         enablePanDownToClose={enablePanDownToClose}
         backdropComponent={renderBackdrop}
         enableDynamicSizing={enableDynamicSizing}
-        backgroundStyle={[{backgroundColor: colors.card}, backgroundStyle]}
+        backgroundStyle={[{backgroundColor: colors.background}, backgroundStyle]}
         handleIndicatorStyle={{
-          backgroundColor: colors.text,
+          backgroundColor: colors.border,
         }}
         topInset={insets.top}
         android_keyboardInputMode={android_keyboardInputMode}
@@ -214,7 +212,7 @@ function BottomSheetView({
   return (
     <View
       style={style}
-      className={cn(`px-4`, className)}
+      className={cn("px-4 pt-4 pb-6 bg-background", className)}
       {...props}
     >
       {children}
@@ -256,7 +254,7 @@ const BottomSheetFlatList = React.forwardRef<
     <GBottomSheetFlatList
       ref={ref}
       contentContainerStyle={[{paddingBottom: insets.bottom}]}
-      className={cn("py-4", className)}
+      className={cn("px-4 pt-4 pb-6", className)}
       keyboardShouldPersistTaps="handled"
       {...props}
     />
@@ -269,31 +267,81 @@ const BottomSheetHeader = React.forwardRef<
   BottomSheetHeaderRef,
   BottomSheetHeaderProps
 >(({className, children, ...props}, ref) => {
-  const {dismiss} = useBottomSheetModal();
-  function close() {
-    if (Keyboard.isVisible()) {
-      Keyboard.dismiss();
-    }
-    dismiss();
-  }
   return (
     <View
       ref={ref}
       className={cn(
-        "border-b border-border flex-row items-center justify-between pl-4",
+        "border-b border-border/40 flex-row items-center justify-between px-4 py-4 bg-background",
         className,
       )}
       {...props}
     >
       {children}
-      <Button onPress={close} variant="ghost" className="pr-4">
-        <X className="text-muted-foreground" size={24} />
-      </Button>
     </View>
   );
 });
 
+type BottomSheetActionRowRef = React.ElementRef<typeof Pressable>;
+type BottomSheetActionRowProps = React.ComponentPropsWithoutRef<typeof Pressable> & {
+  title: string;
+  description?: string;
+  icon?: React.ReactNode;
+  variant?: "default" | "destructive";
+};
+
+const BottomSheetActionRow = React.forwardRef<
+  BottomSheetActionRowRef,
+  BottomSheetActionRowProps
+>(
+  (
+    {title, description, icon, variant = "default", className, ...props},
+    ref,
+  ) => {
+    const isDestructive = variant === "destructive";
+    return (
+      <Pressable
+        ref={ref}
+        className={cn(
+          "flex-row items-center gap-3 rounded-xl px-3 py-3 active:opacity-70",
+          isDestructive ? "bg-destructive/10" : "bg-muted/20",
+          className,
+        )}
+        {...props}
+      >
+        {icon ? (
+          <View
+            className={cn(
+              "h-10 w-10 items-center justify-center rounded-full",
+              isDestructive ? "bg-destructive/20" : "bg-muted/40",
+            )}
+          >
+            {icon}
+          </View>
+        ) : null}
+        <View className="flex-1">
+          <Text
+            className={cn(
+              "text-base font-medium",
+              isDestructive ? "text-destructive" : "text-foreground",
+            )}
+          >
+            {title}
+          </Text>
+          {description ? (
+            <Text className="text-xs text-muted-foreground mt-0.5">
+              {description}
+            </Text>
+          ) : null}
+        </View>
+      </Pressable>
+    );
+  },
+);
+
+BottomSheetActionRow.displayName = "BottomSheetActionRow";
+
 type BottomSheetFooterRef = React.ElementRef<typeof View>;
+
 type BottomSheetFooterProps = Omit<
   React.ComponentPropsWithoutRef<typeof View>,
   "style"
@@ -343,6 +391,7 @@ export {
   BottomSheet,
   BottomSheetCloseTrigger,
   BottomSheetContent,
+  BottomSheetActionRow,
   BottomSheetFlatList,
   BottomSheetFooter,
   BottomSheetHeader,

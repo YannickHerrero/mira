@@ -17,10 +17,8 @@ import {
   type ViewStyle,
 } from "react-native";
 import {useSafeAreaInsets} from "react-native-safe-area-context";
-import {X} from "../../components/Icons";
 import {cn} from "../../lib/utils";
 import * as Slot from "../primitives/slot";
-import {Button} from "./button";
 
 // !IMPORTANT: This file is only for web.
 
@@ -28,7 +26,7 @@ type BottomSheetRef = React.ElementRef<typeof View>;
 type BottomSheetProps = React.ComponentPropsWithoutRef<typeof View>;
 
 interface BottomSheetContext {
-  sheetRef: React.RefObject<BottomSheetModal>;
+  sheetRef: React.RefObject<BottomSheetModal | null>;
 }
 
 const BottomSheetContext = React.createContext({} as BottomSheetContext);
@@ -101,7 +99,7 @@ function BottomSheetView({
   return (
     <View
       style={style}
-      className={cn(`px-4`, className)}
+      className={cn("px-4 pt-4 pb-6 bg-background", className)}
       {...props}
     >
       {children}
@@ -143,7 +141,7 @@ const BottomSheetFlatList = React.forwardRef<
     <GBottomSheetFlatList
       ref={ref}
       contentContainerStyle={[{paddingBottom: insets.bottom}]}
-      className={cn("py-4", className)}
+      className={cn("px-4 pt-4 pb-6", className)}
       keyboardShouldPersistTaps="handled"
       {...props}
     />
@@ -156,26 +154,16 @@ const BottomSheetHeader = React.forwardRef<
   BottomSheetHeaderRef,
   BottomSheetHeaderProps
 >(({className, children, ...props}, ref) => {
-  const {dismiss} = useBottomSheetModal();
-  function close() {
-    if (Keyboard.isVisible()) {
-      Keyboard.dismiss();
-    }
-    dismiss();
-  }
   return (
     <View
       ref={ref}
       className={cn(
-        "border-b border-border flex-row items-center justify-between pl-4",
+        "border-b border-border/40 flex-row items-center justify-between px-4 py-4 bg-background",
         className,
       )}
       {...props}
     >
       {children}
-      <Button onPress={close} variant="ghost" className="pr-4">
-        <X className="text-muted-foreground" size={24} />
-      </Button>
     </View>
   );
 });
