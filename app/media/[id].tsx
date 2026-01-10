@@ -30,7 +30,7 @@ import { Play, Heart, Check, Eye, EyeOff, ListChecks, List, ChevronLeft } from "
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { BlurView } from "expo-blur";
 import { useLibraryActions } from "@/hooks/useLibrary";
-import { useListActions } from "@/hooks/useLists";
+import { useListActions, useLists, useMediaLists } from "@/hooks/useLists";
 import { useWatchProgress } from "@/hooks/useWatchProgress";
 import { useApiKeyStore } from "@/stores/api-keys";
 import { useLanguageStore } from "@/stores/language";
@@ -137,6 +137,12 @@ export default function MediaDetailScreen() {
     checkIsFavorite,
   } = useLibraryActions();
   const { checkIsInAnyList } = useListActions();
+  const { lists, isLoading: isLoadingLists, refetch: refetchLists } = useLists();
+  const {
+    listIds,
+    isLoading: isLoadingMediaLists,
+    refetch: refetchMediaLists,
+  } = useMediaLists(media?.id ?? 0, media?.mediaType ?? "movie");
   const { getShowProgress, getProgress, markAsCompleted, clearProgress, markEpisodesAsCompleted } = useWatchProgress();
   const mediaType = type || "movie";
   const tmdbId = id ? parseInt(id, 10) : 0;
@@ -579,6 +585,12 @@ export default function MediaDetailScreen() {
         <ListSelectorSheet
           sheetRef={listSelectorSheetRef}
           media={media}
+          lists={lists}
+          listIds={listIds}
+          isLoadingLists={isLoadingLists}
+          isLoadingMediaLists={isLoadingMediaLists}
+          refetchLists={refetchLists}
+          refetchMediaLists={refetchMediaLists}
           imdbId={imdbId ?? undefined}
           onComplete={handleListSelectorComplete}
         />

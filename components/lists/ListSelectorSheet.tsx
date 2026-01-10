@@ -1,5 +1,5 @@
 import * as React from "react";
-import { View, Pressable, TextInput, ActivityIndicator } from "react-native";
+import { View, Pressable, ActivityIndicator } from "react-native";
 import type { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useBottomSheetModal } from "@gorhom/bottom-sheet";
 import {
@@ -13,13 +13,20 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Check, Plus } from "@/lib/icons";
 import { cn } from "@/lib/utils";
-import { useLists, useMediaLists, useListActions } from "@/hooks/useLists";
+import type { ListWithCount } from "@/hooks/useLists";
+import { useListActions } from "@/hooks/useLists";
 import type { Media } from "@/lib/types";
 import { selectionChanged, lightImpact } from "@/lib/haptics";
 
 interface ListSelectorSheetProps {
   sheetRef: React.RefObject<BottomSheetModal | null>;
   media: Media | null;
+  lists: ListWithCount[];
+  listIds: string[];
+  isLoadingLists: boolean;
+  isLoadingMediaLists: boolean;
+  refetchLists: () => Promise<void>;
+  refetchMediaLists: () => Promise<void>;
   imdbId?: string;
   onComplete?: () => void;
 }
@@ -27,16 +34,16 @@ interface ListSelectorSheetProps {
 export function ListSelectorSheet({
   sheetRef,
   media,
+  lists,
+  listIds,
+  isLoadingLists,
+  isLoadingMediaLists,
+  refetchLists,
+  refetchMediaLists,
   imdbId,
   onComplete,
 }: ListSelectorSheetProps) {
   const { dismiss } = useBottomSheetModal();
-  const { lists, isLoading: isLoadingLists, refetch: refetchLists } = useLists();
-  const {
-    listIds: currentListIds,
-    isLoading: isLoadingMediaLists,
-    refetch: refetchMediaLists,
-  } = useMediaLists(media?.id ?? 0, media?.mediaType ?? "movie");
   const { createList, updateMediaLists, ensureDefaultList } = useListActions();
 
   const [selectedListIds, setSelectedListIds] = React.useState<Set<string>>(new Set());
@@ -46,8 +53,8 @@ export function ListSelectorSheet({
 
   // Sync selected lists when media lists load
   React.useEffect(() => {
-    setSelectedListIds(new Set(currentListIds));
-  }, [currentListIds]);
+    setSelectedListIds(new Set(listIds));
+  }, [listIds]);
 
   // Ensure default list exists when sheet opens
   React.useEffect(() => {
@@ -112,11 +119,16 @@ export function ListSelectorSheet({
   return (
     <BottomSheetContent ref={sheetRef} enableDynamicSizing>
       <BottomSheetHeader>
-        <Text className="text-lg font-semibold text-foreground py-4">
-          Add to List
-        </Text>
+        <View className="flex-1 gap-1 py-3">
+          <Text className="text-lg font-semibold text-foreground">
+            Add to List
+          </Text>
+          <Text className="text-xs text-muted-foreground">
+            Choose where to save this title
+          </Text>
+        </View>
       </BottomSheetHeader>
-      <BottomSheetView className="pb-6 gap-4">
+      <BottomSheetView className="pb-6 gap-5">
         {isLoading ? (
           <View className="py-8 items-center">
             <ActivityIndicator size="small" />
@@ -124,39 +136,65 @@ export function ListSelectorSheet({
         ) : (
           <>
             {/* List items */}
-            <View className="mb-4">
-              {lists.map((list) => (
-                <Pressable
-                  key={list.id}
-                  onPress={() => handleToggleList(list.id)}
-                  className="flex-row items-center py-3 border-b border-border active:opacity-70"
-                >
-                  <Checkbox
-                    checked={selectedListIds.has(list.id)}
-                    onCheckedChange={() => handleToggleList(list.id)}
-                    className="mr-3"
-                  />
-                  <View className="flex-1">
-                    <Text className="text-base text-foreground">
-                      {list.name}
-                      {list.isDefault && (
-                        <Text className="text-muted-foreground"> (Default)</Text>
+            <View className="mb-4 gap-2">
+              {lists.length === 0 ? (
+                <View className="rounded-2xl border border-dashed border-border/60 px-4 py-6">
+                  <Text className="text-sm text-muted-foreground">
+                    No lists yet. Create one to get started.
+                  </Text>
+                </View>
+              ) : (
+                lists.map((list) => {
+                  const isSelected = selectedListIds.has(list.id);
+                  return (
+                    <Pressable
+                      key={list.id}
+                      onPress={() => handleToggleList(list.id)}
+                      className={cn(
+                        "flex-row items-center gap-3 rounded-2xl border px-4 py-3 active:opacity-80",
+                        isSelected
+                          ? "border-primary/40 bg-primary/10"
+                          : "border-border/40 bg-muted/10",
                       )}
-                    </Text>
-                    <Text className="text-sm text-muted-foreground">
-                      {list.itemCount} {list.itemCount === 1 ? "item" : "items"}
-                    </Text>
-                  </View>
-                  {selectedListIds.has(list.id) && (
-                    <Check size={20} className="text-primary" />
-                  )}
-                </Pressable>
-              ))}
+                    >
+                      <Checkbox
+                        checked={isSelected}
+                        onCheckedChange={() => handleToggleList(list.id)}
+                      />
+                      <View className="flex-1">
+                        <View className="flex-row items-center gap-2">
+                          <Text className="text-base text-foreground">
+                            {list.name}
+                          </Text>
+                          {list.isDefault && (
+                            <View className="rounded-full bg-muted/40 px-2 py-0.5">
+                              <Text className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                                Default
+                              </Text>
+                            </View>
+                          )}
+                        </View>
+                        <Text className="text-xs text-muted-foreground mt-0.5">
+                          {list.itemCount} {list.itemCount === 1 ? "item" : "items"}
+                        </Text>
+                      </View>
+                      {isSelected && (
+                        <View className="h-7 w-7 items-center justify-center rounded-full bg-primary/15">
+                          <Check size={16} className="text-primary" />
+                        </View>
+                      )}
+                    </Pressable>
+                  );
+                })
+              )}
             </View>
 
             {/* Create new list section */}
             {isCreatingList ? (
-              <View className="mb-4">
+              <View className="mb-4 rounded-2xl border border-border/40 bg-muted/10 p-4">
+                <Text className="text-sm font-medium text-foreground mb-3">
+                  New list
+                </Text>
                 <BottomSheetTextInput
                   placeholder="List name"
                   value={newListName}
@@ -167,7 +205,7 @@ export function ListSelectorSheet({
                 />
                 <View className="flex-row gap-2 mt-3">
                   <Button
-                    variant="outline"
+                    variant="secondary"
                     className="flex-1"
                     onPress={() => {
                       setIsCreatingList(false);
@@ -191,20 +229,25 @@ export function ListSelectorSheet({
                   lightImpact();
                   setIsCreatingList(true);
                 }}
-                className="flex-row items-center py-3 mb-4 active:opacity-70"
+                className="flex-row items-center rounded-2xl border border-dashed border-border/60 px-4 py-3 active:opacity-70"
               >
                 <View className="w-5 h-5 mr-3 items-center justify-center">
                   <Plus size={20} className="text-primary" />
                 </View>
-                <Text className="text-base text-primary font-medium">
-                  Create new list
-                </Text>
+                <View>
+                  <Text className="text-base text-foreground font-medium">
+                    Create new list
+                  </Text>
+                  <Text className="text-xs text-muted-foreground">
+                    Keep your library organized
+                  </Text>
+                </View>
               </Pressable>
             )}
 
             {/* Action buttons */}
-            <View className="flex-row gap-3">
-              <Button variant="outline" className="flex-1" onPress={handleCancel}>
+            <View className="flex-row gap-3 pt-2">
+              <Button variant="secondary" className="flex-1" onPress={handleCancel}>
                 <Text>Cancel</Text>
               </Button>
               <Button
