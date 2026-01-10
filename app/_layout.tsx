@@ -15,7 +15,13 @@ import { DARK_THEME, LIGHT_THEME } from "@/lib/constants";
 import { useColorScheme } from "@/lib/useColorScheme";
 import { getItem, setItem } from "@/lib/storage";
 import { useFrameworkReady } from "@/hooks/useFrameworkReady";
-import { Inter_400Regular, Inter_600SemiBold, useFonts } from '@expo-google-fonts/inter';
+import {
+  Raleway_400Regular,
+  Raleway_600SemiBold,
+  Raleway_700Bold,
+  Raleway_800ExtraBold,
+  useFonts,
+} from '@expo-google-fonts/raleway';
 import { useEffect } from "react";
 
 // Disable Reanimated strict mode warnings
@@ -41,8 +47,10 @@ export default function RootLayout() {
   const { colorScheme, setColorScheme } = useColorScheme();
 
   const [loaded, error] = useFonts({
-    Inter_400Regular,
-    Inter_600SemiBold,
+    Raleway_400Regular,
+    Raleway_600SemiBold,
+    Raleway_700Bold,
+    Raleway_800ExtraBold,
   });
 
   useFrameworkReady();
@@ -77,9 +85,9 @@ export default function RootLayout() {
             <Stack
               screenOptions={{
                 headerStyle: {
-                  backgroundColor: colorScheme === "dark" ? "hsl(240, 10%, 3.9%)" : "hsl(0, 0%, 100%)",
+                  backgroundColor: colorScheme === "dark" ? "#24273A" : "hsl(0, 0%, 100%)",
                 },
-                headerTintColor: colorScheme === "dark" ? "hsl(0, 0%, 98%)" : "hsl(240, 10%, 3.9%)",
+                headerTintColor: colorScheme === "dark" ? "#CAD3F5" : "hsl(240, 10%, 3.9%)",
                 headerShadowVisible: false,
               }}
             >
