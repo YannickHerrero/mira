@@ -209,63 +209,65 @@ export default function SourcesScreen() {
       ? `Season ${seasonNumber} Episode ${episodeNumber}`
       : year?.toString();
 
+  // Hero section component to pass to SourceList
+  const heroSection = (
+    <View style={{ height: heroHeight + insets.top, marginBottom: 40, marginHorizontal: -16 }}>
+      {/* Backdrop Image */}
+      {backdropUrl && (
+        <Image
+          source={{ uri: backdropUrl }}
+          className="absolute inset-0 w-full h-full"
+          resizeMode="cover"
+        />
+      )}
+
+      {/* Gradient Overlay - covers bottom portion for smooth transition */}
+      <LinearGradient
+        colors={["rgba(36, 39, 58, 0)", "rgba(36, 39, 58, 1)"]}
+        locations={[0, 1]}
+        style={{
+          position: "absolute",
+          bottom: 0,
+          left: 0,
+          right: 0,
+          height: (heroHeight + insets.top) * 0.6,
+        }}
+      />
+
+      {/* Back Button */}
+      <View className="absolute px-4" style={{ top: insets.top + 8 }}>
+        <Pressable
+          onPress={() => router.back()}
+          className="overflow-hidden rounded-full"
+        >
+          <BlurView intensity={50} tint="dark" className="p-2.5">
+            <ChevronLeft size={24} className="text-foreground" />
+          </BlurView>
+        </Pressable>
+      </View>
+
+      {/* Hero Text Content - overlapping below the image */}
+      <View className="absolute left-0 right-0 px-4" style={{ bottom: -40 }}>
+        {heroMutedText && (
+          <Text className="text-[10px] text-foreground opacity-50 lowercase mb-1">
+            {heroMutedText}
+          </Text>
+        )}
+        <Text className="text-2xl font-bold text-foreground mb-1">
+          {heroTitle}
+        </Text>
+        {heroSubtitle && (
+          <Text className="text-xs font-semibold text-foreground">
+            {heroSubtitle}
+          </Text>
+        )}
+      </View>
+    </View>
+  );
+
   return (
     <View className="flex-1 bg-background">
       <Stack.Screen options={{ headerShown: false }} />
-
-      {/* Hero Section */}
-      <View style={{ height: heroHeight + insets.top, marginBottom: 40 }}>
-        {/* Backdrop Image */}
-        {backdropUrl && (
-          <Image
-            source={{ uri: backdropUrl }}
-            className="absolute inset-0 w-full h-full"
-            resizeMode="cover"
-          />
-        )}
-
-        {/* Gradient Overlay - covers bottom portion for smooth transition */}
-        <LinearGradient
-          colors={["rgba(36, 39, 58, 0)", "rgba(36, 39, 58, 1)"]}
-          locations={[0, 1]}
-          style={{
-            position: "absolute",
-            bottom: 0,
-            left: 0,
-            right: 0,
-            height: (heroHeight + insets.top) * 0.6,
-          }}
-        />
-
-        {/* Back Button */}
-        <View className="absolute px-4" style={{ top: insets.top + 8 }}>
-          <Pressable
-            onPress={() => router.back()}
-            className="overflow-hidden rounded-full"
-          >
-            <BlurView intensity={50} tint="dark" className="p-2.5">
-              <ChevronLeft size={24} className="text-foreground" />
-            </BlurView>
-          </Pressable>
-        </View>
-
-        {/* Hero Text Content - overlapping below the image */}
-        <View className="absolute left-0 right-0 px-4" style={{ bottom: -40 }}>
-          {heroMutedText && (
-            <Text className="text-[10px] text-foreground opacity-50 lowercase mb-1">
-              {heroMutedText}
-            </Text>
-          )}
-          <Text className="text-2xl font-bold text-foreground mb-1">
-            {heroTitle}
-          </Text>
-          {heroSubtitle && (
-            <Text className="text-xs font-semibold text-foreground">
-              {heroSubtitle}
-            </Text>
-          )}
-        </View>
-      </View>
 
       <SourceList
         streams={streams}
@@ -279,6 +281,7 @@ export default function SourcesScreen() {
         episodeNumber={episodeNumber}
         title={fullTitle}
         posterPath={posterPath}
+        ListHeaderComponent={heroSection}
       />
     </View>
   );

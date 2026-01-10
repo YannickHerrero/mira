@@ -28,6 +28,8 @@ interface SourceListProps {
   episodeNumber?: number;
   title?: string;
   posterPath?: string;
+  // Custom header component (e.g., hero section)
+  ListHeaderComponent?: React.ReactNode;
 }
 
 export function SourceList({
@@ -42,6 +44,7 @@ export function SourceList({
   episodeNumber,
   title,
   posterPath,
+  ListHeaderComponent: CustomHeaderComponent,
 }: SourceListProps) {
   const [selectedStream, setSelectedStream] = React.useState<Stream | null>(null);
   const [showAllSources, setShowAllSources] = React.useState(false);
@@ -265,10 +268,13 @@ export function SourceList({
         data={sortedStreams}
         renderItem={renderItem}
         keyExtractor={keyExtractor}
-        contentContainerStyle={{ padding: 16 }}
+        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 16 }}
         showsVerticalScrollIndicator={false}
         ListHeaderComponent={
           <View>
+            {/* Custom header (e.g., hero section) */}
+            {CustomHeaderComponent}
+
             {/* Downloaded banner */}
             {Platform.OS !== "web" && download?.status === "completed" && (
               <View className="bg-green-600/10 border border-green-600/30 rounded-lg p-3 mb-4">
