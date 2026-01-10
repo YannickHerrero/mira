@@ -92,7 +92,7 @@ export function ApiKeyItem({
       return <ActivityIndicator size="small" />;
     }
     if (isValid === true) {
-      return <CheckCircle size={20} className="text-green-500" />;
+      return <CheckCircle size={20} className="text-lavender" />;
     }
     if (isValid === false) {
       return <XCircle size={20} className="text-destructive" />;
