@@ -6,6 +6,7 @@ import { Settings } from "@/lib/icons/Settings";
 import { Tabs } from "expo-router";
 import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import { View, Text, Pressable, StyleSheet } from "react-native";
+import { BlurView } from "expo-blur";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
 import type { LucideIcon } from "lucide-react-native";
@@ -42,68 +43,67 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const { t } = useTranslation();
 
   return (
-    <View
-      style={[
-        styles.tabBar,
-        {
-          paddingBottom: Math.max(insets.bottom, 12),
-        },
-      ]}
+    <BlurView
+      intensity={50}
+      tint="dark"
+      style={styles.tabBar}
     >
-      <View style={styles.tabBarInner}>
-        {state.routes.map((route, index) => {
-          const { options } = descriptors[route.key];
-          const Icon = TAB_ICONS[route.name];
-          const titleKey = TAB_KEYS[route.name];
-          const isFocused = state.index === index;
+      <View style={[styles.tabBarOverlay, { paddingBottom: Math.max(insets.bottom, 12) }]}>
+        <View style={styles.tabBarInner}>
+          {state.routes.map((route, index) => {
+            const { options } = descriptors[route.key];
+            const Icon = TAB_ICONS[route.name];
+            const titleKey = TAB_KEYS[route.name];
+            const isFocused = state.index === index;
 
-          if (!Icon || !titleKey) return null;
+            if (!Icon || !titleKey) return null;
 
-          const title = t(titleKey);
+            const title = t(titleKey);
 
-          const onPress = () => {
-            const event = navigation.emit({
-              type: "tabPress",
-              target: route.key,
-              canPreventDefault: true,
-            });
+            const onPress = () => {
+              const event = navigation.emit({
+                type: "tabPress",
+                target: route.key,
+                canPreventDefault: true,
+              });
 
-            if (!isFocused && !event.defaultPrevented) {
-              navigation.navigate(route.name, route.params);
-            }
-          };
+              if (!isFocused && !event.defaultPrevented) {
+                navigation.navigate(route.name, route.params);
+              }
+            };
 
-          const onLongPress = () => {
-            navigation.emit({
-              type: "tabLongPress",
-              target: route.key,
-            });
-          };
+            const onLongPress = () => {
+              navigation.emit({
+                type: "tabLongPress",
+                target: route.key,
+              });
+            };
 
-          return (
-            <Pressable
-              key={route.key}
-              accessibilityRole="button"
-              accessibilityState={isFocused ? { selected: true } : {}}
-              accessibilityLabel={options.tabBarAccessibilityLabel}
-              testID={options.tabBarButtonTestID}
-              onPress={onPress}
-              onLongPress={onLongPress}
-              style={styles.tabItem}
-            >
-              <Icon color={COLORS.text} size={24} />
-              <Text style={styles.tabLabel}>{title}</Text>
-              <View
-                style={[
-                  styles.indicator,
-                  { backgroundColor: isFocused ? COLORS.yellow : "transparent" },
-                ]}
-              />
-            </Pressable>
-          );
-        })}
+            return (
+              <Pressable
+                key={route.key}
+                accessibilityRole="button"
+                accessibilityState={isFocused ? { selected: true } : {}}
+                accessibilityLabel={options.tabBarAccessibilityLabel}
+                testID={options.tabBarButtonTestID}
+                onPress={onPress}
+                onLongPress={onLongPress}
+                style={styles.tabItem}
+              >
+                <Icon color={COLORS.text} size={24} />
+                <Text style={styles.tabLabel}>{title}</Text>
+                <View
+                  style={[
+                    styles.indicator,
+                    { backgroundColor: isFocused ? COLORS.yellow : "transparent" },
+                  ]}
+                />
+              </Pressable>
+            );
+          })}
+        </View>
       </View>
-    </View>
+    </BlurView>
   );
 }
 
@@ -113,7 +113,10 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: COLORS.background,
+    overflow: "hidden",
+  },
+  tabBarOverlay: {
+    backgroundColor: "rgba(36, 39, 58, 0.6)",
     paddingTop: 12,
   },
   tabBarInner: {
