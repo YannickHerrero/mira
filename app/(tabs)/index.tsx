@@ -1,16 +1,21 @@
 import * as React from "react";
-import { View, ScrollView, RefreshControl, ActivityIndicator, Pressable } from "react-native";
+import { View, ScrollView, RefreshControl, ActivityIndicator } from "react-native";
 import { useRouter } from "expo-router";
 import { Text } from "@/components/ui/text";
-import { Input } from "@/components/ui/input";
 import { MediaSection } from "@/components/library";
+import {
+  HeroSection,
+  ContinueWatchingList,
+  NewReleasesCarousel,
+} from "@/components/home";
 import { useMigrationHelper } from "@/db/drizzle";
 import { useApiKeys } from "@/hooks/useApiKeys";
 import { useTrending } from "@/hooks/useTrending";
 import { useContinueWatching } from "@/hooks/useLibrary";
-import { useLists, useListItems, useListActions } from "@/hooks/useLists";
 import { useRecommendations } from "@/hooks/useRecommendations";
-import { Search, Settings } from "@/lib/icons";
+import { useRecentReleases } from "@/hooks/useRecentReleases";
+import { useLists, useListActions } from "@/hooks/useLists";
+import { Settings } from "@/lib/icons";
 import type { Media, MediaType } from "@/lib/types";
 
 export default function HomeScreen() {
@@ -37,9 +42,8 @@ export default function HomeScreen() {
     refetch: refetchRecommendations,
   } = useRecommendations();
 
-  // Find the default watchlist
-  const defaultList = lists.find((l) => l.isDefault);
-  const { items: watchlistItems, refetch: refetchWatchlist } = useListItems(defaultList?.id ?? null);
+  // Recent releases from watchlist
+  const { releases: recentReleases, refetch: refetchReleases } = useRecentReleases();
 
   const [refreshing, setRefreshing] = React.useState(false);
 
@@ -59,50 +63,54 @@ export default function HomeScreen() {
       refetchTrending(),
       refetchContinue(),
       refetchLists(),
-      refetchWatchlist(),
       refetchRecommendations(),
+      refetchReleases(),
     ]);
     setRefreshing(false);
   };
 
-  const handleSearchPress = () => {
-    router.push("/search" as any);
-  };
+  // Determine hero media: last TV show from continue watching, or first trending TV
+  const heroData = React.useMemo(() => {
+    // Priority 1: Last TV show from continue watching
+    const lastTvItem = continueItems.find(
+      (item) => item.media.mediaType === "tv"
+    );
+    if (lastTvItem) {
+      return {
+        media: {
+          id: lastTvItem.media.tmdbId,
+          mediaType: lastTvItem.media.mediaType as MediaType,
+          title: lastTvItem.media.title,
+          posterPath: lastTvItem.media.posterPath,
+          backdropPath: lastTvItem.media.backdropPath,
+          year: lastTvItem.media.year,
+          score: lastTvItem.media.score,
+          description: lastTvItem.media.description,
+          genres: lastTvItem.media.genres
+            ? JSON.parse(lastTvItem.media.genres)
+            : [],
+        } as Media,
+        episodeInfo:
+          lastTvItem.progress.seasonNumber != null &&
+          lastTvItem.progress.episodeNumber != null
+            ? {
+                seasonNumber: lastTvItem.progress.seasonNumber,
+                episodeNumber: lastTvItem.progress.episodeNumber,
+              }
+            : undefined,
+      };
+    }
 
-  // Convert database records to Media type with episode info for continue watching
-  const continueWatchingItems = continueItems.map((item) => ({
-    media: {
-      id: item.media.tmdbId,
-      mediaType: item.media.mediaType as MediaType,
-      title: item.media.title,
-      posterPath: item.media.posterPath,
-      backdropPath: item.media.backdropPath,
-      year: item.media.year,
-      score: item.media.score,
-      genres: item.media.genres ? JSON.parse(item.media.genres) : [],
-    } as Media,
-    // Include episode info for TV shows
-    episodeInfo:
-      item.media.mediaType === "tv" &&
-      item.progress.seasonNumber != null &&
-      item.progress.episodeNumber != null
-        ? {
-            seasonNumber: item.progress.seasonNumber,
-            episodeNumber: item.progress.episodeNumber,
-          }
-        : undefined,
-  }));
+    // Priority 2: First trending TV show
+    if (trendingTv.length > 0) {
+      return {
+        media: trendingTv[0],
+        episodeInfo: undefined,
+      };
+    }
 
-  const watchlistMedia: Media[] = watchlistItems.map((item) => ({
-    id: item.media.tmdbId,
-    mediaType: item.media.mediaType as MediaType,
-    title: item.media.title,
-    posterPath: item.media.posterPath ?? undefined,
-    backdropPath: item.media.backdropPath ?? undefined,
-    year: item.media.year ?? undefined,
-    score: item.media.score ?? undefined,
-    genres: item.media.genres ? JSON.parse(item.media.genres) : [],
-  }));
+    return null;
+  }, [continueItems, trendingTv]);
 
   // Migration error
   if (migrationError) {
@@ -147,46 +155,34 @@ export default function HomeScreen() {
           <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
         }
       >
-        {/* Search bar */}
-        <View className="px-4 pt-4 pb-2">
-          <Pressable onPress={handleSearchPress}>
-            <View className="flex-row items-center bg-muted rounded-lg px-3">
-              <Search size={20} className="text-muted-foreground" />
-              <Input
-                placeholder="Search movies, TV shows..."
-                className="flex-1 border-0 bg-transparent"
-                editable={false}
-                pointerEvents="none"
-              />
-            </View>
-          </Pressable>
-        </View>
-
-        {/* Continue Watching */}
-        {continueWatchingItems.length > 0 && (
-          <MediaSection
-            title="Continue Watching"
-            items={continueWatchingItems}
+        {/* Hero Section */}
+        {heroData && (
+          <HeroSection
+            media={heroData.media}
+            episodeInfo={heroData.episodeInfo}
           />
         )}
 
-        {/* Watchlist */}
-        {watchlistMedia.length > 0 && (
-          <MediaSection
-            title="Your Watchlist"
-            items={watchlistMedia.slice(0, 10)}
-            onSeeAll={() => router.push("/library" as any)}
-          />
+        {/* Continue Watching (list style) */}
+        {continueItems.length > 0 && (
+          <ContinueWatchingList items={continueItems} maxItems={3} />
+        )}
+
+        {/* New Releases */}
+        {recentReleases.length > 0 && (
+          <NewReleasesCarousel releases={recentReleases} />
         )}
 
         {/* Personalized Recommendations */}
-        {hasPersonalization && recommendationSections.map((section) => (
-          <MediaSection
-            key={section.id}
-            title={section.title}
-            items={section.items}
-          />
-        ))}
+        {hasPersonalization &&
+          recommendationSections.map((section) => (
+            <MediaSection
+              key={section.id}
+              title={section.title}
+              items={section.items}
+              headerStyle="muted"
+            />
+          ))}
 
         {/* Trending Movies */}
         {loadingTrending ? (
@@ -198,11 +194,13 @@ export default function HomeScreen() {
             <MediaSection
               title="Trending Movies"
               items={trendingMovies}
+              headerStyle="muted"
             />
 
             <MediaSection
               title="Trending TV Shows"
               items={trendingTv}
+              headerStyle="muted"
             />
           </>
         )}

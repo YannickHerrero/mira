@@ -18,6 +18,8 @@ interface MediaSectionProps {
   items: Media[] | MediaSectionItem[];
   onSeeAll?: () => void;
   emptyMessage?: string;
+  /** Header style: default or muted (uppercase, 50% opacity) */
+  headerStyle?: "default" | "muted";
 }
 
 // Type guard to check if item is MediaSectionItem (has media property)
@@ -30,20 +32,38 @@ export function MediaSection({
   items,
   onSeeAll,
   emptyMessage = "No items",
+  headerStyle = "default",
 }: MediaSectionProps) {
+  const isMuted = headerStyle === "muted";
   if (items.length === 0) {
     return null;
   }
 
   return (
-    <View className="mb-6">
+    <View className="mb-12">
       {/* Header */}
       <View className="flex-row items-center justify-between px-4 mb-3">
-        <Text className="text-lg font-semibold text-foreground">{title}</Text>
+        <Text
+          className={
+            isMuted
+              ? "text-[10px] font-bold uppercase text-foreground/50"
+              : "text-lg font-semibold text-foreground"
+          }
+        >
+          {isMuted ? title.toUpperCase() : title}
+        </Text>
         {onSeeAll && (
           <Pressable onPress={onSeeAll} className="flex-row items-center">
-            <Text className="text-sm text-primary mr-1">See all</Text>
-            <ChevronRight size={16} className="text-primary" />
+            <Text
+              className={
+                isMuted
+                  ? "text-[10px] font-bold uppercase text-lavender mr-1"
+                  : "text-sm text-primary mr-1"
+              }
+            >
+              {isMuted ? "SEE MORE" : "See all"}
+            </Text>
+            <ChevronRight size={isMuted ? 14 : 16} className={isMuted ? "text-lavender" : "text-primary"} />
           </Pressable>
         )}
       </View>
