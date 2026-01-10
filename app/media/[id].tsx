@@ -14,6 +14,7 @@ import {
   BottomSheet,
   BottomSheetActionRow,
   BottomSheetContent,
+  BottomSheetHeader,
   BottomSheetView,
 } from "@/components/primitives/bottomSheet/bottom-sheet.native";
 import {
@@ -57,16 +58,21 @@ function EpisodeActionSheet({
 
   return (
     <BottomSheetContent ref={sheetRef}>
-      <BottomSheetView className="pb-8 gap-4">
-        {episode && (
-          <>
+      {episode && (
+        <BottomSheetHeader>
+          <View className="flex-1 gap-1">
             <Text className="text-lg font-semibold text-foreground">
               {t("media.episode", { number: episode.episodeNumber })}
             </Text>
             <Text className="text-sm text-muted-foreground" numberOfLines={1}>
               {episode.title}
             </Text>
-
+          </View>
+        </BottomSheetHeader>
+      )}
+      <BottomSheetView className="pb-8 gap-4">
+        {episode && (
+          <>
             <BottomSheetActionRow
               title={isCompleted ? t("media.markUnwatched") : t("media.markWatched")}
               icon={

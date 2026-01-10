@@ -99,7 +99,7 @@ function BottomSheetView({
   return (
     <View
       style={style}
-      className={cn("px-4 pt-4 pb-6 bg-background", className)}
+      className={cn("px-4 pt-5 pb-6 bg-background", className)}
       {...props}
     >
       {children}
@@ -141,7 +141,7 @@ const BottomSheetFlatList = React.forwardRef<
     <GBottomSheetFlatList
       ref={ref}
       contentContainerStyle={[{paddingBottom: insets.bottom}]}
-      className={cn("px-4 pt-4 pb-6", className)}
+      className={cn("px-4 pt-5 pb-6", className)}
       keyboardShouldPersistTaps="handled"
       {...props}
     />
