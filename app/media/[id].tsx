@@ -23,7 +23,9 @@ import {
 } from "@/components/media";
 import { MediaSection } from "@/components/library";
 import { ListSelectorSheet } from "@/components/lists";
-import { Play, Heart, Check, Eye, EyeOff, ListChecks, List } from "@/lib/icons";
+import { Play, Heart, Check, Eye, EyeOff, ListChecks, List, ChevronLeft } from "@/lib/icons";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { BlurView } from "expo-blur";
 import { useLibraryActions } from "@/hooks/useLibrary";
 import { useListActions } from "@/hooks/useLists";
 import { useWatchProgress } from "@/hooks/useWatchProgress";
@@ -102,6 +104,7 @@ function EpisodeActionSheet({
 
 export default function MediaDetailScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { t } = useTranslation();
   const { id, type } = useLocalSearchParams<{ id: string; type: MediaType }>();
 
@@ -370,7 +373,16 @@ export default function MediaDetailScreen() {
   if (isLoading) {
     return (
       <View className="flex-1 bg-background items-center justify-center">
-        <Stack.Screen options={{ title: "", headerTransparent: true }} />
+        <Stack.Screen options={{ headerShown: false }} />
+        <Pressable
+          onPress={() => router.back()}
+          className="absolute z-10 overflow-hidden rounded-full"
+          style={{ top: insets.top + 8, left: 16 }}
+        >
+          <BlurView intensity={50} tint="dark" className="p-2.5">
+            <ChevronLeft size={24} className="text-foreground" />
+          </BlurView>
+        </Pressable>
         <ActivityIndicator size="large" />
       </View>
     );
@@ -380,7 +392,16 @@ export default function MediaDetailScreen() {
   if (error || !media) {
     return (
       <View className="flex-1 bg-background items-center justify-center px-6">
-        <Stack.Screen options={{ title: t("media.error"), headerTransparent: true }} />
+        <Stack.Screen options={{ headerShown: false }} />
+        <Pressable
+          onPress={() => router.back()}
+          className="absolute z-10 overflow-hidden rounded-full"
+          style={{ top: insets.top + 8, left: 16 }}
+        >
+          <BlurView intensity={50} tint="dark" className="p-2.5">
+            <ChevronLeft size={24} className="text-foreground" />
+          </BlurView>
+        </Pressable>
         <Text className="text-destructive text-center">
           {error || t("media.failedToLoad")}
         </Text>
@@ -390,7 +411,18 @@ export default function MediaDetailScreen() {
 
   return (
     <View className="flex-1 bg-background">
-      <Stack.Screen options={{ title: "", headerTransparent: true }} />
+      <Stack.Screen options={{ headerShown: false }} />
+
+      {/* Custom back button */}
+      <Pressable
+        onPress={() => router.back()}
+        className="absolute z-10 overflow-hidden rounded-full"
+        style={{ top: insets.top + 8, left: 16 }}
+      >
+        <BlurView intensity={50} tint="dark" className="p-2.5">
+          <ChevronLeft size={24} className="text-foreground" />
+        </BlurView>
+      </Pressable>
 
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         {/* Header with backdrop and info */}
