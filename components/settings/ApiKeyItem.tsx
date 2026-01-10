@@ -1,11 +1,19 @@
 import * as React from "react";
 import { View, Pressable, Linking, Platform, ActivityIndicator } from "react-native";
+import { useBottomSheetModal } from "@gorhom/bottom-sheet";
+import {
+  BottomSheet,
+  BottomSheetContent,
+  BottomSheetHeader,
+  BottomSheetOpenTrigger,
+  BottomSheetView,
+} from "@/components/primitives/bottomSheet/bottom-sheet.native";
 import { Text } from "@/components/ui/text";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import ListItem from "@/components/ui/list-item";
 import { Key, CheckCircle, XCircle, ExternalLink } from "@/lib/icons";
 import * as WebBrowser from "expo-web-browser";
-import { cn } from "@/lib/utils";
 
 interface ApiKeyItemProps {
   label: string;
@@ -32,7 +40,7 @@ export function ApiKeyItem({
   onSave,
   className,
 }: ApiKeyItemProps) {
-  const [isEditing, setIsEditing] = React.useState(false);
+  const { dismiss } = useBottomSheetModal();
   const [inputValue, setInputValue] = React.useState("");
   const [isSaving, setIsSaving] = React.useState(false);
   const [saveError, setSaveError] = React.useState<string | null>(null);
@@ -60,8 +68,8 @@ export function ApiKeyItem({
       const valid = typeof result === "boolean" ? result : result.valid;
 
       if (valid) {
-        setIsEditing(false);
         setInputValue("");
+        dismiss();
       } else {
         setSaveError("Invalid API key");
       }
@@ -73,115 +81,102 @@ export function ApiKeyItem({
   };
 
   const handleCancel = () => {
-    setIsEditing(false);
     setInputValue("");
     setSaveError(null);
+    dismiss();
+  };
+
+  // Status icon for the list item
+  const StatusIcon = () => {
+    if (isValidating) {
+      return <ActivityIndicator size="small" />;
+    }
+    if (isValid === true) {
+      return <CheckCircle size={20} className="text-green-500" />;
+    }
+    if (isValid === false) {
+      return <XCircle size={20} className="text-destructive" />;
+    }
+    return <View className="w-5 h-5 rounded-full bg-muted" />;
   };
 
   return (
-    <View className={cn("py-4 border-b border-border", className)}>
-      <View className="flex-row items-center justify-between">
-        <View className="flex-row items-center gap-3 flex-1">
-          <View className="w-8 h-8 rounded-full bg-muted items-center justify-center">
-            <Key size={16} className="text-muted-foreground" />
-          </View>
-          <View className="flex-1">
-            <Text className="text-base font-medium text-foreground">{label}</Text>
-            {description && (
-              <Text className="text-sm text-muted-foreground">{description}</Text>
-            )}
-          </View>
-        </View>
-
-        <View className="flex-row items-center gap-2">
-          {isValidating ? (
-            <ActivityIndicator size="small" />
-          ) : isValid === true ? (
-            <CheckCircle size={20} className="text-green-500" />
-          ) : isValid === false ? (
-            <XCircle size={20} className="text-destructive" />
-          ) : (
-            <View className="w-5 h-5 rounded-full bg-muted" />
-          )}
-        </View>
-      </View>
-
-      {/* Extra info (like username for Real-Debrid) */}
-      {extraInfo && isValid && (
-        <Text className="text-sm text-muted-foreground mt-1 ml-11">
-          {extraInfo}
-        </Text>
-      )}
-
-      {/* Edit/Add button */}
-      {!isEditing && (
-        <View className="mt-3 ml-11 flex-row gap-2">
-          <Pressable
-            onPress={() => setIsEditing(true)}
-            className="bg-secondary px-3 py-1.5 rounded-md"
-          >
-            <Text className="text-sm text-secondary-foreground">
-              {value ? "Change" : "Add"} API Key
+    <BottomSheet>
+      <BottomSheetOpenTrigger asChild>
+        <ListItem
+          itemLeft={(props) => <Key {...props} />}
+          label={label}
+          description={description}
+          itemRight={() => <StatusIcon />}
+          detail={false}
+          className={className}
+        />
+      </BottomSheetOpenTrigger>
+      <BottomSheetContent>
+        <BottomSheetHeader className="bg-background">
+          <Text className="text-foreground text-xl font-bold pb-1">
+            {label}
+          </Text>
+          {description && (
+            <Text className="text-muted-foreground text-sm">
+              {description}
             </Text>
-          </Pressable>
-
-          {helpUrl && (
-            <Pressable
-              onPress={openHelpUrl}
-              className="flex-row items-center gap-1 px-3 py-1.5"
-            >
-              <Text className="text-sm text-primary">{helpLabel || "Get key"}</Text>
-              <ExternalLink size={14} className="text-primary" />
-            </Pressable>
           )}
-        </View>
-      )}
+        </BottomSheetHeader>
+        <BottomSheetView className="bg-background">
+          {/* Extra info (like username for Real-Debrid) */}
+          {extraInfo && isValid && (
+            <View className="mb-4 p-3 bg-muted/30 rounded-lg">
+              <Text className="text-muted-foreground text-sm">
+                {extraInfo}
+              </Text>
+            </View>
+          )}
 
-      {/* Edit form */}
-      {isEditing && (
-        <View className="mt-3 ml-11">
+          {/* Input field */}
           <Input
             value={inputValue}
             onChangeText={setInputValue}
-            placeholder="Enter API key"
+            placeholder={value ? "Enter new API key" : "Enter API key"}
             secureTextEntry
             autoCapitalize="none"
             autoCorrect={false}
-            className="mb-2"
+            className="mb-3"
           />
 
           {saveError && (
-            <Text className="text-sm text-destructive mb-2">{saveError}</Text>
+            <Text className="text-sm text-destructive mb-3">{saveError}</Text>
           )}
 
-          <View className="flex-row gap-2">
+          {/* Action buttons */}
+          <View className="flex-row gap-3 mb-4">
             <Button
               variant="default"
-              size="sm"
               onPress={handleSave}
               disabled={isSaving}
-              className="flex-row items-center"
+              className="flex-1"
             >
-              <Text className="text-primary-foreground text-sm">
-                {isSaving ? "Validating..." : "Save"}
+              <Text className="text-primary-foreground font-medium">
+                {isSaving ? "Validating..." : value ? "Update" : "Save"}
               </Text>
             </Button>
-            <Button variant="outline" size="sm" onPress={handleCancel}>
-              <Text className="text-sm">Cancel</Text>
+            <Button variant="outline" onPress={handleCancel} className="flex-1">
+              <Text className="font-medium">Cancel</Text>
             </Button>
           </View>
 
+          {/* Help link */}
           {helpUrl && (
             <Pressable
               onPress={openHelpUrl}
-              className="flex-row items-center gap-1 mt-2"
+              className="flex-row items-center justify-center gap-1 py-2"
             >
               <Text className="text-sm text-primary">{helpLabel || "Get API key"}</Text>
               <ExternalLink size={14} className="text-primary" />
             </Pressable>
           )}
-        </View>
-      )}
-    </View>
+        </BottomSheetView>
+      </BottomSheetContent>
+    </BottomSheet>
   );
 }
