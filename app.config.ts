@@ -26,6 +26,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       LSApplicationQueriesSchemes: ["vlc-x-callback"],
       NSLocalNetworkUsageDescription:
         "Mira uses the local network to stream media from local sources.",
+      UIFileSharingEnabled: true,
+      LSSupportsOpeningDocumentsInPlace: true,
     },
   },
   android: {
