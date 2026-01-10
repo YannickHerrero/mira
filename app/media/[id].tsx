@@ -12,6 +12,7 @@ import { Text } from "@/components/ui/text";
 import { Button } from "@/components/ui/button";
 import {
   BottomSheet,
+  BottomSheetActionRow,
   BottomSheetContent,
   BottomSheetView,
 } from "@/components/primitives/bottomSheet/bottom-sheet.native";
@@ -56,45 +57,39 @@ function EpisodeActionSheet({
 
   return (
     <BottomSheetContent ref={sheetRef}>
-      <BottomSheetView className="px-4 pb-8 bg-background">
+      <BottomSheetView className="pb-8 gap-4">
         {episode && (
           <>
-            <Text className="text-lg font-semibold text-foreground mb-1">
+            <Text className="text-lg font-semibold text-foreground">
               {t("media.episode", { number: episode.episodeNumber })}
             </Text>
-            <Text className="text-sm text-muted-foreground mb-6" numberOfLines={1}>
+            <Text className="text-sm text-muted-foreground" numberOfLines={1}>
               {episode.title}
             </Text>
 
-            <Pressable
-              className="flex-row items-center py-3 active:opacity-70"
+            <BottomSheetActionRow
+              title={isCompleted ? t("media.markUnwatched") : t("media.markWatched")}
+              icon={
+                isCompleted ? (
+                  <EyeOff size={20} className="text-foreground" />
+                ) : (
+                  <Eye size={20} className="text-foreground" />
+                )
+              }
               onPress={() => {
                 onToggleWatched();
                 dismiss();
               }}
-            >
-              {isCompleted ? (
-                <EyeOff size={20} className="text-foreground mr-3" />
-              ) : (
-                <Eye size={20} className="text-foreground mr-3" />
-              )}
-              <Text className="text-base text-foreground">
-                {isCompleted ? t("media.markUnwatched") : t("media.markWatched")}
-              </Text>
-            </Pressable>
+            />
 
-            <Pressable
-              className="flex-row items-center py-3 active:opacity-70"
+            <BottomSheetActionRow
+              title={t("media.markWatchedUpTo")}
+              icon={<ListChecks size={20} className="text-foreground" />}
               onPress={() => {
                 onMarkWatchedUpToHere();
                 dismiss();
               }}
-            >
-              <ListChecks size={20} className="text-foreground mr-3" />
-              <Text className="text-base text-foreground">
-                {t("media.markWatchedUpTo")}
-              </Text>
-            </Pressable>
+            />
           </>
         )}
       </BottomSheetView>

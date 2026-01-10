@@ -1,10 +1,10 @@
 import * as React from "react";
-import { View, Pressable, Image } from "react-native";
+import { View, Image } from "react-native";
 import { useBottomSheetModal } from "@gorhom/bottom-sheet";
 import type { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { Text } from "@/components/ui/text";
-import { Button } from "@/components/ui/button";
 import {
+  BottomSheetActionRow,
   BottomSheetContent,
   BottomSheetView,
 } from "@/components/primitives/bottomSheet/bottom-sheet.native";
@@ -50,7 +50,7 @@ export function DownloadInfoSheet({
 
   return (
     <BottomSheetContent ref={sheetRef}>
-      <BottomSheetView className="px-4 pb-8 bg-background">
+      <BottomSheetView className="pb-8 gap-4">
         {/* Header with poster and title */}
         <View className="flex-row mb-4">
           {posterUrl ? (
@@ -102,53 +102,41 @@ export function DownloadInfoSheet({
         </View>
 
         {/* Actions */}
-        <View className="gap-2">
+        <View className="gap-3">
           {isCompleted && (
-            <Button
-              className="flex-row items-center justify-center"
+            <BottomSheetActionRow
+              title="Play Now"
+              description="Watch this download"
+              icon={<Play size={20} className="text-foreground" />}
               onPress={() => {
                 onPlay();
                 dismiss();
               }}
-            >
-              <Play
-                size={18}
-                className="text-primary-foreground mr-2"
-                fill="currentColor"
-              />
-              <Text className="text-primary-foreground font-semibold">
-                Play Now
-              </Text>
-            </Button>
+            />
           )}
 
           {isFailed && onRetry && (
-            <Button
-              variant="outline"
-              className="flex-row items-center justify-center"
+            <BottomSheetActionRow
+              title="Retry Download"
+              description="Try the download again"
+              icon={<RefreshCw size={20} className="text-foreground" />}
               onPress={() => {
                 onRetry();
                 dismiss();
               }}
-            >
-              <RefreshCw size={18} className="text-foreground mr-2" />
-              <Text className="text-foreground font-semibold">Retry Download</Text>
-            </Button>
+            />
           )}
 
-          <Button
+          <BottomSheetActionRow
+            title="Delete Download"
+            description="Remove from device"
+            icon={<Trash size={20} className="text-destructive" />}
             variant="destructive"
-            className="flex-row items-center justify-center"
             onPress={() => {
               onDelete();
               dismiss();
             }}
-          >
-            <Trash size={18} className="text-destructive-foreground mr-2" />
-            <Text className="text-destructive-foreground font-semibold">
-              Delete Download
-            </Text>
-          </Button>
+          />
         </View>
       </BottomSheetView>
     </BottomSheetContent>

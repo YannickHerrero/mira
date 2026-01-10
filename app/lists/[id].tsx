@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { MediaGrid } from "@/components/media";
 import {
   BottomSheet,
+  BottomSheetActionRow,
   BottomSheetContent,
   BottomSheetView,
   BottomSheetHeader,
@@ -57,33 +58,30 @@ function ListActionsSheet({
 
   return (
     <BottomSheetContent ref={sheetRef}>
-      <BottomSheetView className="px-4 pb-8 bg-background">
-        <Text className="text-lg font-semibold text-foreground mb-4">
+      <BottomSheetView className="pb-8 gap-4">
+        <Text className="text-lg font-semibold text-foreground">
           {listName}
         </Text>
 
-        <Pressable
-          className="flex-row items-center py-3 active:opacity-70"
+        <BottomSheetActionRow
+          title={t("list.rename")}
+          icon={<Pencil size={20} className="text-foreground" />}
           onPress={() => {
             dismiss();
             onRename();
           }}
-        >
-          <Pencil size={20} className="text-foreground mr-3" />
-          <Text className="text-base text-foreground">{t("list.rename")}</Text>
-        </Pressable>
+        />
 
         {!isDefault && (
-          <Pressable
-            className="flex-row items-center py-3 active:opacity-70"
+          <BottomSheetActionRow
+            title={t("list.delete")}
+            icon={<Trash size={20} className="text-destructive" />}
+            variant="destructive"
             onPress={() => {
               dismiss();
               onDelete();
             }}
-          >
-            <Trash size={20} className="text-destructive mr-3" />
-            <Text className="text-base text-destructive">{t("list.delete")}</Text>
-          </Pressable>
+          />
         )}
       </BottomSheetView>
     </BottomSheetContent>
@@ -119,7 +117,7 @@ function RenameSheet({ sheetRef, currentName, onSave }: RenameSheetProps) {
           {t("list.renameList")}
         </Text>
       </BottomSheetHeader>
-      <BottomSheetView className="px-4 pb-6">
+      <BottomSheetView className="pb-6 gap-4">
         <BottomSheetTextInput
           placeholder={t("list.listName")}
           value={name}

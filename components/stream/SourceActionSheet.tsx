@@ -1,9 +1,10 @@
 import * as React from "react";
-import { View, Pressable, Platform } from "react-native";
+import { View, Platform } from "react-native";
 import { useBottomSheetModal } from "@gorhom/bottom-sheet";
 import type { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { Text } from "@/components/ui/text";
 import {
+  BottomSheetActionRow,
   BottomSheetContent,
   BottomSheetView,
 } from "@/components/primitives/bottomSheet/bottom-sheet.native";
@@ -36,7 +37,7 @@ export function SourceActionSheet({
 
   return (
     <BottomSheetContent ref={sheetRef}>
-      <BottomSheetView className="px-4 pb-8 bg-background">
+      <BottomSheetView className="pb-8 gap-4">
         {stream && (
           <>
             {/* Stream info header */}
@@ -100,39 +101,37 @@ export function SourceActionSheet({
             </View>
 
             {/* Actions */}
-            <View className="border-t border-border pt-4">
-              {/* Play action */}
-              <Pressable
-                className="flex-row items-center py-3 active:opacity-70"
+            <View className="border-t border-border/60 pt-4 gap-3">
+              <BottomSheetActionRow
+                title="Play Now"
+                description="Stream directly"
+                icon={<Play size={20} className="text-foreground" />}
                 onPress={() => {
                   onPlay();
                   dismiss();
                 }}
-              >
-                <View className="w-10 h-10 rounded-full bg-primary items-center justify-center mr-3">
-                  <Play
-                    size={18}
-                    className="text-primary-foreground ml-0.5"
-                    fill="currentColor"
-                  />
-                </View>
-                <View>
-                  <Text className="text-base font-medium text-foreground">
-                    Play Now
-                  </Text>
-                  <Text className="text-xs text-muted-foreground">
-                    Stream directly
-                  </Text>
-                </View>
-              </Pressable>
+              />
 
-              {/* Download action - only show on native */}
               {Platform.OS !== "web" && (
-                <Pressable
-                  className={cn(
-                    "flex-row items-center py-3",
-                    canDownload ? "active:opacity-70" : "opacity-50"
-                  )}
+                <BottomSheetActionRow
+                  title={
+                    isDownloaded
+                      ? "Already Downloaded"
+                      : isDownloading
+                        ? "Downloading..."
+                        : "Download"
+                  }
+                  description={
+                    isDownloaded
+                      ? "Available offline"
+                      : isDownloading
+                        ? "Check progress in library"
+                        : stream.sizeBytes
+                          ? `${formatBytes(stream.sizeBytes)} will be saved`
+                          : "Save for offline viewing"
+                  }
+                  icon={<Download size={20} className="text-foreground" />}
+                  className={!canDownload ? "opacity-60" : undefined}
                   onPress={() => {
                     if (canDownload) {
                       onDownload();
@@ -140,29 +139,7 @@ export function SourceActionSheet({
                     }
                   }}
                   disabled={!canDownload}
-                >
-                  <View className="w-10 h-10 rounded-full bg-muted items-center justify-center mr-3">
-                    <Download size={18} className="text-foreground" />
-                  </View>
-                  <View>
-                    <Text className="text-base font-medium text-foreground">
-                      {isDownloaded
-                        ? "Already Downloaded"
-                        : isDownloading
-                          ? "Downloading..."
-                          : "Download"}
-                    </Text>
-                    <Text className="text-xs text-muted-foreground">
-                      {isDownloaded
-                        ? "Available offline"
-                        : isDownloading
-                          ? "Check progress in library"
-                          : stream.sizeBytes
-                            ? `${formatBytes(stream.sizeBytes)} will be saved`
-                            : "Save for offline viewing"}
-                    </Text>
-                  </View>
-                </Pressable>
+                />
               )}
             </View>
           </>
