@@ -60,17 +60,14 @@ export function NewReleaseCard({ release, cardWidth }: NewReleaseCardProps) {
                 {/* Genre badge */}
                 {firstGenre && (
                   <View className="self-start bg-mauve/10 rounded-lg px-1.5 py-0.5">
-                    <Text className="text-[7px] font-bold text-foreground uppercase">
+                    <Text variant="tag">
                       {firstGenre}
                     </Text>
                   </View>
                 )}
 
                 {/* Title */}
-                <Text
-                  className="text-[14px] font-bold text-foreground leading-tight"
-                  numberOfLines={2}
-                >
+                <Text variant="cardTitle" numberOfLines={2}>
                   {media.title}
                 </Text>
 
@@ -91,7 +88,7 @@ export function NewReleaseCard({ release, cardWidth }: NewReleaseCardProps) {
                 className="self-start flex-row items-center bg-[#cad3f5] rounded-lg py-2 px-4 gap-2"
               >
                 <Play size={14} className="text-[#24273a]" fill="#24273a" />
-                <Text className="text-[13px] font-semibold text-[#24273a]">
+                <Text variant="button" className="text-[#24273a]">
                   Watch
                 </Text>
               </Pressable>

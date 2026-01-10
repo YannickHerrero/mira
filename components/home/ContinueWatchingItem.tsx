@@ -62,22 +62,19 @@ export function ContinueWatchingItem({ item }: ContinueWatchingItemProps) {
         {/* Info */}
         <View className="flex-1 gap-2">
           {/* Episode number */}
-          <Text className="text-[11px] font-semibold text-foreground/50">
+          <Text variant="body" className="text-foreground/50">
             {episodeLabel}
           </Text>
 
           {/* Title */}
-          <Text
-            className="text-[14px] font-extrabold text-foreground leading-tight"
-            numberOfLines={2}
-          >
+          <Text variant="cardTitle" className="font-extrabold" numberOfLines={2}>
             {media.title}
           </Text>
 
           {/* Continue with play icon */}
           <View className="flex-row items-center gap-2">
             <Play size={14} className="text-foreground/50" />
-            <Text className="text-[11px] font-semibold text-foreground/50">
+            <Text variant="body" className="text-foreground/50">
               Continue
             </Text>
           </View>

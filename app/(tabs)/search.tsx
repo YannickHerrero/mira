@@ -83,7 +83,7 @@ export default function SearchScreen() {
     <SafeAreaView className="flex-1 bg-background" edges={["top"]}>
       {/* Page Title */}
       <View className="px-4 pt-4">
-        <Text className="text-[25px] font-bold text-foreground">
+        <Text variant="pageTitle">
           Search
         </Text>
       </View>
@@ -109,7 +109,7 @@ export default function SearchScreen() {
           </View>
           {query.length > 0 && (
             <Pressable onPress={handleCancel} className="px-2 py-4">
-              <Text className="text-[11px] font-semibold text-foreground">
+              <Text variant="body">
                 Cancel
               </Text>
             </Pressable>
@@ -150,7 +150,7 @@ export default function SearchScreen() {
         ) : !hasSearched ? (
           // Default view: Most Searched suggestions
           <ScrollView className="flex-1 px-4">
-            <Text className="text-[10px] font-bold text-foreground uppercase mt-4 mb-2">
+            <Text variant="sectionTitle" className="mt-4 mb-2">
               Most searched
             </Text>
             {trendingMovies.map((movie) => (
@@ -159,7 +159,7 @@ export default function SearchScreen() {
                 onPress={() => handleSuggestionTap(movie.title)}
                 className="py-3"
               >
-                <Text className="text-[14px] font-normal text-foreground">
+                <Text variant="cardTitle" className="font-normal">
                   {movie.title}
                 </Text>
               </Pressable>

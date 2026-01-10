@@ -80,7 +80,7 @@ export function MediaCard({
         {showBadge && (
           <View className="absolute top-1.5 left-1.5">
             <Badge variant="secondary" className="px-1.5 py-0.5 bg-black/70">
-              <Text className="text-[10px] text-white uppercase font-medium">
+              <Text variant="sectionTitle" className="text-white font-medium">
                 {media.mediaType === "movie" ? "Movie" : "TV"}
               </Text>
             </Badge>
@@ -100,7 +100,7 @@ export function MediaCard({
         {/* Episode info badge for continue watching */}
         {episodeInfo && (
           <View className="absolute bottom-0 left-0 right-0 bg-black/80 px-2 py-1.5">
-            <Text className="text-[11px] text-white font-medium">
+            <Text variant="body" className="text-white font-medium">
               S{episodeInfo.seasonNumber} E{episodeInfo.episodeNumber}
             </Text>
           </View>

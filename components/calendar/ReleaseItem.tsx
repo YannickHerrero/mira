@@ -71,7 +71,7 @@ export function ReleaseItem({ release }: ReleaseItemProps) {
         {/* Media type badge */}
         <View className="flex-row items-center mt-2 gap-2">
           <Badge variant="secondary" className="px-1.5 py-0.5 bg-primary/10">
-            <Text className="text-[10px] text-primary uppercase font-medium">
+            <Text variant="sectionTitle" className="text-primary font-medium">
               {release.media.mediaType === "movie" ? "Movie" : "TV"}
             </Text>
           </Badge>

@@ -80,26 +80,20 @@ export function HeroSection({ media, episodeInfo }: HeroSectionProps) {
           {/* Genre badge */}
           {firstGenre && (
             <View className="self-start bg-[#1e2030] rounded-lg px-1.5 py-0.5">
-              <Text className="text-[7px] font-bold text-[#cad3f5] uppercase">
+              <Text variant="tag" className="text-[#cad3f5]">
                 {firstGenre}
               </Text>
             </View>
           )}
 
           {/* Title */}
-          <Text
-            className="text-[25px] font-bold text-foreground leading-tight"
-            numberOfLines={2}
-          >
+          <Text variant="pageTitle" className="leading-tight" numberOfLines={2}>
             {media.title}
           </Text>
 
           {/* Description */}
           {media.description && (
-            <Text
-              className="text-[8px] font-semibold text-foreground"
-              numberOfLines={2}
-            >
+            <Text variant="subtitle" numberOfLines={2}>
               {media.description}
             </Text>
           )}
@@ -111,7 +105,7 @@ export function HeroSection({ media, episodeInfo }: HeroSectionProps) {
           className="flex-row items-center justify-center bg-[#cad3f5] rounded-lg py-3.5 gap-4"
         >
           <Play size={16} className="text-[#24273a]" fill="#24273a" />
-          <Text className="text-[13px] font-semibold text-[#24273a]">
+          <Text variant="button" className="text-[#24273a]">
             {episodeInfo
               ? `Continue S${episodeInfo.seasonNumber} E${episodeInfo.episodeNumber}`
               : "Continue watching"}

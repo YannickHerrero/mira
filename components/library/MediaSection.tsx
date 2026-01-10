@@ -44,9 +44,10 @@ export function MediaSection({
       {/* Header */}
       <View className="flex-row items-center justify-between px-4 mb-3">
         <Text
+          variant={isMuted ? "sectionTitle" : undefined}
           className={
             isMuted
-              ? "text-[10px] font-bold uppercase text-foreground/50"
+              ? "text-foreground/50"
               : "text-lg font-semibold text-foreground"
           }
         >
@@ -55,9 +56,10 @@ export function MediaSection({
         {onSeeAll && (
           <Pressable onPress={onSeeAll} className="flex-row items-center">
             <Text
+              variant={isMuted ? "sectionTitle" : undefined}
               className={
                 isMuted
-                  ? "text-[10px] font-bold uppercase text-lavender mr-1"
+                  ? "text-lavender mr-1"
                   : "text-sm text-primary mr-1"
               }
             >
