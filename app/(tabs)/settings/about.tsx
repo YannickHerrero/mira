@@ -6,7 +6,7 @@ import ListItem from "@/components/ui/list-item";
 import { Text } from "@/components/ui/text";
 import { Muted } from "@/components/ui/typography";
 import { SettingsPageHeader } from "@/components/settings/SettingsPageHeader";
-import { BookOpen, Shield, Star, Send } from "@/lib/icons";
+import { Send, Star } from "@/lib/icons";
 
 export default function AboutSettings() {
   const { t } = useTranslation();
@@ -34,26 +34,14 @@ export default function AboutSettings() {
           <ListItem
             itemLeft={(props) => <Star {...props} />}
             label={t("settings.rateMira")}
-            onPress={() => openExternalURL("https://github.com/yherrero/mira")}
+            onPress={() => openExternalURL("https://github.com/YannickHerrero/mira")}
             className="border-0 border-b border-border/30"
           />
           <ListItem
             itemLeft={(props) => <Send {...props} />}
             label={t("settings.sendFeedback")}
-            onPress={() => openExternalURL("https://github.com/yherrero/mira/issues")}
+            onPress={() => openExternalURL("https://github.com/YannickHerrero/mira/issues")}
             className="border-0 border-b border-border/30"
-          />
-          <ListItem
-            itemLeft={(props) => <Shield {...props} />}
-            label={t("settings.privacyPolicy")}
-            onPress={() => openExternalURL("https://github.com/yherrero/mira")}
-            className="border-0 border-b border-border/30"
-          />
-          <ListItem
-            itemLeft={(props) => <BookOpen {...props} />}
-            label={t("settings.termsOfService")}
-            onPress={() => openExternalURL("https://github.com/yherrero/mira")}
-            className="border-0"
           />
         </View>
 
