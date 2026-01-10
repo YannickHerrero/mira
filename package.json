@@ -43,6 +43,7 @@
     "drizzle-zod": "^0.5.1",
     "expo": "^54.0.0",
     "expo-av": "^16.0.8",
+    "expo-blur": "^15.0.8",
     "expo-brightness": "^14.0.8",
     "expo-constants": "~18.0.9",
     "expo-dev-client": "~6.0.13",
