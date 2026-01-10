@@ -18,8 +18,10 @@ interface MediaSectionProps {
   items: Media[] | MediaSectionItem[];
   onSeeAll?: () => void;
   emptyMessage?: string;
-  /** Header style: default or muted (uppercase, 50% opacity) */
+  /** Header style: default or muted (50% opacity) */
   headerStyle?: "default" | "muted";
+  /** Whether the title should be uppercase. Defaults to true for muted style. */
+  uppercase?: boolean;
 }
 
 // Type guard to check if item is MediaSectionItem (has media property)
@@ -33,8 +35,10 @@ export function MediaSection({
   onSeeAll,
   emptyMessage = "No items",
   headerStyle = "default",
+  uppercase,
 }: MediaSectionProps) {
   const isMuted = headerStyle === "muted";
+  const isUppercase = uppercase ?? isMuted;
   if (items.length === 0) {
     return null;
   }
@@ -44,26 +48,26 @@ export function MediaSection({
       {/* Header */}
       <View className="flex-row items-center justify-between px-4 mb-3">
         <Text
-          variant={isMuted ? "sectionTitle" : undefined}
+          variant={isMuted ? (isUppercase ? "sectionTitle" : "caption") : undefined}
           className={
             isMuted
               ? "text-foreground/50"
               : "text-lg font-semibold text-foreground"
           }
         >
-          {isMuted ? title.toUpperCase() : title}
+          {title}
         </Text>
         {onSeeAll && (
           <Pressable onPress={onSeeAll} className="flex-row items-center">
             <Text
-              variant={isMuted ? "sectionTitle" : undefined}
+              variant={isMuted ? (isUppercase ? "sectionTitle" : "caption") : undefined}
               className={
                 isMuted
                   ? "text-lavender mr-1"
                   : "text-sm text-primary mr-1"
               }
             >
-              {isMuted ? "SEE MORE" : "See all"}
+              {isUppercase ? "SEE MORE" : "See more"}
             </Text>
             <ChevronRight size={isMuted ? 14 : 16} className={isMuted ? "text-lavender" : "text-primary"} />
           </Pressable>

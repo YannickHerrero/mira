@@ -183,6 +183,7 @@ export default function HomeScreen() {
                 title={section.title}
                 items={section.items}
                 headerStyle="muted"
+                uppercase={false}
               />
             ))}
 
