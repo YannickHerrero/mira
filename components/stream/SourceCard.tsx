@@ -3,8 +3,11 @@ import { View, Pressable, Platform } from "react-native";
 import { Text } from "@/components/ui/text";
 import { Badge } from "@/components/ui/badge";
 import { Play, Download, Check, Star } from "@/lib/icons";
+import { sortLanguagesByPopularity } from "@/lib/language-utils";
 import type { Stream } from "@/lib/types";
 import { cn } from "@/lib/utils";
+
+const LANGUAGE_DISPLAY_LIMIT = 4;
 
 interface SourceCardProps {
   stream: Stream;
@@ -15,6 +18,7 @@ interface SourceCardProps {
   isDownloadedSource?: boolean;
   isRecommended?: boolean;
   rawStreamName?: string; // To detect RD+ prefix
+  preferredLanguages?: string[];
 }
 
 export function SourceCard({
@@ -26,12 +30,16 @@ export function SourceCard({
   isDownloadedSource,
   isRecommended,
   rawStreamName,
+  preferredLanguages,
 }: SourceCardProps) {
   // Check if this stream has RD+ (Real-Debrid cached)
   const hasRdPlus = rawStreamName?.includes("[RD+]") || stream.isCached;
   const showDownloadIndicator =
     Platform.OS !== "web" &&
     (downloadStatus === "downloading" || downloadStatus === "pending");
+  const sortedLanguages = sortLanguagesByPopularity(stream.languages, preferredLanguages ?? []);
+  const displayLanguages = sortedLanguages.slice(0, LANGUAGE_DISPLAY_LIMIT);
+  const remainingLanguagesCount = sortedLanguages.length - displayLanguages.length;
 
   return (
     <Pressable
@@ -133,13 +141,18 @@ export function SourceCard({
            </View>
 
           {/* Languages */}
-          {stream.languages.length > 0 && (
+          {sortedLanguages.length > 0 && (
             <View className="flex-row flex-wrap gap-1 mt-2">
-              {stream.languages.slice(0, 3).map((lang) => (
+              {displayLanguages.map((lang) => (
                 <Text key={lang} className="text-xs text-muted-foreground">
                   {lang}
                 </Text>
               ))}
+              {remainingLanguagesCount > 0 && (
+                <Text className="text-xs text-muted-foreground">
+                  +{remainingLanguagesCount} more
+                </Text>
+              )}
             </View>
           )}
         </View>

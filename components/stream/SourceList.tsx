@@ -12,6 +12,7 @@ import { mediumImpact } from "@/lib/haptics";
 import { Check, Play, Eye } from "@/lib/icons";
 import type { Stream, MediaType } from "@/lib/types";
 import { useSourceFilters } from "@/hooks/useSourceFilters";
+import { useStreamingPreferences } from "@/hooks/useStreamingPreferences";
 import { filterStreams, hasActiveFilters } from "@/lib/filter-streams";
 
 interface SourceListProps {
@@ -53,6 +54,12 @@ export function SourceList({
     episodeNumber
   );
   const { playMedia } = useMediaPlayer();
+  const { preferredAudioLanguages, preferredSubtitleLanguages } = useStreamingPreferences();
+
+  const preferredLanguages = React.useMemo(() => {
+    const subtitleLanguages = preferredSubtitleLanguages.filter((language) => language !== "Off");
+    return [...preferredAudioLanguages, ...subtitleLanguages];
+  }, [preferredAudioLanguages, preferredSubtitleLanguages]);
 
   // Get filter settings from store (hook loads filters on mount)
   const { qualities, languages } = useSourceFilters();
@@ -176,19 +183,21 @@ export function SourceList({
             : null;
 
        return (
-         <SourceCard
-           stream={item}
-           onPress={() => onSelectStream(item)}
-           onLongPress={() => handleLongPress(item)}
-           downloadStatus={streamDownloadStatus}
-           downloadProgress={download?.progress}
-           isDownloadedSource={isThisStreamDownloaded}
-           isRecommended={isRecommended}
-           rawStreamName={item.rawStreamName}
-         />
+          <SourceCard
+            stream={item}
+            onPress={() => onSelectStream(item)}
+            onLongPress={() => handleLongPress(item)}
+            downloadStatus={streamDownloadStatus}
+            downloadProgress={download?.progress}
+            isDownloadedSource={isThisStreamDownloaded}
+            isRecommended={isRecommended}
+            rawStreamName={item.rawStreamName}
+            preferredLanguages={preferredLanguages}
+          />
+
        );
     },
-    [onSelectStream, handleLongPress, download, recommendedStreams]
+    [onSelectStream, handleLongPress, download, recommendedStreams, preferredLanguages]
   );
 
   const keyExtractor = React.useCallback(

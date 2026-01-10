@@ -201,6 +201,94 @@ const LANGUAGE_ALIASES: Record<string, string> = {
   ukrainian: "Ukrainian",
 };
 
+const LANGUAGE_POPULARITY = [
+  "English",
+  "French",
+  "Spanish",
+  "Hindi",
+  "Portuguese",
+  "Russian",
+  "Japanese",
+  "German",
+  "Italian",
+  "Korean",
+  "Chinese",
+  "Arabic",
+  "Turkish",
+  "Polish",
+  "Dutch",
+  "Swedish",
+  "Norwegian",
+  "Danish",
+  "Finnish",
+  "Greek",
+  "Hebrew",
+  "Thai",
+  "Vietnamese",
+  "Indonesian",
+  "Malay",
+  "Filipino",
+  "Czech",
+  "Hungarian",
+  "Romanian",
+  "Ukrainian",
+];
+
+const LANGUAGE_POPULARITY_RANK = new Map(
+  LANGUAGE_POPULARITY.map((language, index) => [language, index])
+);
+
+function normalizeLanguageName(language: string): string {
+  const normalized = language.trim().toLowerCase();
+  return LANGUAGE_ALIASES[normalized] ?? language;
+}
+
+export function sortLanguagesByPopularity(
+  languages: string[],
+  preferredLanguages: string[] = []
+): string[] {
+  const preferredOrder = new Map<string, number>();
+  preferredLanguages.forEach((language, index) => {
+    const normalized = normalizeLanguageName(language);
+    if (!preferredOrder.has(normalized)) {
+      preferredOrder.set(normalized, index);
+    }
+  });
+
+  const languageItems = languages.map((language, index) => {
+    const normalized = normalizeLanguageName(language);
+    const rank = LANGUAGE_POPULARITY_RANK.get(normalized) ?? Number.POSITIVE_INFINITY;
+    const preferredRank = preferredOrder.get(normalized) ?? Number.POSITIVE_INFINITY;
+
+    return {
+      language,
+      normalized,
+      rank,
+      preferredRank,
+      index,
+    };
+  });
+
+  return languageItems
+    .sort((a, b) => {
+      if (a.preferredRank !== b.preferredRank) {
+        return a.preferredRank - b.preferredRank;
+      }
+
+      if (a.rank !== b.rank) {
+        return a.rank - b.rank;
+      }
+
+      const nameCompare = a.normalized.localeCompare(b.normalized);
+      if (nameCompare !== 0) {
+        return nameCompare;
+      }
+
+      return a.index - b.index;
+    })
+    .map((item) => item.language);
+}
+
 /**
  * Extracts and normalizes the language from a track name/title
  * VLC tracks often have formats like:
