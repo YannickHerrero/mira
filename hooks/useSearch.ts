@@ -2,6 +2,7 @@ import { useState, useCallback, useRef, useEffect } from "react";
 import type { Media, MediaType } from "@/lib/types";
 import { createTMDBClient } from "@/lib/api/tmdb";
 import { useApiKeyStore } from "@/stores/api-keys";
+import { useLanguageStore } from "@/stores/language";
 
 interface UseSearchOptions {
   debounceMs?: number;
@@ -29,6 +30,7 @@ export function useSearch(options: UseSearchOptions = {}): UseSearchResult {
   const [hasSearched, setHasSearched] = useState(false);
 
   const tmdbApiKey = useApiKeyStore((s) => s.tmdbApiKey);
+  const resolvedLanguage = useLanguageStore((s) => s.resolvedLanguage);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
 
@@ -58,7 +60,7 @@ export function useSearch(options: UseSearchOptions = {}): UseSearchResult {
       abortControllerRef.current = new AbortController();
 
       try {
-        const client = createTMDBClient(tmdbApiKey);
+        const client = createTMDBClient(tmdbApiKey, resolvedLanguage);
         const searchResults = await client.search(trimmedQuery, mediaType);
         setResults(searchResults);
         setHasSearched(true);
@@ -72,7 +74,7 @@ export function useSearch(options: UseSearchOptions = {}): UseSearchResult {
         setIsLoading(false);
       }
     },
-    [tmdbApiKey, mediaType]
+    [tmdbApiKey, mediaType, resolvedLanguage]
   );
 
   const setQuery = useCallback(

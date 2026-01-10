@@ -28,6 +28,7 @@ import { useLibraryActions } from "@/hooks/useLibrary";
 import { useListActions } from "@/hooks/useLists";
 import { useWatchProgress } from "@/hooks/useWatchProgress";
 import { useApiKeyStore } from "@/stores/api-keys";
+import { useLanguageStore } from "@/stores/language";
 import { createTMDBClient } from "@/lib/api/tmdb";
 import { useEpisodes } from "@/hooks/useMedia";
 import type { Media, MediaType, Season, Episode } from "@/lib/types";
@@ -123,6 +124,7 @@ export default function MediaDetailScreen() {
   const listSelectorSheetRef = React.useRef<BottomSheetModal>(null);
 
   const tmdbApiKey = useApiKeyStore((s) => s.tmdbApiKey);
+  const resolvedLanguage = useLanguageStore((s) => s.resolvedLanguage);
   const {
     toggleFavorite,
     checkIsFavorite,
@@ -151,7 +153,7 @@ export default function MediaDetailScreen() {
       setError(null);
 
       try {
-        const client = createTMDBClient(tmdbApiKey);
+        const client = createTMDBClient(tmdbApiKey, resolvedLanguage);
 
         // Get IMDB ID
         const externalId = await client.getImdbId(tmdbId, mediaType);
@@ -178,7 +180,7 @@ export default function MediaDetailScreen() {
     };
 
     fetchMedia();
-  }, [tmdbApiKey, tmdbId, mediaType]);
+  }, [tmdbApiKey, tmdbId, mediaType, resolvedLanguage]);
 
   // Check favorite and list status when media loads
   React.useEffect(() => {
@@ -242,7 +244,7 @@ export default function MediaDetailScreen() {
     const fetchRecommendations = async () => {
       setIsLoadingSimilar(true);
       try {
-        const client = createTMDBClient(tmdbApiKey);
+        const client = createTMDBClient(tmdbApiKey, resolvedLanguage);
         const recommendations = await client.getRecommendations(media.id, media.mediaType);
         setSimilarMovies(recommendations.slice(0, 10)); // Limit to 10 items
       } catch {
@@ -253,7 +255,7 @@ export default function MediaDetailScreen() {
     };
 
     fetchRecommendations();
-  }, [media, tmdbApiKey]);
+  }, [media, tmdbApiKey, resolvedLanguage]);
 
   const handleToggleFavorite = async () => {
     if (!media) return;

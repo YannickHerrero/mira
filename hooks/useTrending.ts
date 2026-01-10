@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import type { Media } from "@/lib/types";
 import { createTMDBClient } from "@/lib/api/tmdb";
 import { useApiKeyStore } from "@/stores/api-keys";
+import { useLanguageStore } from "@/stores/language";
 
 interface UseTrendingResult {
   trendingMovies: Media[];
@@ -18,6 +19,7 @@ export function useTrending(): UseTrendingResult {
   const [error, setError] = useState<string | null>(null);
 
   const tmdbApiKey = useApiKeyStore((s) => s.tmdbApiKey);
+  const resolvedLanguage = useLanguageStore((s) => s.resolvedLanguage);
 
   const fetchTrending = useCallback(async () => {
     if (!tmdbApiKey) {
@@ -29,7 +31,7 @@ export function useTrending(): UseTrendingResult {
     setError(null);
 
     try {
-      const client = createTMDBClient(tmdbApiKey);
+      const client = createTMDBClient(tmdbApiKey, resolvedLanguage);
 
       const [movies, tv] = await Promise.all([
         client.getTrendingMovies("week"),
@@ -43,7 +45,7 @@ export function useTrending(): UseTrendingResult {
     } finally {
       setIsLoading(false);
     }
-  }, [tmdbApiKey]);
+  }, [tmdbApiKey, resolvedLanguage]);
 
   useEffect(() => {
     fetchTrending();

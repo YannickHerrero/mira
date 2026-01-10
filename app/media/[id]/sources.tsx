@@ -4,6 +4,7 @@ import { useLocalSearchParams, Stack, useRouter } from "expo-router";
 import { Text } from "@/components/ui/text";
 import { SourceList } from "@/components/stream";
 import { useApiKeyStore } from "@/stores/api-keys";
+import { useLanguageStore } from "@/stores/language";
 import { createTMDBClient } from "@/lib/api/tmdb";
 import { useSources } from "@/hooks/useSources";
 import { useMediaPlayer } from "@/hooks/useSettings";
@@ -20,6 +21,7 @@ export default function SourcesScreen() {
 
   const { playMedia } = useMediaPlayer();
   const tmdbApiKey = useApiKeyStore((s) => s.tmdbApiKey);
+  const resolvedLanguage = useLanguageStore((s) => s.resolvedLanguage);
 
   const [imdbId, setImdbId] = React.useState<string | null>(null);
   const [mediaTitle, setMediaTitle] = React.useState<string>("");
@@ -46,7 +48,7 @@ export default function SourcesScreen() {
       setError(null);
 
       try {
-        const client = createTMDBClient(tmdbApiKey);
+        const client = createTMDBClient(tmdbApiKey, resolvedLanguage);
 
         // Get IMDB ID
         const externalId = await client.getImdbId(tmdbId, mediaType);
@@ -76,7 +78,7 @@ export default function SourcesScreen() {
     };
 
     fetchMediaInfo();
-  }, [tmdbApiKey, tmdbId, mediaType]);
+  }, [tmdbApiKey, tmdbId, mediaType, resolvedLanguage]);
 
   // Fetch sources
   const {

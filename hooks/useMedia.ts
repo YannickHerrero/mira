@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import type { Media, MediaType, Season, Episode } from "@/lib/types";
 import { createTMDBClient } from "@/lib/api/tmdb";
 import { useApiKeyStore } from "@/stores/api-keys";
+import { useLanguageStore } from "@/stores/language";
 
 interface UseMediaResult {
   media: Media | null;
@@ -20,6 +21,7 @@ export function useMedia(tmdbId: number, mediaType: MediaType): UseMediaResult {
   const [error, setError] = useState<string | null>(null);
 
   const tmdbApiKey = useApiKeyStore((s) => s.tmdbApiKey);
+  const resolvedLanguage = useLanguageStore((s) => s.resolvedLanguage);
 
   const fetchMedia = useCallback(async () => {
     if (!tmdbApiKey) {
@@ -32,7 +34,7 @@ export function useMedia(tmdbId: number, mediaType: MediaType): UseMediaResult {
     setError(null);
 
     try {
-      const client = createTMDBClient(tmdbApiKey);
+      const client = createTMDBClient(tmdbApiKey, resolvedLanguage);
 
       // Fetch IMDB ID
       const externalId = await client.getImdbId(tmdbId, mediaType);
@@ -53,7 +55,7 @@ export function useMedia(tmdbId: number, mediaType: MediaType): UseMediaResult {
     } finally {
       setIsLoading(false);
     }
-  }, [tmdbId, mediaType, tmdbApiKey]);
+  }, [tmdbId, mediaType, tmdbApiKey, resolvedLanguage]);
 
   useEffect(() => {
     fetchMedia();
@@ -84,6 +86,7 @@ export function useEpisodes(
   const [error, setError] = useState<string | null>(null);
 
   const tmdbApiKey = useApiKeyStore((s) => s.tmdbApiKey);
+  const resolvedLanguage = useLanguageStore((s) => s.resolvedLanguage);
 
   useEffect(() => {
     if (!tmdbApiKey || seasonNumber < 1) {
@@ -96,7 +99,7 @@ export function useEpisodes(
       setError(null);
 
       try {
-        const client = createTMDBClient(tmdbApiKey);
+        const client = createTMDBClient(tmdbApiKey, resolvedLanguage);
         const eps = await client.getSeasonEpisodes(tmdbId, seasonNumber);
         setEpisodes(eps);
       } catch (err) {
@@ -107,7 +110,7 @@ export function useEpisodes(
     };
 
     fetchEpisodes();
-  }, [tmdbId, seasonNumber, tmdbApiKey]);
+  }, [tmdbId, seasonNumber, tmdbApiKey, resolvedLanguage]);
 
   return { episodes, isLoading, error };
 }

@@ -134,14 +134,17 @@ interface TMDBEpisodeInfo {
 
 export class TMDBClient {
   private apiKey: string;
+  private language: string;
 
-  constructor(apiKey: string) {
+  constructor(apiKey: string, language: string = "en") {
     this.apiKey = apiKey;
+    this.language = language;
   }
 
   private async fetch<T>(endpoint: string, params?: Record<string, string>): Promise<T> {
     const url = new URL(`${TMDB_API_URL}${endpoint}`);
     url.searchParams.set("api_key", this.apiKey);
+    url.searchParams.set("language", this.language);
 
     if (params) {
       for (const [key, value] of Object.entries(params)) {
@@ -647,7 +650,9 @@ export class TMDBClient {
 
 /**
  * Create a TMDB client instance
+ * @param apiKey - TMDB API key
+ * @param language - Language code for localized content (e.g., "en", "fr", "es")
  */
-export function createTMDBClient(apiKey: string): TMDBClient {
-  return new TMDBClient(apiKey);
+export function createTMDBClient(apiKey: string, language?: string): TMDBClient {
+  return new TMDBClient(apiKey, language);
 }

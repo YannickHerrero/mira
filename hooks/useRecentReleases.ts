@@ -4,6 +4,7 @@ import { eq } from "drizzle-orm";
 import { useDatabase } from "@/db/provider";
 import { listsTable, listItemsTable } from "@/db/schema";
 import { useApiKeyStore } from "@/stores/api-keys";
+import { useLanguageStore } from "@/stores/language";
 import { createTMDBClient } from "@/lib/api/tmdb";
 import type { UpcomingRelease } from "@/lib/api/tmdb";
 
@@ -21,6 +22,7 @@ interface UseRecentReleasesReturn {
 export function useRecentReleases(): UseRecentReleasesReturn {
   const { db } = useDatabase();
   const { tmdbApiKey } = useApiKeyStore();
+  const resolvedLanguage = useLanguageStore((s) => s.resolvedLanguage);
 
   const [releases, setReleases] = useState<UpcomingRelease[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -76,7 +78,7 @@ export function useRecentReleases(): UseRecentReleasesReturn {
       }
 
       // Create TMDB client
-      const tmdbClient = createTMDBClient(tmdbApiKey);
+      const tmdbClient = createTMDBClient(tmdbApiKey, resolvedLanguage);
 
       // Fetch last episode info for each TV show
       const allReleases: UpcomingRelease[] = [];
@@ -115,7 +117,7 @@ export function useRecentReleases(): UseRecentReleasesReturn {
       setIsLoading(false);
       isFetchingRef.current = false;
     }
-  }, [db, tmdbApiKey]);
+  }, [db, tmdbApiKey, resolvedLanguage]);
 
   useFocusEffect(
     useCallback(() => {

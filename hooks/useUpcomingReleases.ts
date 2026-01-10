@@ -4,6 +4,7 @@ import { eq } from "drizzle-orm";
 import { useDatabase } from "@/db/provider";
 import { listsTable, listItemsTable } from "@/db/schema";
 import { useApiKeyStore } from "@/stores/api-keys";
+import { useLanguageStore } from "@/stores/language";
 import { createTMDBClient } from "@/lib/api/tmdb";
 import type { UpcomingRelease } from "@/lib/api/tmdb";
 
@@ -21,6 +22,7 @@ interface UseUpcomingReleasesReturn {
 export function useUpcomingReleases(): UseUpcomingReleasesReturn {
   const { db } = useDatabase();
   const { tmdbApiKey } = useApiKeyStore();
+  const resolvedLanguage = useLanguageStore((s) => s.resolvedLanguage);
 
   const [releasesByDate, setReleasesByDate] = useState<Map<string, UpcomingRelease[]>>(new Map());
   const [isLoading, setIsLoading] = useState(true);
@@ -73,7 +75,7 @@ export function useUpcomingReleases(): UseUpcomingReleasesReturn {
       }
 
       // Create TMDB client
-      const tmdbClient = createTMDBClient(tmdbApiKey);
+      const tmdbClient = createTMDBClient(tmdbApiKey, resolvedLanguage);
 
       // Fetch release info for each item
       const releases: UpcomingRelease[] = [];
@@ -145,7 +147,7 @@ export function useUpcomingReleases(): UseUpcomingReleasesReturn {
       setIsLoading(false);
       isFetchingRef.current = false;
     }
-  }, [db, tmdbApiKey]);
+  }, [db, tmdbApiKey, resolvedLanguage]);
 
   useFocusEffect(
     useCallback(() => {
