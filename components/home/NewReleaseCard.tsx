@@ -8,6 +8,27 @@ import { lightImpact } from "@/lib/haptics";
 import type { UpcomingRelease } from "@/lib/api/tmdb";
 import { getPosterUrl } from "@/lib/types";
 
+function formatReleaseDate(dateString: string): string {
+  const releaseDate = new Date(dateString + "T00:00:00");
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+
+  if (releaseDate.getTime() === today.getTime()) {
+    return "Today";
+  }
+  if (releaseDate.getTime() === yesterday.getTime()) {
+    return "Yesterday";
+  }
+
+  return releaseDate.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+  });
+}
+
 interface NewReleaseCardProps {
   release: UpcomingRelease;
   cardWidth: number;
@@ -28,8 +49,6 @@ export function NewReleaseCard({ release, cardWidth }: NewReleaseCardProps) {
       },
     } as any);
   };
-
-  const firstGenre = media.genres[0];
 
   return (
     <View
@@ -57,14 +76,12 @@ export function NewReleaseCard({ release, cardWidth }: NewReleaseCardProps) {
             {/* Info */}
             <View className="flex-1 justify-between">
               <View className="gap-2">
-                {/* Genre badge */}
-                {firstGenre && (
-                  <View className="self-start bg-mauve/10 rounded-lg px-1.5 py-0.5">
-                    <Text variant="tag">
-                      {firstGenre}
-                    </Text>
-                  </View>
-                )}
+                {/* Release date badge */}
+                <View className="self-start bg-mauve/10 rounded-lg px-1.5 py-0.5">
+                  <Text variant="tag">
+                    {formatReleaseDate(release.releaseDate)}
+                  </Text>
+                </View>
 
                 {/* Title */}
                 <Text variant="cardTitle" numberOfLines={2}>
