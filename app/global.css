@@ -2,6 +2,21 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * DESIGN SYSTEM NOTE:
+ * Font sizes in this app are intentionally 25% smaller than the Figma mockups.
+ * This is by design - the Figma fonts appear too large on actual devices.
+ *
+ * Typography Scale (Figma → App):
+ * - Page title:    33px → 25px
+ * - Card title:    18px → 14px
+ * - Button:        17px → 13px
+ * - Body/Muted:    15px → 11px
+ * - Section title: 13px → 10px
+ * - Subtitle:      11px → 8px
+ * - Tag:           9px  → 7px
+ */
+
 @layer base {
   :root {
     --background: 0 0% 100%;

@@ -36,6 +36,7 @@ export default function TabLayout() {
         name="search"
         options={{
           title: "Search",
+          headerShown: false,
           tabBarIcon: ({ color, size }) => <Search color={color} size={size} />,
         }}
       />
