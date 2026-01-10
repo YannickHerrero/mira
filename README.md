@@ -6,9 +6,7 @@ A media streaming application built with React Native and Expo. Search movies an
 
 ## Screenshots
 
-![Mira Demo](docs/demo.gif)
-
-<!-- TODO: Add demo GIF or screenshots -->
+![Mira Cover](assets/mira-cover.jpg)
 
 ## Highlights
 

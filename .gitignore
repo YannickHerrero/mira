@@ -37,6 +37,8 @@ AGENTS.md
 .claude/
 .claude_context
 
+todo.md
+
 # local env files
 .env*.local
 
