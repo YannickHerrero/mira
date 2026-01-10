@@ -47,7 +47,11 @@ function MultiSelectItem({ label, selected, onPress }: MultiSelectItemProps) {
 // Quality Filter Item
 // ============================================
 
-export function QualityFilterItem() {
+interface FilterItemProps {
+  className?: string;
+}
+
+export function QualityFilterItem({ className }: FilterItemProps) {
   const { qualities, setQualities } = useSourceFilters();
   const { dismiss } = useBottomSheetModal();
 
@@ -83,6 +87,7 @@ export function QualityFilterItem() {
           itemLeft={(props) => <ListChecks {...props} />}
           label="Quality"
           description={getDisplayText()}
+          className={className}
         />
       </BottomSheetOpenTrigger>
       <BottomSheetContent>
@@ -120,7 +125,7 @@ export function QualityFilterItem() {
 // Language Filter Item
 // ============================================
 
-export function LanguageFilterItem() {
+export function LanguageFilterItem({ className }: FilterItemProps) {
   const { languages, setLanguages } = useSourceFilters();
   const { dismiss } = useBottomSheetModal();
 
@@ -168,6 +173,7 @@ export function LanguageFilterItem() {
           itemLeft={(props) => <Languages {...props} />}
           label="Languages"
           description={getDisplayText()}
+          className={className}
         />
       </BottomSheetOpenTrigger>
       <BottomSheetContent snapPoints={["70%"]} enableDynamicSizing={false}>

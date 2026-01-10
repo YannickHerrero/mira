@@ -1,7 +1,6 @@
 import { View, ActivityIndicator } from "react-native";
 import { ScrollView } from "react-native-gesture-handler";
 import { useTranslation } from "react-i18next";
-import List, { ListHeader } from "@/components/ui/list";
 import { Muted } from "@/components/ui/typography";
 import { SettingsPageHeader } from "@/components/settings/SettingsPageHeader";
 import { ApiKeyItem } from "@/components/settings/ApiKeyItem";
@@ -38,11 +37,10 @@ export default function AccountSettings() {
         className="flex-1 w-full px-4 pt-4"
         contentContainerStyle={{ paddingBottom: 96 }}
       >
-        <List>
-          <ListHeader>
-            <Muted className="uppercase text-xs font-bold opacity-50">{t("settings.apiConfiguration")}</Muted>
-          </ListHeader>
-
+        <View className="mb-3">
+          <Muted className="uppercase text-xs font-bold opacity-50 px-1">{t("settings.apiConfiguration")}</Muted>
+        </View>
+        <View className="bg-muted/20 rounded-2xl overflow-hidden">
           <ApiKeyItem
             label={t("settings.tmdb")}
             description={t("settings.tmdbDesc")}
@@ -52,6 +50,7 @@ export default function AccountSettings() {
             helpUrl="https://www.themoviedb.org/settings/api"
             helpLabel={t("settings.getTmdbKey")}
             onSave={setTmdbKey}
+            className="border-0 border-b border-border/30"
           />
 
           <ApiKeyItem
@@ -68,8 +67,9 @@ export default function AccountSettings() {
                 : undefined
             }
             onSave={setRealDebridKey}
+            className="border-0"
           />
-        </List>
+        </View>
       </ScrollView>
     </View>
   );

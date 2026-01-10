@@ -1,7 +1,6 @@
 import { View, ActivityIndicator } from "react-native";
 import { ScrollView } from "react-native-gesture-handler";
 import { useTranslation } from "react-i18next";
-import List, { ListHeader } from "@/components/ui/list";
 import ListItem from "@/components/ui/list-item";
 import { Muted } from "@/components/ui/typography";
 import { Switch } from "@/components/ui/switch";
@@ -36,18 +35,20 @@ export default function PlaybackSettings() {
         className="flex-1 w-full px-4 pt-4"
         contentContainerStyle={{ paddingBottom: 96 }}
       >
-        <List>
-          {/* Source Filters */}
-          <ListHeader>
-            <Muted className="uppercase text-xs font-bold opacity-50">{t("settings.sourceFilters")}</Muted>
-          </ListHeader>
-          <QualityFilterItem />
-          <LanguageFilterItem />
+        {/* Source Filters */}
+        <View className="mb-3">
+          <Muted className="uppercase text-xs font-bold opacity-50 px-1">{t("settings.sourceFilters")}</Muted>
+        </View>
+        <View className="bg-muted/20 rounded-2xl overflow-hidden">
+          <QualityFilterItem className="border-0 border-b border-border/30" />
+          <LanguageFilterItem className="border-0" />
+        </View>
 
-          {/* Playback Settings */}
-          <ListHeader className="pt-8">
-            <Muted className="uppercase text-xs font-bold opacity-50">{t("settings.playback")}</Muted>
-          </ListHeader>
+        {/* Playback Settings */}
+        <View className="mb-3 mt-8">
+          <Muted className="uppercase text-xs font-bold opacity-50 px-1">{t("settings.playback")}</Muted>
+        </View>
+        <View className="bg-muted/20 rounded-2xl overflow-hidden">
           <ListItem
             itemLeft={(props) => <MonitorPlay {...props} />}
             label={t("settings.playInVlc")}
@@ -59,8 +60,9 @@ export default function PlaybackSettings() {
                 onCheckedChange={handleVlcToggle}
               />
             )}
+            className="border-0"
           />
-        </List>
+        </View>
       </ScrollView>
     </View>
   );

@@ -145,7 +145,11 @@ function AddLanguageItem({ label, isSelected, onPress }: AddLanguageItemProps) {
 // Audio Preference Item
 // ============================================
 
-export function AudioPreferenceItem() {
+interface PreferenceItemProps {
+  className?: string;
+}
+
+export function AudioPreferenceItem({ className }: PreferenceItemProps) {
   const {
     preferredAudioLanguages,
     moveAudioLanguage,
@@ -167,6 +171,7 @@ export function AudioPreferenceItem() {
           itemLeft={(props) => <Volume2 {...props} />}
           label="Preferred Audio"
           description={displayText}
+          className={className}
         />
       </BottomSheetOpenTrigger>
       <BottomSheetContent snapPoints={["70%"]} enableDynamicSizing={false}>
@@ -239,7 +244,7 @@ export function AudioPreferenceItem() {
 // Subtitle Preference Item
 // ============================================
 
-export function SubtitlePreferenceItem() {
+export function SubtitlePreferenceItem({ className }: PreferenceItemProps) {
   const {
     preferredSubtitleLanguages,
     moveSubtitleLanguage,
@@ -264,6 +269,7 @@ export function SubtitlePreferenceItem() {
           itemLeft={(props) => <Subtitles {...props} />}
           label="Preferred Subtitles"
           description={displayText}
+          className={className}
         />
       </BottomSheetOpenTrigger>
       <BottomSheetContent snapPoints={["70%"]} enableDynamicSizing={false}>

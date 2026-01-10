@@ -17,6 +17,7 @@ interface ApiKeyItemProps {
   helpLabel?: string;
   extraInfo?: string;
   onSave: (key: string) => Promise<boolean | { valid: boolean }>;
+  className?: string;
 }
 
 export function ApiKeyItem({
@@ -29,6 +30,7 @@ export function ApiKeyItem({
   helpLabel,
   extraInfo,
   onSave,
+  className,
 }: ApiKeyItemProps) {
   const [isEditing, setIsEditing] = React.useState(false);
   const [inputValue, setInputValue] = React.useState("");
@@ -77,7 +79,7 @@ export function ApiKeyItem({
   };
 
   return (
-    <View className="py-4 border-b border-border">
+    <View className={cn("py-4 border-b border-border", className)}>
       <View className="flex-row items-center justify-between">
         <View className="flex-row items-center gap-3 flex-1">
           <View className="w-8 h-8 rounded-full bg-muted items-center justify-center">
