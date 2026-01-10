@@ -1,19 +1,11 @@
 import * as React from "react";
-import {
-  View,
-  ScrollView,
-  RefreshControl,
-  Pressable,
-  Alert,
-  TextInput,
-} from "react-native";
+import { View, Pressable, Alert } from "react-native";
 import { useLocalSearchParams, Stack, useRouter } from "expo-router";
 import type { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useBottomSheetModal } from "@gorhom/bottom-sheet";
 import { Text } from "@/components/ui/text";
 import { Button } from "@/components/ui/button";
-import { MediaCard, MediaCardSkeleton } from "@/components/media";
-import { EmptyState } from "@/components/ui/empty-state";
+import { MediaGrid } from "@/components/media";
 import {
   BottomSheet,
   BottomSheetContent,
@@ -24,7 +16,6 @@ import {
 import { useLists, useListItems, useListActions } from "@/hooks/useLists";
 import { List, Trash, Pencil, MoreVertical } from "@/lib/icons";
 import { mediumImpact } from "@/lib/haptics";
-import { cn } from "@/lib/utils";
 import type { Media, MediaType } from "@/lib/types";
 
 // Convert database record to Media type for MediaCard
@@ -229,46 +220,14 @@ export default function ListDetailScreen() {
         }}
       />
 
-      {isLoading && items.length === 0 ? (
-        <View className="flex-1 px-4 pt-4">
-          <View className="flex-row flex-wrap">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <View key={i} className="p-1.5">
-                <MediaCardSkeleton size="medium" />
-              </View>
-            ))}
-          </View>
-        </View>
-      ) : items.length === 0 ? (
-        <EmptyState
-          icon={<List size={48} className="text-muted-foreground" />}
-          title="List is empty"
-          description="Add movies and TV shows to this list"
-        />
-      ) : (
-        <ScrollView
-          className="flex-1"
-          contentContainerStyle={{ padding: 12 }}
-          showsVerticalScrollIndicator={false}
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
-          }
-        >
-          <View className="flex-row flex-wrap">
-            {items.map((item) => (
-              <View
-                key={`${item.tmdbId}-${item.mediaType}`}
-                className="p-1.5"
-              >
-                <MediaCard
-                  media={dbRecordToMedia(item.media)}
-                  size="medium"
-                />
-              </View>
-            ))}
-          </View>
-        </ScrollView>
-      )}
+      <MediaGrid
+        data={items.map((item) => dbRecordToMedia(item.media))}
+        isLoading={isLoading}
+        emptyMessage="List is empty"
+        emptyIcon={<List size={48} className="text-muted-foreground" />}
+        onRefresh={handleRefresh}
+        isRefreshing={refreshing}
+      />
 
       {/* Actions Sheet */}
       <BottomSheet>

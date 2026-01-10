@@ -3,7 +3,7 @@ import { View, ScrollView, Pressable, RefreshControl, Platform } from "react-nat
 import { useFocusEffect, useRouter } from "expo-router";
 import type { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { Text } from "@/components/ui/text";
-import { MediaCard, MediaCardSkeleton } from "@/components/media";
+import { MediaCard, MediaCardSkeleton, MediaGrid, useGridColumns, GRID_GAP, GRID_PADDING } from "@/components/media";
 import { EmptyState } from "@/components/ui/empty-state";
 import {
   DownloadedItemCard,
@@ -136,21 +136,10 @@ export default function LibraryScreen() {
   const renderContent = () => {
     switch (activeTab) {
       case "continue":
-        if (loadingContinue && continueItems.length === 0) {
-          return <LoadingState />;
-        }
-        if (continueItems.length === 0) {
-          return (
-            <EmptyState
-              icon={<Play size={48} className="text-muted-foreground" />}
-              title="Nothing to continue"
-              description="Start watching something and it will appear here"
-            />
-          );
-        }
         return (
           <ContinueWatchingGrid
             items={continueItems}
+            isLoading={loadingContinue}
             refreshing={refreshing}
             onRefresh={handleRefresh}
           />
@@ -179,23 +168,14 @@ export default function LibraryScreen() {
         );
 
       case "favorites":
-        if (loadingFavorites && favoriteItems.length === 0) {
-          return <LoadingState />;
-        }
-        if (favoriteItems.length === 0) {
-          return (
-            <EmptyState
-              icon={<Heart size={48} className="text-muted-foreground" />}
-              title="No favorites yet"
-              description="Mark movies and TV shows as favorites"
-            />
-          );
-        }
         return (
-          <MediaGridFromRecord
-            items={favoriteItems}
-            refreshing={refreshing}
+          <MediaGrid
+            data={favoriteItems.map(dbRecordToMedia)}
+            isLoading={loadingFavorites}
+            emptyMessage="No favorites yet"
+            emptyIcon={<Heart size={48} className="text-muted-foreground" />}
             onRefresh={handleRefresh}
+            isRefreshing={refreshing}
           />
         );
 
@@ -327,19 +307,6 @@ function TabButton({ label, icon, isActive, onPress, badge }: TabButtonProps) {
   );
 }
 
-function LoadingState() {
-  return (
-    <View className="flex-1 px-4 pt-4">
-      <View className="flex-row flex-wrap">
-        {Array.from({ length: 6 }).map((_, i) => (
-          <View key={i} className="p-1.5">
-            <MediaCardSkeleton size="medium" />
-          </View>
-        ))}
-      </View>
-    </View>
-  );
-}
 
 function DownloadLoadingState() {
   return (
@@ -443,106 +410,66 @@ function dbRecordToMedia(record: any): Media {
   };
 }
 
-interface MediaGridLocalProps {
-  items: any[];
-  refreshing?: boolean;
-  onRefresh?: () => void;
-}
 
-function MediaGridFromJoin({ items, refreshing, onRefresh }: MediaGridLocalProps) {
-  return (
-    <ScrollView
-      className="flex-1"
-      contentContainerStyle={{ padding: 12 }}
-      showsVerticalScrollIndicator={false}
-      refreshControl={
-        onRefresh ? (
-          <RefreshControl refreshing={refreshing ?? false} onRefresh={onRefresh} />
-        ) : undefined
-      }
-    >
-      <View className="flex-row flex-wrap">
-        {items.map((item) => (
-          <View key={`${item.tmdbId}-${item.mediaType}`} className="p-1.5">
-            <MediaCard media={dbRecordToMedia(item)} size="medium" />
-          </View>
-        ))}
-      </View>
-    </ScrollView>
-  );
+interface ContinueWatchingItem {
+  progress: {
+    seasonNumber: number | null;
+    episodeNumber: number | null;
+  };
+  media: any;
 }
 
 interface ContinueWatchingGridProps {
-  items: Array<{
-    progress: {
-      seasonNumber: number | null;
-      episodeNumber: number | null;
-    };
-    media: any;
-  }>;
+  items: ContinueWatchingItem[];
+  isLoading?: boolean;
   refreshing?: boolean;
   onRefresh?: () => void;
 }
 
-function ContinueWatchingGrid({ items, refreshing, onRefresh }: ContinueWatchingGridProps) {
-  return (
-    <ScrollView
-      className="flex-1"
-      contentContainerStyle={{ padding: 12 }}
-      showsVerticalScrollIndicator={false}
-      refreshControl={
-        onRefresh ? (
-          <RefreshControl refreshing={refreshing ?? false} onRefresh={onRefresh} />
-        ) : undefined
+function ContinueWatchingGrid({ items, isLoading, refreshing, onRefresh }: ContinueWatchingGridProps) {
+  // Build a map from media id to episode info for custom rendering
+  const episodeInfoMap = React.useMemo(() => {
+    const map = new Map<string, { seasonNumber: number; episodeNumber: number }>();
+    items.forEach((item) => {
+      if (
+        item.media.mediaType === "tv" &&
+        item.progress.seasonNumber != null &&
+        item.progress.episodeNumber != null
+      ) {
+        const key = `${item.media.mediaType}-${item.media.tmdbId}`;
+        map.set(key, {
+          seasonNumber: item.progress.seasonNumber,
+          episodeNumber: item.progress.episodeNumber,
+        });
       }
-    >
-      <View className="flex-row flex-wrap">
-        {items.map((item) => {
-          const episodeInfo =
-            item.media.mediaType === "tv" &&
-            item.progress.seasonNumber != null &&
-            item.progress.episodeNumber != null
-              ? {
-                  seasonNumber: item.progress.seasonNumber,
-                  episodeNumber: item.progress.episodeNumber,
-                }
-              : undefined;
+    });
+    return map;
+  }, [items]);
 
-          return (
-            <View key={`${item.media.tmdbId}-${item.media.mediaType}`} className="p-1.5">
-              <MediaCard
-                media={dbRecordToMedia(item.media)}
-                size="medium"
-                episodeInfo={episodeInfo}
-              />
-            </View>
-          );
-        })}
-      </View>
-    </ScrollView>
+  const mediaItems = React.useMemo(
+    () => items.map((item) => dbRecordToMedia(item.media)),
+    [items]
   );
-}
 
-function MediaGridFromRecord({ items, refreshing, onRefresh }: MediaGridLocalProps) {
+  const renderItem = React.useCallback(
+    (media: Media) => {
+      const key = `${media.mediaType}-${media.id}`;
+      const episodeInfo = episodeInfoMap.get(key);
+      return <MediaCard media={media} size="medium" fillWidth episodeInfo={episodeInfo} />;
+    },
+    [episodeInfoMap]
+  );
+
   return (
-    <ScrollView
-      className="flex-1"
-      contentContainerStyle={{ padding: 12 }}
-      showsVerticalScrollIndicator={false}
-      refreshControl={
-        onRefresh ? (
-          <RefreshControl refreshing={refreshing ?? false} onRefresh={onRefresh} />
-        ) : undefined
-      }
-    >
-      <View className="flex-row flex-wrap">
-        {items.map((item) => (
-          <View key={`${item.tmdbId}-${item.mediaType}`} className="p-1.5">
-            <MediaCard media={dbRecordToMedia(item)} size="medium" />
-          </View>
-        ))}
-      </View>
-    </ScrollView>
+    <MediaGrid
+      data={mediaItems}
+      isLoading={isLoading}
+      emptyMessage="Nothing to continue"
+      emptyIcon={<Play size={48} className="text-muted-foreground" />}
+      renderItem={renderItem}
+      onRefresh={onRefresh}
+      isRefreshing={refreshing}
+    />
   );
 }
 
