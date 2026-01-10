@@ -15,6 +15,7 @@ A media streaming application built with React Native and Expo. Search movies an
 - **Search & Discover** — Browse movies and TV shows with metadata from TMDB
 - **Stream via Real-Debrid** — High-quality streaming through debrid service integration
 - **Track Your Progress** — Automatic watch progress tracking across episodes
+- **Release Calendar** — Track upcoming movie and TV releases
 - **Full Player Controls** — Gestures for seek, volume, brightness, plus screen lock
 - **Offline Support** — Download content for offline viewing
 - **Cross-Platform** — Works on Android, iOS, and Web from a single codebase
@@ -65,6 +66,7 @@ Created by [Yannick Herrero](https://github.com/YannickHerrero)
 - Automatic watch progress tracking
 - Resume playback across episodes
 - Manage watchlist and favorites
+- Release calendar for upcoming movies and episodes
 - Download content for offline viewing
 
 ### Appearance
