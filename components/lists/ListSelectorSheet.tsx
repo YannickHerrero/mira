@@ -46,7 +46,9 @@ export function ListSelectorSheet({
   const { dismiss } = useBottomSheetModal();
   const { createList, updateMediaLists, ensureDefaultList } = useListActions();
 
-  const [selectedListIds, setSelectedListIds] = React.useState<Set<string>>(new Set());
+  const [selectedListIds, setSelectedListIds] = React.useState<Set<string>>(
+    new Set(),
+  );
   const [isCreatingList, setIsCreatingList] = React.useState(false);
   const [newListName, setNewListName] = React.useState("");
   const [isSaving, setIsSaving] = React.useState(false);
@@ -119,7 +121,7 @@ export function ListSelectorSheet({
   return (
     <BottomSheetContent ref={sheetRef} enableDynamicSizing>
       <BottomSheetHeader>
-        <View className="flex-1 gap-1 py-3">
+        <View className="flex-1 gap-1">
           <Text className="text-lg font-semibold text-foreground">
             Add to List
           </Text>
@@ -175,7 +177,8 @@ export function ListSelectorSheet({
                           )}
                         </View>
                         <Text className="text-xs text-muted-foreground mt-0.5">
-                          {list.itemCount} {list.itemCount === 1 ? "item" : "items"}
+                          {list.itemCount}{" "}
+                          {list.itemCount === 1 ? "item" : "items"}
                         </Text>
                       </View>
                       {isSelected && (
@@ -247,7 +250,11 @@ export function ListSelectorSheet({
 
             {/* Action buttons */}
             <View className="flex-row gap-3 pt-2">
-              <Button variant="secondary" className="flex-1" onPress={handleCancel}>
+              <Button
+                variant="secondary"
+                className="flex-1"
+                onPress={handleCancel}
+              >
                 <Text>Cancel</Text>
               </Button>
               <Button
