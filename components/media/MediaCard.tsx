@@ -91,7 +91,7 @@ export function MediaCard({
         {media.score !== undefined && media.score > 0 && (
           <View className="absolute top-1.5 right-1.5 flex-row items-center bg-black/70 rounded px-1.5 py-0.5">
             <Star size={10} className="text-yellow-400 mr-0.5" fill="#facc15" />
-            <Text className="text-[10px] text-white font-medium">
+            <Text variant="caption" className="text-white">
               {media.score.toFixed(1)}
             </Text>
           </View>

@@ -72,10 +72,7 @@ export function NewReleaseCard({ release, cardWidth }: NewReleaseCardProps) {
                 </Text>
 
                 {/* Description or episode info */}
-                <Text
-                  className="text-[9px] font-semibold text-foreground"
-                  numberOfLines={2}
-                >
+                <Text variant="subtitle" numberOfLines={2}>
                   {episodeInfo
                     ? `S${episodeInfo.seasonNumber} E${episodeInfo.episodeNumber} - ${episodeInfo.episodeName}`
                     : media.description || ""}

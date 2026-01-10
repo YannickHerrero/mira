@@ -16,7 +16,8 @@ const TextClassContext = React.createContext<string | undefined>(undefined);
  * - cardTitle:     18px → 14px
  * - button:        17px → 13px
  * - body:          15px → 11px
- * - sectionTitle:  13px → 10px
+ * - sectionTitle:  13px → 10px (uppercase)
+ * - caption:       13px → 10px
  * - subtitle:      11px → 8px
  * - tag:           9px  → 7px
  */
@@ -29,6 +30,7 @@ const textVariants = cva("text-foreground web:select-text", {
       button: "text-[13px] font-semibold",
       body: "text-[11px] font-semibold",
       sectionTitle: "text-[10px] font-bold uppercase",
+      caption: "text-[10px] font-medium",
       subtitle: "text-[8px] font-semibold",
       tag: "text-[7px] font-bold uppercase",
     },
