@@ -54,9 +54,11 @@
   "library": {
     "continue": "Continuer",
     "lists": "Listes",
+    "watchlist": "Watchlist",
     "favorites": "Favoris",
     "downloads": "Téléchargements",
     "nothingToContinue": "Rien à continuer",
+    "noWatchlist": "Your watchlist is empty",
     "noLists": "Aucune liste",
     "noListsDesc": "Créez des listes pour organiser vos films et séries",
     "noFavorites": "Aucun favori",

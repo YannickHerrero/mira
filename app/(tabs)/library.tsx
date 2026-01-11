@@ -15,10 +15,19 @@ import {
   useContinueWatching,
   useFavorites,
 } from "@/hooks/useLibrary";
-import { useLists, useListActions } from "@/hooks/useLists";
+import { useListActions, useListItems, useLists } from "@/hooks/useLists";
 import { useDownloads, useDownloadsList } from "@/hooks/useDownloads";
 import { useMediaPlayer } from "@/hooks/useSettings";
-import { Play, Plus, Heart, Clock, Download, List, ChevronRight } from "@/lib/icons";
+import {
+  Play,
+  Plus,
+  Heart,
+  Clock,
+  Download,
+  List,
+  ChevronRight,
+  ListChecks,
+} from "@/lib/icons";
 import { selectionChanged, mediumImpact, lightImpact } from "@/lib/haptics";
 import { fileExists } from "@/lib/download-manager";
 import { cn } from "@/lib/utils";
@@ -26,17 +35,24 @@ import type { Media, MediaType } from "@/lib/types";
 import type { DownloadItem } from "@/stores/downloads";
 import type { ListWithCount } from "@/hooks/useLists";
 
-type TabType = "continue" | "lists" | "favorites" | "downloads";
+type TabType = "watchlist" | "continue" | "lists" | "favorites" | "downloads";
 
 export default function LibraryScreen() {
   const router = useRouter();
   const { t } = useTranslation();
-  const [activeTab, setActiveTab] = React.useState<TabType>("continue");
+  const [activeTab, setActiveTab] = React.useState<TabType>("watchlist");
   const [refreshing, setRefreshing] = React.useState(false);
 
   const { items: continueItems, isLoading: loadingContinue, refetch: refetchContinue } = useContinueWatching();
   const { lists, isLoading: loadingLists, refetch: refetchLists } = useLists();
   const { ensureDefaultList, migrateFromWatchlist } = useListActions();
+  const defaultList = lists.find((list) => list.isDefault);
+  const customLists = lists.filter((list) => !list.isDefault);
+  const {
+    items: watchlistItems,
+    isLoading: loadingWatchlist,
+    refetch: refetchWatchlist,
+  } = useListItems(defaultList?.id ?? null);
   const { items: favoriteItems, isLoading: loadingFavorites, refetch: refetchFavorites } = useFavorites();
   const { items: downloadItems, isLoading: loadingDownloads } = useDownloadsList();
   const { deleteDownload, retryDownload } = useDownloads();
@@ -61,15 +77,21 @@ export default function LibraryScreen() {
     React.useCallback(() => {
       refetchContinue();
       refetchLists();
+      refetchWatchlist();
       refetchFavorites();
-    }, [refetchContinue, refetchLists, refetchFavorites])
+    }, [refetchContinue, refetchLists, refetchWatchlist, refetchFavorites])
   );
 
   const handleRefresh = React.useCallback(async () => {
     setRefreshing(true);
-    await Promise.all([refetchContinue(), refetchLists(), refetchFavorites()]);
+    await Promise.all([
+      refetchContinue(),
+      refetchLists(),
+      refetchWatchlist(),
+      refetchFavorites(),
+    ]);
     setRefreshing(false);
-  }, [refetchContinue, refetchLists, refetchFavorites]);
+  }, [refetchContinue, refetchLists, refetchWatchlist, refetchFavorites]);
 
   const handleListPress = (listId: string) => {
     lightImpact();
@@ -137,6 +159,18 @@ export default function LibraryScreen() {
 
   const renderContent = () => {
     switch (activeTab) {
+      case "watchlist":
+        return (
+          <MediaGrid
+            data={watchlistItems.map((item) => dbRecordToMedia(item.media))}
+            isLoading={loadingWatchlist}
+            emptyMessage={t("library.noWatchlist")}
+            emptyIcon={<ListChecks size={48} className="text-muted-foreground" />}
+            onRefresh={handleRefresh}
+            isRefreshing={refreshing}
+          />
+        );
+
       case "continue":
         return (
           <ContinueWatchingGrid
@@ -148,10 +182,10 @@ export default function LibraryScreen() {
         );
 
       case "lists":
-        if (loadingLists && lists.length === 0) {
+        if (loadingLists && customLists.length === 0) {
           return <ListsLoadingState />;
         }
-        if (lists.length === 0) {
+        if (customLists.length === 0) {
           return (
             <EmptyState
               icon={<List size={48} className="text-muted-foreground" />}
@@ -162,7 +196,7 @@ export default function LibraryScreen() {
         }
         return (
           <ListsGrid
-            lists={lists}
+            lists={customLists}
             onListPress={handleListPress}
             refreshing={refreshing}
             onRefresh={handleRefresh}
@@ -204,6 +238,7 @@ export default function LibraryScreen() {
     }
   };
 
+
   // Don't show downloads tab on web
   const showDownloadsTab = Platform.OS !== "web";
 
@@ -217,6 +252,13 @@ export default function LibraryScreen() {
         contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 12 }}
       >
         <TabButton
+          label={t("library.watchlist")}
+          icon={<ListChecks size={16} />}
+          isActive={activeTab === "watchlist"}
+          onPress={() => setActiveTab("watchlist")}
+          badge={watchlistItems.length > 0 ? watchlistItems.length : undefined}
+        />
+        <TabButton
           label={t("library.continue")}
           icon={<Clock size={16} />}
           isActive={activeTab === "continue"}
@@ -228,7 +270,7 @@ export default function LibraryScreen() {
           icon={<List size={16} />}
           isActive={activeTab === "lists"}
           onPress={() => setActiveTab("lists")}
-          badge={lists.length > 0 ? lists.length : undefined}
+          badge={customLists.length > 0 ? customLists.length : undefined}
         />
         <TabButton
           label={t("library.favorites")}
