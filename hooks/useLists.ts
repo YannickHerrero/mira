@@ -8,6 +8,8 @@ import {
   mediaTable,
   watchlistTable,
 } from "@/db/schema";
+import { listItemKey } from "@/lib/manual-sync-keys";
+import { clearManualSyncDeletion, markManualSyncDeletion } from "@/lib/manual-sync-metadata";
 import type { Media, MediaType } from "@/lib/types";
 
 export const DEFAULT_WATCHLIST_NAME = "Watchlist";
@@ -233,6 +235,7 @@ export function useListActions() {
         name: DEFAULT_WATCHLIST_NAME,
         isDefault: true,
       });
+      clearManualSyncDeletion("lists", id);
 
       return id;
     } catch (err) {
@@ -255,6 +258,7 @@ export function useListActions() {
           name: name.trim(),
           isDefault: false,
         });
+        clearManualSyncDeletion("lists", id);
         return id;
       } catch (err) {
         console.error("Failed to create list:", err);
@@ -310,6 +314,7 @@ export function useListActions() {
 
         // Delete list (items will be cascade deleted)
         await db.delete(listsTable).where(eq(listsTable.id, listId));
+        markManualSyncDeletion("lists", listId);
         return true;
       } catch (err) {
         console.error("Failed to delete list:", err);
@@ -376,6 +381,10 @@ export function useListActions() {
           })
           .onConflictDoNothing();
 
+        clearManualSyncDeletion(
+          "listItems",
+          listItemKey(listId, media.id, media.mediaType)
+        );
         return true;
       } catch (err) {
         console.error("Failed to add to list:", err);
@@ -406,6 +415,10 @@ export function useListActions() {
               eq(listItemsTable.mediaType, mediaType)
             )
           );
+        markManualSyncDeletion(
+          "listItems",
+          listItemKey(listId, tmdbId, mediaType)
+        );
         return true;
       } catch (err) {
         console.error("Failed to remove from list:", err);
@@ -461,6 +474,10 @@ export function useListActions() {
               mediaType: media.mediaType,
             })
             .onConflictDoNothing();
+          clearManualSyncDeletion(
+            "listItems",
+            listItemKey(listId, media.id, media.mediaType)
+          );
         }
 
         // Remove from deselected lists
@@ -474,6 +491,10 @@ export function useListActions() {
                 eq(listItemsTable.mediaType, media.mediaType)
               )
             );
+          markManualSyncDeletion(
+            "listItems",
+            listItemKey(listId, media.id, media.mediaType)
+          );
         }
 
         return true;
@@ -510,6 +531,10 @@ export function useListActions() {
             addedAt: item.addedAt,
           })
           .onConflictDoNothing();
+        clearManualSyncDeletion(
+          "listItems",
+          listItemKey(defaultListId, item.tmdbId, item.mediaType)
+        );
       }
 
       console.log(

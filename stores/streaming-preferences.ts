@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { markManualSyncSettingsUpdated } from "@/lib/manual-sync-metadata";
 import { storage } from "@/lib/storage";
 
 const STORAGE_KEY = "streaming_preferences";
@@ -96,97 +97,107 @@ export const useStreamingPreferencesStore = create<StreamingPreferencesStore>(
       set({ ...preferences, isLoading: false });
     },
 
-    setPreferredAudioLanguages: (languages: LanguageOption[]) => {
-      set({ preferredAudioLanguages: languages });
-      const { preferredSubtitleLanguages } = get();
-      savePreferences({
-        preferredAudioLanguages: languages,
-        preferredSubtitleLanguages,
-      });
-    },
+  setPreferredAudioLanguages: (languages: LanguageOption[]) => {
+    set({ preferredAudioLanguages: languages });
+    const { preferredSubtitleLanguages } = get();
+    savePreferences({
+      preferredAudioLanguages: languages,
+      preferredSubtitleLanguages,
+    });
+    markManualSyncSettingsUpdated("streamingPreferences");
+  },
 
-    setPreferredSubtitleLanguages: (languages: SubtitleOption[]) => {
-      set({ preferredSubtitleLanguages: languages });
-      const { preferredAudioLanguages } = get();
-      savePreferences({
-        preferredAudioLanguages,
-        preferredSubtitleLanguages: languages,
-      });
-    },
+  setPreferredSubtitleLanguages: (languages: SubtitleOption[]) => {
+    set({ preferredSubtitleLanguages: languages });
+    const { preferredAudioLanguages } = get();
+    savePreferences({
+      preferredAudioLanguages,
+      preferredSubtitleLanguages: languages,
+    });
+    markManualSyncSettingsUpdated("streamingPreferences");
+  },
 
-    moveAudioLanguage: (fromIndex: number, toIndex: number) => {
-      const { preferredAudioLanguages, preferredSubtitleLanguages } = get();
-      const newLanguages = [...preferredAudioLanguages];
-      const [removed] = newLanguages.splice(fromIndex, 1);
-      newLanguages.splice(toIndex, 0, removed);
+  moveAudioLanguage: (fromIndex: number, toIndex: number) => {
+    const { preferredAudioLanguages, preferredSubtitleLanguages } = get();
+    const newLanguages = [...preferredAudioLanguages];
+    const [removed] = newLanguages.splice(fromIndex, 1);
+    newLanguages.splice(toIndex, 0, removed);
+    set({ preferredAudioLanguages: newLanguages });
+    savePreferences({
+      preferredAudioLanguages: newLanguages,
+      preferredSubtitleLanguages,
+    });
+    markManualSyncSettingsUpdated("streamingPreferences");
+  },
+
+  moveSubtitleLanguage: (fromIndex: number, toIndex: number) => {
+    const { preferredAudioLanguages, preferredSubtitleLanguages } = get();
+    const newLanguages = [...preferredSubtitleLanguages];
+    const [removed] = newLanguages.splice(fromIndex, 1);
+    newLanguages.splice(toIndex, 0, removed);
+    set({ preferredSubtitleLanguages: newLanguages });
+    savePreferences({
+      preferredAudioLanguages,
+      preferredSubtitleLanguages: newLanguages,
+    });
+    markManualSyncSettingsUpdated("streamingPreferences");
+  },
+
+  addAudioLanguage: (language: LanguageOption) => {
+    const { preferredAudioLanguages, preferredSubtitleLanguages } = get();
+    if (!preferredAudioLanguages.includes(language)) {
+      const newLanguages = [...preferredAudioLanguages, language];
       set({ preferredAudioLanguages: newLanguages });
       savePreferences({
         preferredAudioLanguages: newLanguages,
         preferredSubtitleLanguages,
       });
-    },
+      markManualSyncSettingsUpdated("streamingPreferences");
+    }
+  },
 
-    moveSubtitleLanguage: (fromIndex: number, toIndex: number) => {
-      const { preferredAudioLanguages, preferredSubtitleLanguages } = get();
-      const newLanguages = [...preferredSubtitleLanguages];
-      const [removed] = newLanguages.splice(fromIndex, 1);
-      newLanguages.splice(toIndex, 0, removed);
+  addSubtitleLanguage: (language: SubtitleOption) => {
+    const { preferredAudioLanguages, preferredSubtitleLanguages } = get();
+    if (!preferredSubtitleLanguages.includes(language)) {
+      const newLanguages = [...preferredSubtitleLanguages, language];
       set({ preferredSubtitleLanguages: newLanguages });
       savePreferences({
         preferredAudioLanguages,
         preferredSubtitleLanguages: newLanguages,
       });
-    },
+      markManualSyncSettingsUpdated("streamingPreferences");
+    }
+  },
 
-    addAudioLanguage: (language: LanguageOption) => {
-      const { preferredAudioLanguages, preferredSubtitleLanguages } = get();
-      if (!preferredAudioLanguages.includes(language)) {
-        const newLanguages = [...preferredAudioLanguages, language];
-        set({ preferredAudioLanguages: newLanguages });
-        savePreferences({
-          preferredAudioLanguages: newLanguages,
-          preferredSubtitleLanguages,
-        });
-      }
-    },
+  removeAudioLanguage: (language: LanguageOption) => {
+    const { preferredAudioLanguages, preferredSubtitleLanguages } = get();
+    const newLanguages = preferredAudioLanguages.filter((l) => l !== language);
+    set({ preferredAudioLanguages: newLanguages });
+    savePreferences({
+      preferredAudioLanguages: newLanguages,
+      preferredSubtitleLanguages,
+    });
+    markManualSyncSettingsUpdated("streamingPreferences");
+  },
 
-    addSubtitleLanguage: (language: SubtitleOption) => {
-      const { preferredAudioLanguages, preferredSubtitleLanguages } = get();
-      if (!preferredSubtitleLanguages.includes(language)) {
-        const newLanguages = [...preferredSubtitleLanguages, language];
-        set({ preferredSubtitleLanguages: newLanguages });
-        savePreferences({
-          preferredAudioLanguages,
-          preferredSubtitleLanguages: newLanguages,
-        });
-      }
-    },
+  removeSubtitleLanguage: (language: SubtitleOption) => {
+    const { preferredAudioLanguages, preferredSubtitleLanguages } = get();
+    const newLanguages = preferredSubtitleLanguages.filter(
+      (l) => l !== language
+    );
+    set({ preferredSubtitleLanguages: newLanguages });
+    savePreferences({
+      preferredAudioLanguages,
+      preferredSubtitleLanguages: newLanguages,
+    });
+    markManualSyncSettingsUpdated("streamingPreferences");
+  },
 
-    removeAudioLanguage: (language: LanguageOption) => {
-      const { preferredAudioLanguages, preferredSubtitleLanguages } = get();
-      const newLanguages = preferredAudioLanguages.filter((l) => l !== language);
-      set({ preferredAudioLanguages: newLanguages });
-      savePreferences({
-        preferredAudioLanguages: newLanguages,
-        preferredSubtitleLanguages,
-      });
-    },
+  resetPreferences: () => {
+    set({ ...DEFAULT_PREFERENCES });
+    savePreferences(DEFAULT_PREFERENCES);
+    markManualSyncSettingsUpdated("streamingPreferences");
+  },
 
-    removeSubtitleLanguage: (language: SubtitleOption) => {
-      const { preferredAudioLanguages, preferredSubtitleLanguages } = get();
-      const newLanguages = preferredSubtitleLanguages.filter(
-        (l) => l !== language
-      );
-      set({ preferredSubtitleLanguages: newLanguages });
-      savePreferences({
-        preferredAudioLanguages,
-        preferredSubtitleLanguages: newLanguages,
-      });
-    },
-
-    resetPreferences: () => {
-      set({ ...DEFAULT_PREFERENCES });
-      savePreferences(DEFAULT_PREFERENCES);
-    },
   })
 );

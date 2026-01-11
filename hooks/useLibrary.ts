@@ -2,6 +2,8 @@ import { useState, useEffect, useCallback } from "react";
 import { eq, desc, and, sql } from "drizzle-orm";
 import { useDatabase } from "@/db/provider";
 import { mediaTable, watchProgressTable, watchlistTable } from "@/db/schema";
+import { favoriteKey } from "@/lib/manual-sync-keys";
+import { clearManualSyncDeletion, markManualSyncDeletion } from "@/lib/manual-sync-metadata";
 import type { Media, MediaType } from "@/lib/types";
 
 export interface ContinueWatchingProgress {
@@ -288,11 +290,15 @@ export function useLibraryActions() {
         )
         .limit(1);
 
+      const syncKey = favoriteKey(media.id, media.mediaType);
+
       if (existing.length > 0) {
+        const nextFavorite = !existing[0].isFavorite;
         await db
           .update(mediaTable)
           .set({
-            isFavorite: !existing[0].isFavorite,
+            isFavorite: nextFavorite,
+            updatedAt: sql`(CURRENT_TIMESTAMP)`,
           })
           .where(
             and(
@@ -300,6 +306,12 @@ export function useLibraryActions() {
               eq(mediaTable.mediaType, media.mediaType)
             )
           );
+
+        if (nextFavorite) {
+          clearManualSyncDeletion("favorites", syncKey);
+        } else {
+          markManualSyncDeletion("favorites", syncKey);
+        }
       } else {
         await db.insert(mediaTable).values({
           tmdbId: media.id,
@@ -316,7 +328,9 @@ export function useLibraryActions() {
           seasonCount: media.seasonCount,
           episodeCount: media.episodeCount,
           isFavorite: true,
+          updatedAt: sql`(CURRENT_TIMESTAMP)`,
         });
+        clearManualSyncDeletion("favorites", syncKey);
       }
     },
     [db]

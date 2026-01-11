@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { markManualSyncSettingsUpdated } from "@/lib/manual-sync-metadata";
 import { storage } from "@/lib/storage";
 
 const STORAGE_KEY = "source_filters";
@@ -87,16 +88,19 @@ export const useSourceFiltersStore = create<SourceFiltersStore>((set, get) => ({
     set({ qualities });
     const { languages } = get();
     saveFilters({ qualities, languages });
+    markManualSyncSettingsUpdated("sourceFilters");
   },
 
   setLanguages: (languages: LanguageOption[]) => {
     set({ languages });
     const { qualities } = get();
     saveFilters({ qualities, languages });
+    markManualSyncSettingsUpdated("sourceFilters");
   },
 
   resetFilters: () => {
     set({ ...DEFAULT_FILTERS });
     saveFilters(DEFAULT_FILTERS);
+    markManualSyncSettingsUpdated("sourceFilters");
   },
 }));

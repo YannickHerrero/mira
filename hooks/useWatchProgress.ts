@@ -2,6 +2,8 @@ import { useCallback } from "react";
 import { eq, and, sql, isNull } from "drizzle-orm";
 import { useDatabase } from "@/db/provider";
 import { watchProgressTable } from "@/db/schema";
+import { progressKey } from "@/lib/manual-sync-keys";
+import { clearManualSyncDeletion, markManualSyncDeletion } from "@/lib/manual-sync-metadata";
 import type { MediaType } from "@/lib/types";
 
 interface ProgressParams {
@@ -62,6 +64,10 @@ export function useWatchProgress() {
               updatedAt: sql`(CURRENT_TIMESTAMP)`,
             },
           });
+        clearManualSyncDeletion(
+          "progress",
+          progressKey(tmdbId, mediaType, seasonNumber, episodeNumber)
+        );
       } catch (err) {
         console.error("[useWatchProgress] Failed to save progress:", err);
       }
@@ -97,6 +103,10 @@ export function useWatchProgress() {
             updatedAt: sql`(CURRENT_TIMESTAMP)`,
           })
           .where(whereClause);
+        clearManualSyncDeletion(
+          "progress",
+          progressKey(tmdbId, mediaType, seasonNumber, episodeNumber)
+        );
       } catch (err) {
         console.error("[useWatchProgress] Failed to mark as completed:", err);
       }
@@ -182,6 +192,10 @@ export function useWatchProgress() {
               );
 
         await db.delete(watchProgressTable).where(whereClause);
+        markManualSyncDeletion(
+          "progress",
+          progressKey(tmdbId, mediaType, seasonNumber, episodeNumber)
+        );
       } catch (err) {
         console.error("[useWatchProgress] Failed to clear progress:", err);
       }
@@ -227,6 +241,10 @@ export function useWatchProgress() {
                 updatedAt: sql`(CURRENT_TIMESTAMP)`,
               },
             });
+          clearManualSyncDeletion(
+            "progress",
+            progressKey(tmdbId, "tv", ep.seasonNumber, ep.episodeNumber)
+          );
         }
       } catch (err) {
         console.error("[useWatchProgress] Failed to mark episodes as completed:", err);

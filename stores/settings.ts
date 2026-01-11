@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { markManualSyncSettingsUpdated } from "@/lib/manual-sync-metadata";
 import { storage } from "@/lib/storage";
 
 const STORAGE_KEY = "app_settings";
@@ -46,5 +47,6 @@ export const useSettingsStore = create<SettingsStore>((set, get) => ({
     set({ useVlcPlayer: value });
     const { useVlcPlayer } = get();
     saveSettings({ useVlcPlayer });
+    markManualSyncSettingsUpdated("settings");
   },
 }));

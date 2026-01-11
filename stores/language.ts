@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { markManualSyncSettingsUpdated } from "@/lib/manual-sync-metadata";
 import { storage } from "@/lib/storage";
 import { getDeviceLanguage, SUPPORTED_LANGUAGES, type SupportedLanguage } from "@/lib/i18n";
 
@@ -58,5 +59,6 @@ export const useLanguageStore = create<LanguageStore>((set, get) => ({
 
     set({ language, resolvedLanguage });
     saveLanguage({ language });
+    markManualSyncSettingsUpdated("language");
   },
 }));
