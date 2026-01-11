@@ -36,6 +36,7 @@ interface MediaGridProps {
   onRefresh?: () => void;
   isRefreshing?: boolean;
   ListHeaderComponent?: React.ReactElement;
+  contentPaddingBottom?: number;
 }
 
 export function MediaGrid({
@@ -49,6 +50,7 @@ export function MediaGrid({
   onRefresh,
   isRefreshing = false,
   ListHeaderComponent,
+  contentPaddingBottom = 0,
 }: MediaGridProps) {
   const numColumns = useGridColumns(customColumns);
 
@@ -73,7 +75,13 @@ export function MediaGrid({
   // Loading skeleton
   if (isLoading && data.length === 0) {
     return (
-      <View className="flex-1" style={{ paddingHorizontal: GRID_PADDING - GRID_GAP / 2 }}>
+      <View
+        className="flex-1"
+        style={{
+          paddingHorizontal: GRID_PADDING - GRID_GAP / 2,
+          paddingBottom: contentPaddingBottom,
+        }}
+      >
         {ListHeaderComponent}
         <View className="flex-row flex-wrap">
           {Array.from({ length: 6 }).map((_, i) => (
@@ -89,7 +97,10 @@ export function MediaGrid({
   // Empty state
   if (!isLoading && data.length === 0) {
     return (
-      <View className="flex-1" style={{ paddingHorizontal: GRID_PADDING }}>
+      <View
+        className="flex-1"
+        style={{ paddingHorizontal: GRID_PADDING, paddingBottom: contentPaddingBottom }}
+      >
         {ListHeaderComponent}
         <EmptyState
           icon={emptyIcon ?? <Search size={48} className="text-muted-foreground" />}
@@ -108,7 +119,8 @@ export function MediaGrid({
       key={numColumns} // Re-render when columns change
       contentContainerStyle={{
         paddingHorizontal: GRID_PADDING - GRID_GAP / 2,
-        paddingVertical: GRID_GAP / 2,
+        paddingTop: GRID_GAP / 2,
+        paddingBottom: GRID_GAP / 2 + contentPaddingBottom,
       }}
       onEndReached={onEndReached}
       onEndReachedThreshold={0.5}

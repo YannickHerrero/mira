@@ -168,6 +168,7 @@ export default function LibraryScreen() {
             emptyIcon={<ListChecks size={48} className="text-muted-foreground" />}
             onRefresh={handleRefresh}
             isRefreshing={refreshing}
+            contentPaddingBottom={96}
           />
         );
 
@@ -178,6 +179,7 @@ export default function LibraryScreen() {
             isLoading={loadingContinue}
             refreshing={refreshing}
             onRefresh={handleRefresh}
+            contentPaddingBottom={96}
           />
         );
 
@@ -200,6 +202,7 @@ export default function LibraryScreen() {
             onListPress={handleListPress}
             refreshing={refreshing}
             onRefresh={handleRefresh}
+            contentPaddingBottom={96}
           />
         );
 
@@ -212,6 +215,7 @@ export default function LibraryScreen() {
             emptyIcon={<Heart size={48} className="text-muted-foreground" />}
             onRefresh={handleRefresh}
             isRefreshing={refreshing}
+            contentPaddingBottom={96}
           />
         );
 
@@ -233,6 +237,7 @@ export default function LibraryScreen() {
             items={downloadItems}
             onPress={handleDownloadPress}
             onLongPress={handleDownloadLongPress}
+            contentPaddingBottom={96}
           />
         );
     }
@@ -395,14 +400,21 @@ interface ListsGridProps {
   onListPress: (listId: string) => void;
   refreshing?: boolean;
   onRefresh?: () => void;
+  contentPaddingBottom?: number;
 }
 
-function ListsGrid({ lists, onListPress, refreshing, onRefresh }: ListsGridProps) {
+function ListsGrid({
+  lists,
+  onListPress,
+  refreshing,
+  onRefresh,
+  contentPaddingBottom = 0,
+}: ListsGridProps) {
   const { t } = useTranslation();
   return (
     <ScrollView
       className="flex-1"
-      contentContainerStyle={{ padding: 16 }}
+      contentContainerStyle={{ padding: 16, paddingBottom: 16 + contentPaddingBottom }}
       showsVerticalScrollIndicator={false}
       refreshControl={
         onRefresh ? (
@@ -469,9 +481,16 @@ interface ContinueWatchingGridProps {
   isLoading?: boolean;
   refreshing?: boolean;
   onRefresh?: () => void;
+  contentPaddingBottom?: number;
 }
 
-function ContinueWatchingGrid({ items, isLoading, refreshing, onRefresh }: ContinueWatchingGridProps) {
+function ContinueWatchingGrid({
+  items,
+  isLoading,
+  refreshing,
+  onRefresh,
+  contentPaddingBottom = 0,
+}: ContinueWatchingGridProps) {
   const { t } = useTranslation();
   // Build a map from media id to episode info for custom rendering
   const episodeInfoMap = React.useMemo(() => {
@@ -515,6 +534,7 @@ function ContinueWatchingGrid({ items, isLoading, refreshing, onRefresh }: Conti
       renderItem={renderItem}
       onRefresh={onRefresh}
       isRefreshing={refreshing}
+      contentPaddingBottom={contentPaddingBottom}
     />
   );
 }
@@ -523,13 +543,19 @@ interface DownloadsListProps {
   items: DownloadItem[];
   onPress: (download: DownloadItem) => void;
   onLongPress: (download: DownloadItem) => void;
+  contentPaddingBottom?: number;
 }
 
-function DownloadsList({ items, onPress, onLongPress }: DownloadsListProps) {
+function DownloadsList({
+  items,
+  onPress,
+  onLongPress,
+  contentPaddingBottom = 0,
+}: DownloadsListProps) {
   return (
     <ScrollView
       className="flex-1"
-      contentContainerStyle={{ padding: 16 }}
+      contentContainerStyle={{ padding: 16, paddingBottom: 16 + contentPaddingBottom }}
       showsVerticalScrollIndicator={false}
     >
       {items.map((download) => (

@@ -150,7 +150,10 @@ export default function SearchScreen() {
           />
         ) : !hasSearched ? (
           // Default view: Suggestions (personalized or trending)
-          <ScrollView className="flex-1 px-4">
+          <ScrollView
+            className="flex-1 px-4"
+            contentContainerStyle={{ paddingBottom: 96 }}
+          >
             <Text variant="sectionTitle" className="mt-4 mb-2">
               {isPersonalized ? t("search.suggestedForYou") : t("search.mostSearched")}
             </Text>
@@ -172,6 +175,7 @@ export default function SearchScreen() {
             isLoading={isLoading}
             emptyMessage={t("search.noResults")}
             emptyIcon={<Search size={48} className="text-muted-foreground" />}
+            contentPaddingBottom={96}
           />
         )}
       </View>

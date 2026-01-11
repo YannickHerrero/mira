@@ -234,6 +234,7 @@ export default function ListDetailScreen() {
         emptyIcon={<List size={48} className="text-muted-foreground" />}
         onRefresh={handleRefresh}
         isRefreshing={refreshing}
+        contentPaddingBottom={96}
       />
 
       {/* Actions Sheet */}

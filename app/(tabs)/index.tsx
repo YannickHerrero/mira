@@ -166,7 +166,7 @@ export default function HomeScreen() {
         )}
 
         {/* Sections container with gap */}
-        <View className="gap-8 pb-24 mt-8">
+        <View className="gap-8 pb-32 mt-8">
           {/* Continue Watching (list style) */}
           {continueItems.length > 0 && (
             <ContinueWatchingList items={continueItems} maxItems={3} />
