@@ -14,6 +14,73 @@ import type { Stream, MediaType } from "@/lib/types";
 import { useSourceFilters } from "@/hooks/useSourceFilters";
 import { useStreamingPreferences } from "@/hooks/useStreamingPreferences";
 import { filterStreams, hasActiveFilters } from "@/lib/filter-streams";
+import { cn } from "@/lib/utils";
+
+const INVALID_FILENAME_CHARS = /[<>:"/\\|?*\u0000-\u001F]/g;
+
+function sanitizeFileName(value: string): string {
+  return value.replace(INVALID_FILENAME_CHARS, "").replace(/\s+/g, " ").trim();
+}
+
+function getUrlExtension(url?: string): string | null {
+  if (!url) return null;
+  const cleanUrl = url.split(/[?#]/)[0];
+  const extension = cleanUrl.split(".").pop();
+  if (!extension || extension.length > 5) return null;
+  return extension.toLowerCase();
+}
+
+function buildWebDownloadFileName({
+  title,
+  mediaTitle,
+  episodeTitle,
+  mediaType,
+  seasonNumber,
+  episodeNumber,
+  year,
+  quality,
+  url,
+}: {
+  title?: string;
+  mediaTitle?: string;
+  episodeTitle?: string;
+  mediaType?: MediaType;
+  seasonNumber?: number;
+  episodeNumber?: number;
+  year?: number;
+  quality?: string;
+  url?: string;
+}): string {
+  const safeTitle = sanitizeFileName(mediaTitle ?? title ?? "download");
+  const extension = getUrlExtension(url) ?? "mp4";
+  const qualitySuffix = quality ? ` [${quality}]` : "";
+
+  if (mediaType === "tv" && seasonNumber !== undefined && episodeNumber !== undefined) {
+    const season = String(seasonNumber).padStart(2, "0");
+    const episode = String(episodeNumber).padStart(2, "0");
+    const safeEpisodeTitle = episodeTitle ? ` - ${sanitizeFileName(episodeTitle)}` : "";
+    return `${safeTitle} - S${season}E${episode}${safeEpisodeTitle}${qualitySuffix}.${extension}`;
+  }
+
+  const yearSuffix = year ? ` (${year})` : "";
+  return `${safeTitle}${yearSuffix}${qualitySuffix}.${extension}`;
+}
+
+function triggerWebDownload(url: string, fileName: string): void {
+  const webScope = globalThis as typeof globalThis & {
+    document?: Document;
+  };
+  const link = webScope.document?.createElement("a");
+  if (!link) return;
+  link.href = url;
+  link.download = fileName;
+  link.rel = "noopener";
+  link.target = "_blank";
+  link.style.display = "none";
+  webScope.document.body.appendChild(link);
+  link.click();
+  webScope.document.body.removeChild(link);
+}
 
 interface SourceListProps {
   streams: Stream[];
@@ -28,6 +95,11 @@ interface SourceListProps {
   episodeNumber?: number;
   title?: string;
   posterPath?: string;
+  mediaTitle?: string;
+  episodeTitle?: string;
+  year?: number;
+  showUncached: boolean;
+  onToggleShowUncached: () => void;
   // Custom header component (e.g., hero section)
   ListHeaderComponent?: React.ReactNode;
 }
@@ -44,6 +116,11 @@ export function SourceList({
   episodeNumber,
   title,
   posterPath,
+  mediaTitle,
+  episodeTitle,
+  year,
+  showUncached,
+  onToggleShowUncached,
   ListHeaderComponent: CustomHeaderComponent,
 }: SourceListProps) {
   const [selectedStream, setSelectedStream] = React.useState<Stream | null>(null);
@@ -165,6 +242,33 @@ export function SourceList({
     queueDownload,
   ]);
 
+  const handleWebDownload = React.useCallback(
+    (stream: Stream) => {
+      if (Platform.OS !== "web" || !stream.url) return;
+      const fileName = buildWebDownloadFileName({
+        title,
+        mediaTitle,
+        episodeTitle,
+        mediaType,
+        seasonNumber,
+        episodeNumber,
+        year,
+        quality: stream.quality,
+        url: stream.url,
+      });
+      triggerWebDownload(stream.url, fileName);
+    },
+    [
+      title,
+      mediaTitle,
+      episodeTitle,
+      mediaType,
+      seasonNumber,
+      episodeNumber,
+      year,
+    ]
+  );
+
   const renderItem = React.useCallback(
     ({ item }: { item: Stream }) => {
       // Check if this specific stream is the downloaded one
@@ -190,6 +294,8 @@ export function SourceList({
             stream={item}
             onPress={() => onSelectStream(item)}
             onLongPress={() => handleLongPress(item)}
+            onDownload={() => handleWebDownload(item)}
+            showWebDownload={Platform.OS === "web" && !!item.url}
             downloadStatus={streamDownloadStatus}
             downloadProgress={download?.progress}
             isDownloadedSource={isThisStreamDownloaded}
@@ -200,7 +306,14 @@ export function SourceList({
 
        );
     },
-    [onSelectStream, handleLongPress, download, recommendedStreams, preferredLanguages]
+    [
+      onSelectStream,
+      handleLongPress,
+      handleWebDownload,
+      download,
+      recommendedStreams,
+      preferredLanguages,
+    ]
   );
 
   const keyExtractor = React.useCallback(
@@ -225,42 +338,59 @@ export function SourceList({
     );
   }
 
-  if (streams.length === 0) {
-    return (
-      <View className="flex-1 items-center justify-center py-12 px-6">
-        <Text className="text-muted-foreground text-center">
-          No sources found for this title.
-        </Text>
-        <Text className="text-muted-foreground text-center text-sm mt-2">
-          Try a different quality or check back later.
-        </Text>
-      </View>
-    );
-  }
-
-  // All sources filtered out - show message with "Show All" button
-  if (filteredStreams.length === 0 && filtersActive && !showAllSources) {
-    return (
-      <View className="flex-1 items-center justify-center py-12 px-6">
-        <Text className="text-muted-foreground text-center">
-          No sources match your filters.
-        </Text>
-        <Text className="text-muted-foreground text-center text-sm mt-2">
-          {streams.length} source{streams.length !== 1 ? "s" : ""} available
-        </Text>
-        <Button
-          variant="outline"
-          className="flex-row items-center justify-center mt-4"
-          onPress={() => setShowAllSources(true)}
-        >
-          <Eye size={16} className="text-foreground mr-2" />
-          <Text className="text-foreground">
-            Show All {streams.length} Sources
+  const listEmptyComponent = (
+    <View className="flex-1 items-center justify-center py-12 px-6">
+      {streams.length === 0 ? (
+        <>
+          <Text className="text-muted-foreground text-center">
+            No sources found for this title.
           </Text>
-        </Button>
-      </View>
-    );
-  }
+          <Text className="text-muted-foreground text-center text-sm mt-2">
+            {showUncached
+              ? "No cached or uncached sources yet."
+              : "Try uncached sources or check back later."}
+          </Text>
+          <Button
+            variant="outline"
+            className="flex-row items-center justify-center mt-4"
+            onPress={onToggleShowUncached}
+          >
+            <Text className="text-foreground">
+              {showUncached ? "Hide uncached sources" : "Show uncached sources"}
+            </Text>
+          </Button>
+        </>
+      ) : (
+        <>
+          <Text className="text-muted-foreground text-center">
+            No sources match your filters.
+          </Text>
+          <Text className="text-muted-foreground text-center text-sm mt-2">
+            {streams.length} source{streams.length !== 1 ? "s" : ""} available
+          </Text>
+          <Button
+            variant="outline"
+            className="flex-row items-center justify-center mt-4"
+            onPress={() => setShowAllSources(true)}
+          >
+            <Eye size={16} className="text-foreground mr-2" />
+            <Text className="text-foreground">
+              Show All {streams.length} Sources
+            </Text>
+          </Button>
+          <Button
+            variant="outline"
+            className="flex-row items-center justify-center mt-3"
+            onPress={onToggleShowUncached}
+          >
+            <Text className="text-foreground">
+              {showUncached ? "Hide uncached sources" : "Show uncached sources"}
+            </Text>
+          </Button>
+        </>
+      )}
+    </View>
+  );
 
   return (
     <>
@@ -268,7 +398,11 @@ export function SourceList({
         data={sortedStreams}
         renderItem={renderItem}
         keyExtractor={keyExtractor}
-        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 16 }}
+        contentContainerStyle={{
+          paddingHorizontal: 16,
+          paddingBottom: 16,
+          flexGrow: 1,
+        }}
         showsVerticalScrollIndicator={false}
         ListHeaderComponent={
           <View>
@@ -297,33 +431,40 @@ export function SourceList({
               </View>
             )}
 
-            <Text className="text-sm text-muted-foreground mb-1">
-              {filtersActive && !showAllSources ? (
-                <>
-                  Showing {filteredStreams.length} of {streams.length} source
-                  {streams.length !== 1 ? "s" : ""} (filtered)
-                </>
-              ) : (
-                <>
-                  {streams.length} source{streams.length !== 1 ? "s" : ""} found
-                </>
-              )}
-            </Text>
-            {recommendedStreams.length > 0 && !showAllSources && (
-              <Text className="text-xs font-semibold text-amber-500 mb-2 uppercase tracking-wider">
-                Recommended for you
-              </Text>
+            {streams.length > 0 && (
+              <>
+                <Text className="text-sm text-muted-foreground mb-1">
+                  {filtersActive && !showAllSources ? (
+                    <>
+                      Showing {filteredStreams.length} of {streams.length} source
+                      {streams.length !== 1 ? "s" : ""} (filtered)
+                    </>
+                  ) : (
+                    <>
+                      {streams.length} source{streams.length !== 1 ? "s" : ""} found
+                    </>
+                  )}
+                </Text>
+                {recommendedStreams.length > 0 && !showAllSources && (
+                  <Text className="text-xs font-semibold text-amber-500 mb-2 uppercase tracking-wider">
+                    Recommended for you
+                  </Text>
+                )}
+              </>
             )}
-            {Platform.OS !== "web" && !isDownloaded && (
+            {Platform.OS !== "web" && !isDownloaded && streams.length > 0 && (
               <Text className="text-xs text-muted-foreground mb-3">
                 Long press a source to download for offline viewing
               </Text>
             )}
           </View>
         }
+        ListEmptyComponent={
+          streams.length === 0 || (filtersActive && !showAllSources) ? listEmptyComponent : null
+        }
         ListFooterComponent={
-          filtersActive && !showAllSources && filteredStreams.length < streams.length ? (
-            <View className="mt-4 mb-8">
+          <View className="mt-4 mb-8">
+            {filtersActive && !showAllSources && filteredStreams.length < streams.length ? (
               <Button
                 variant="outline"
                 className="flex-row items-center justify-center"
@@ -334,8 +475,22 @@ export function SourceList({
                   Show All {streams.length} Sources
                 </Text>
               </Button>
-            </View>
-          ) : null
+            ) : null}
+            <Button
+              variant={showUncached ? "default" : "outline"}
+              className={cn(
+                "flex-row items-center justify-center",
+                filtersActive && !showAllSources && filteredStreams.length < streams.length
+                  ? "mt-3"
+                  : ""
+              )}
+              onPress={onToggleShowUncached}
+            >
+              <Text className={showUncached ? "text-primary-foreground" : "text-foreground"}>
+                {showUncached ? "Hide uncached sources" : "Show uncached sources"}
+              </Text>
+            </Button>
+          </View>
         }
       />
 

@@ -37,6 +37,7 @@ export default function SourcesScreen() {
   const [genres, setGenres] = React.useState<string[]>([]);
   const [year, setYear] = React.useState<number | undefined>();
   const [isAnime, setIsAnime] = React.useState(false);
+  const [showUncached, setShowUncached] = React.useState(false);
   const [isLoadingMedia, setIsLoadingMedia] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
 
@@ -123,6 +124,7 @@ export default function SourcesScreen() {
     episode: episodeNumber,
     isAnime,
     enabled: !!imdbId,
+    showUncached,
   });
 
   const handleSelectStream = async (stream: { url?: string }) => {
@@ -281,6 +283,11 @@ export default function SourcesScreen() {
         episodeNumber={episodeNumber}
         title={fullTitle}
         posterPath={posterPath}
+        mediaTitle={mediaTitle}
+        episodeTitle={episodeTitle}
+        year={year}
+        showUncached={showUncached}
+        onToggleShowUncached={() => setShowUncached((prev) => !prev)}
         ListHeaderComponent={heroSection}
       />
     </View>

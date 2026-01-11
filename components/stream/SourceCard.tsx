@@ -13,6 +13,8 @@ interface SourceCardProps {
   stream: Stream;
   onPress: () => void;
   onLongPress?: () => void;
+  onDownload?: () => void;
+  showWebDownload?: boolean;
   downloadStatus?: "downloading" | "completed" | "pending" | null;
   downloadProgress?: number;
   isDownloadedSource?: boolean;
@@ -25,6 +27,8 @@ export function SourceCard({
   stream,
   onPress,
   onLongPress,
+  onDownload,
+  showWebDownload,
   downloadStatus,
   downloadProgress,
   isDownloadedSource,
@@ -158,7 +162,7 @@ export function SourceCard({
         </View>
 
         {/* Right side - play button or download indicator */}
-        <View className="ml-3">
+        <View className="ml-3 items-center gap-2">
           {isDownloadedSource ? (
             <View className="w-12 h-12 rounded-full bg-green-600 items-center justify-center">
               <Check size={20} className="text-white" />
@@ -185,6 +189,15 @@ export function SourceCard({
             <View className="w-12 h-12 rounded-full bg-primary items-center justify-center">
               <Play size={20} className="text-primary-foreground ml-0.5" fill="currentColor" />
             </View>
+          )}
+
+          {showWebDownload && onDownload && (
+            <Pressable
+              onPress={onDownload}
+              className="w-10 h-10 rounded-full bg-muted items-center justify-center"
+            >
+              <Download size={18} className="text-foreground" />
+            </Pressable>
           )}
         </View>
       </View>

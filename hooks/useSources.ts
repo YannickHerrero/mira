@@ -12,6 +12,7 @@ interface UseSourcesOptions {
   episode?: number;
   isAnime?: boolean;
   enabled?: boolean;
+  showUncached?: boolean;
 }
 
 interface UseSourcesResult {
@@ -29,6 +30,7 @@ export function useSources({
   episode,
   isAnime = false,
   enabled = true,
+  showUncached = false,
 }: UseSourcesOptions): UseSourcesResult {
   const [streams, setStreams] = useState<Stream[]>([]);
   const [recommendedStreams, setRecommendedStreams] = useState<Stream[]>([]);
@@ -52,10 +54,10 @@ export function useSources({
       let results: Stream[];
       if (season !== undefined && episode !== undefined) {
         // TV episode
-        results = await client.getEpisodeStreams(imdbId, season, episode);
+        results = await client.getEpisodeStreams(imdbId, season, episode, showUncached);
       } else {
         // Movie
-        results = await client.getMovieStreams(imdbId);
+        results = await client.getMovieStreams(imdbId, showUncached);
       }
 
       const scoringOptions = {
@@ -105,7 +107,7 @@ export function useSources({
     } finally {
       setIsLoading(false);
     }
-  }, [imdbId, mediaType, season, episode, isAnime, realDebridApiKey, enabled, preferredAudioLanguages]);
+  }, [imdbId, mediaType, season, episode, isAnime, realDebridApiKey, enabled, preferredAudioLanguages, showUncached]);
 
   useEffect(() => {
     if (enabled && imdbId) {
