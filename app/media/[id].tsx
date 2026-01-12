@@ -778,7 +778,11 @@ export default function MediaDetailScreen() {
                         <Pressable
                           key={entry.id}
                           onPress={() => handleSelectAniListEntry(entry)}
-                          className="flex-row items-center gap-3 rounded-xl bg-surface0/30 p-3"
+                          className={`flex-row items-center gap-3 rounded-xl p-3 ${
+                            currentTracking?.anilistId === entry.id
+                              ? "border border-lavender bg-surface0/40"
+                              : "bg-surface0/30"
+                          }`}
                         >
                           {entry.coverImage?.medium ? (
                             <Image
