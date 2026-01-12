@@ -343,7 +343,7 @@ export default function LibraryScreen() {
 
 interface TabButtonProps {
   label: string;
-  icon: React.ReactNode;
+  icon: React.ReactElement<{ className?: string }>;
   isActive: boolean;
   onPress: () => void;
   badge?: number;
@@ -355,6 +355,10 @@ function TabButton({ label, icon, isActive, onPress, badge }: TabButtonProps) {
     onPress();
   };
 
+  const iconElement = React.cloneElement(icon, {
+    className: cn(icon.props.className, isActive ? "text-crust" : "text-subtext0"),
+  });
+
   return (
     <Pressable
       onPress={handlePress}
@@ -363,9 +367,7 @@ function TabButton({ label, icon, isActive, onPress, badge }: TabButtonProps) {
         isActive ? "bg-lavender" : "bg-surface0"
       )}
     >
-      <View className={cn("mr-1.5", isActive ? "text-crust" : "text-subtext0")}>
-        {icon}
-      </View>
+      <View className="mr-1.5">{iconElement}</View>
       <Text
         className={cn(
           "text-sm font-medium",
@@ -376,7 +378,7 @@ function TabButton({ label, icon, isActive, onPress, badge }: TabButtonProps) {
       </Text>
       {badge !== undefined && (
         <View className="ml-1.5 bg-base/20 rounded-full px-1.5 py-0.5">
-          <Text className="text-xs text-crust">{badge}</Text>
+          <Text className={cn("text-xs", isActive ? "text-crust" : "text-subtext0")}>{badge}</Text>
         </View>
       )}
     </Pressable>
