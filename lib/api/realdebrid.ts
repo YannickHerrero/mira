@@ -16,6 +16,10 @@
 
 const RD_API_URL = "https://api.real-debrid.com/rest/1.0";
 const RD_PROXY_URL = "/api/rd";
+const DEFAULT_CACHE_TIMEOUT_MS = 2 * 60 * 1000;
+const DEFAULT_CACHE_POLL_INTERVAL_MS = 5000;
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 /**
  * Determine if we should use the proxy for Real-Debrid API calls.
@@ -78,6 +82,7 @@ interface RDTorrentInfoFile {
 interface RDTorrentInfo {
   id: string;
   filename?: string;
+  status?: string;
   links?: string[];
   files?: RDTorrentInfoFile[];
 }
@@ -195,6 +200,34 @@ export class RealDebridClient {
   }
 
   /**
+   * Resolve an info hash to a streaming URL, caching if needed
+   */
+  async resolveInfoHashToStreamUrl(
+    infoHash: string,
+    title: string,
+    options?: {
+      timeoutMs?: number;
+      pollIntervalMs?: number;
+    }
+  ): Promise<string> {
+    const magnet = `magnet:?xt=urn:btih:${infoHash}&dn=${encodeURIComponent(title)}`;
+    const { id } = await this.addMagnet(magnet);
+    await this.selectFiles(id, "all");
+
+    const timeoutMs = options?.timeoutMs ?? DEFAULT_CACHE_TIMEOUT_MS;
+    const pollIntervalMs = options?.pollIntervalMs ?? DEFAULT_CACHE_POLL_INTERVAL_MS;
+    const readyInfo = await this.waitForTorrentReady(id, timeoutMs, pollIntervalMs);
+    const link = this.pickLargestFileLink(readyInfo);
+
+    if (!link) {
+      throw new Error("No downloadable files available");
+    }
+
+    const unrestricted = await this.unrestrictLink(link);
+    return unrestricted.download ?? unrestricted.link ?? link;
+  }
+
+  /**
    * Add a magnet to Real-Debrid
    */
   async addMagnet(magnet: string): Promise<RDAddMagnetResponse> {
@@ -228,6 +261,49 @@ export class RealDebridClient {
    */
   async getTorrentInfo(torrentId: string): Promise<RDTorrentInfo> {
     return this.fetch<RDTorrentInfo>(`/torrents/info/${torrentId}`);
+  }
+
+  private async waitForTorrentReady(
+    torrentId: string,
+    timeoutMs: number,
+    pollIntervalMs: number
+  ): Promise<RDTorrentInfo> {
+    const start = Date.now();
+
+    while (Date.now() - start < timeoutMs) {
+      const info = await this.getTorrentInfo(torrentId);
+      if (info.status === "downloaded" && info.links && info.links.length > 0) {
+        return info;
+      }
+
+      if (info.status === "error" || info.status === "magnet_error" || info.status === "virus") {
+        throw new Error(`Real-Debrid cache failed (${info.status})`);
+      }
+
+      await sleep(pollIntervalMs);
+    }
+
+    throw new Error("Real-Debrid cache timeout");
+  }
+
+  private pickLargestFileLink(info: RDTorrentInfo): string | undefined {
+    const files = info.files ?? [];
+    const selectedFiles = files.filter((file) => file.selected === 1);
+    const targetFiles = selectedFiles.length > 0 ? selectedFiles : files;
+
+    if (targetFiles.length === 0) {
+      return info.links?.[0];
+    }
+
+    const largestIndex = targetFiles.reduce(
+      (maxIndex, file, index) =>
+        file.bytes > (targetFiles[maxIndex]?.bytes ?? 0) ? index : maxIndex,
+      0
+    );
+
+    const targetFile = targetFiles[largestIndex];
+    const fileIndex = files.findIndex((file) => file.id === targetFile.id);
+    return info.links?.[fileIndex] ?? info.links?.[0];
   }
 
   /**

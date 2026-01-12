@@ -19,8 +19,9 @@ export function DownloadedItemCard({
   onLongPress,
 }: DownloadedItemCardProps) {
   const posterUrl = getPosterUrl(download.posterPath, "small");
+  const isCaching = download.status === "caching";
   const isDownloading =
-    download.status === "downloading" || download.status === "pending";
+    download.status === "downloading" || download.status === "pending" || isCaching;
   const isFailed = download.status === "failed";
 
   return (
@@ -84,9 +85,11 @@ export function DownloadedItemCard({
             <>
               <Download size={14} className="text-subtext0 mr-1" />
               <Text className="text-xs text-subtext0">
-                {download.status === "pending"
-                  ? "Waiting..."
-                  : `${Math.round(download.progress)}%`}
+                {download.status === "caching"
+                  ? "Caching..."
+                  : download.status === "pending"
+                    ? "Waiting..."
+                    : `${Math.round(download.progress)}%`}
               </Text>
             </>
           ) : (

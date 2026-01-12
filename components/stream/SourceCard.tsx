@@ -15,7 +15,7 @@ interface SourceCardProps {
   onLongPress?: () => void;
   onDownload?: () => void;
   showWebDownload?: boolean;
-  downloadStatus?: "downloading" | "completed" | "pending" | null;
+  downloadStatus?: "downloading" | "completed" | "pending" | "caching" | null;
   downloadProgress?: number;
   isDownloadedSource?: boolean;
   isRecommended?: boolean;
@@ -40,7 +40,7 @@ export function SourceCard({
   const hasRdPlus = rawStreamName?.includes("[RD+]") || stream.isCached;
   const showDownloadIndicator =
     Platform.OS !== "web" &&
-    (downloadStatus === "downloading" || downloadStatus === "pending");
+    (downloadStatus === "downloading" || downloadStatus === "pending" || downloadStatus === "caching");
   const sortedLanguages = sortLanguagesByPopularity(stream.languages, preferredLanguages ?? []);
   const displayLanguages = sortedLanguages.slice(0, LANGUAGE_DISPLAY_LIMIT);
   const remainingLanguagesCount = sortedLanguages.length - displayLanguages.length;

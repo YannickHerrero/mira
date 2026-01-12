@@ -4,6 +4,7 @@ import { Platform } from "react-native";
 
 export type DownloadStatus =
   | "pending"
+  | "caching"
   | "downloading"
   | "completed"
   | "failed"

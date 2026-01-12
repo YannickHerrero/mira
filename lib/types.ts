@@ -45,6 +45,7 @@ export interface Stream {
   sizeBytes: number;
   seeders?: number;
   url?: string; // Direct playback URL (Real-Debrid)
+  infoHash?: string;
   videoCodec?: string; // "HEVC", "AVC", "AV1", etc.
   audio?: string; // "DTS-HD MA 7.1", "Atmos", etc.
   hdr?: string; // "HDR", "DV", "HDR10+", etc.

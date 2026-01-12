@@ -61,6 +61,7 @@ const SCHEMA_STATEMENTS = [
     status TEXT DEFAULT 'pending' NOT NULL,
     progress REAL DEFAULT 0,
     stream_url TEXT NOT NULL,
+    info_hash TEXT,
     added_at TEXT DEFAULT (CURRENT_TIMESTAMP),
     completed_at TEXT
   )`,

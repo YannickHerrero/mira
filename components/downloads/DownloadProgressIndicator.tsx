@@ -19,7 +19,7 @@ export function DownloadProgressIndicator() {
 
   const activeDownload = useDownloadsStore((s) => s.getActiveDownload());
   const pendingCount = useDownloadsStore(
-    (s) => s.downloads.filter((d) => d.status === "pending").length
+    (s) => s.downloads.filter((d) => d.status === "pending" || d.status === "caching").length
   );
   const cancelDownload = useDownloadsStore((s) => s.cancelDownload);
 
@@ -61,7 +61,8 @@ export function DownloadProgressIndicator() {
     return null;
   }
 
-  const progress = activeDownload.progress ?? 0;
+  const isCaching = activeDownload.status === "caching";
+  const progress = isCaching ? 0 : activeDownload.progress ?? 0;
   const queueCount = pendingCount;
 
   return (
@@ -119,7 +120,7 @@ export function DownloadProgressIndicator() {
                     {activeDownload.title}
                   </Text>
                   <Text className="text-xs text-subtext0">
-                    {Math.round(progress)}% complete
+                    {isCaching ? "Caching on Real-Debrid" : `${Math.round(progress)}% complete`}
                     {queueCount > 0 && ` • ${queueCount} in queue`}
                   </Text>
                 </View>
@@ -133,14 +134,16 @@ export function DownloadProgressIndicator() {
               </View>
 
               {/* Progress bar */}
-              <View className="h-2 bg-surface0 rounded-full overflow-hidden">
-                <View
-                  className="h-full bg-lavender rounded-full"
-                  style={{ width: `${progress}%` }}
-                />
-              </View>
+              {!isCaching && (
+                <View className="h-2 bg-surface0 rounded-full overflow-hidden">
+                  <View
+                    className="h-full bg-lavender rounded-full"
+                    style={{ width: `${progress}%` }}
+                  />
+                </View>
+              )}
 
-              {activeDownload.fileSize && (
+              {!isCaching && activeDownload.fileSize && (
                 <Text className="text-xs text-subtext0 mt-1">
                   {formatBytes((activeDownload.fileSize * progress) / 100)} /{" "}
                   {formatBytes(activeDownload.fileSize)}

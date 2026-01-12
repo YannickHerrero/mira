@@ -18,10 +18,11 @@ import { cn } from "@/lib/utils";
 interface SourceActionSheetProps {
   sheetRef: React.RefObject<BottomSheetModal | null>;
   stream: Stream | null;
-  onPlay: () => void;
+  onPlay: () => Promise<boolean> | boolean;
   onDownload: () => void;
   isDownloading?: boolean;
   isDownloaded?: boolean;
+  playbackStatus?: "idle" | "caching" | "ready" | "failed";
 }
 
 export function SourceActionSheet({
@@ -31,10 +32,20 @@ export function SourceActionSheet({
   onDownload,
   isDownloading,
   isDownloaded,
+  playbackStatus = "idle",
 }: SourceActionSheetProps) {
   const { dismiss } = useBottomSheetModal();
 
-  const canDownload = Platform.OS !== "web" && !isDownloading && !isDownloaded;
+  const isCaching = playbackStatus === "caching";
+  const isReadyToPlay = playbackStatus === "ready";
+  const isFailed = playbackStatus === "failed";
+  const canPlay = !isCaching;
+  const canDownload =
+    Platform.OS !== "web" &&
+    !isDownloading &&
+    !isDownloaded &&
+    !!stream &&
+    (!!stream.url || !!stream.infoHash);
 
   return (
     <BottomSheetContent ref={sheetRef}>
@@ -106,12 +117,36 @@ export function SourceActionSheet({
               <BottomSheetActionGroup>
                 <BottomSheetActionRow
                   layout="grouped"
-                  title="Play Now"
-                  description="Stream directly"
+                  title={
+                    isCaching
+                      ? "Caching..."
+                      : isReadyToPlay
+                        ? "Play Now"
+                        : isFailed
+                          ? "Retry Cache"
+                          : stream?.url
+                            ? "Play Now"
+                            : "Cache & Play"
+                  }
+                  description={
+                    isCaching
+                      ? "Preparing stream on Real-Debrid"
+                      : isReadyToPlay
+                        ? "Ready to stream"
+                        : isFailed
+                          ? "Tap to try again"
+                          : stream?.url
+                            ? "Stream directly"
+                            : "Prepare stream on Real-Debrid"
+                  }
                   icon={<Play size={20} className="text-text" />}
-                  onPress={() => {
-                    onPlay();
-                    dismiss();
+                  disabled={!canPlay}
+                  onPress={async () => {
+                    if (!canPlay) return;
+                    const shouldDismiss = await onPlay();
+                    if (shouldDismiss) {
+                      dismiss();
+                    }
                   }}
                 />
 
@@ -129,10 +164,13 @@ export function SourceActionSheet({
                       isDownloaded
                         ? "Available offline"
                         : isDownloading
-                          ? "Check progress in library"
-                          : stream.sizeBytes
-                            ? `${formatBytes(stream.sizeBytes)} will be saved`
-                            : "Save for offline viewing"
+                        ? "Check progress in library"
+                        : stream.sizeBytes
+                          ? `${formatBytes(stream.sizeBytes)} will be saved`
+                          : stream.url
+                            ? "Save for offline viewing"
+                            : "Caches on Real-Debrid first"
+
                     }
                     icon={<Download size={20} className="text-text" />}
                     className={!canDownload ? "opacity-60" : undefined}

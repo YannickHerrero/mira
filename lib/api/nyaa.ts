@@ -63,11 +63,6 @@ function parseQuality(title: string): string | undefined {
   return qualityMatch?.[1]?.toUpperCase().replace("4K", "2160p");
 }
 
-function buildMagnet(infoHash: string, title: string): string {
-  const encodedTitle = encodeURIComponent(title);
-  return `magnet:?xt=urn:btih:${infoHash}&dn=${encodedTitle}`;
-}
-
 function parseFeed(xml: string): NyaaItem[] {
   const data = parser.parse(xml);
   const items = ensureArray(data?.rss?.channel?.item);
@@ -134,7 +129,7 @@ export class NyaaClient {
         }
 
         try {
-          const url = await this.resolveCachedUrl(item.infoHash, item.title);
+          const url = await this.rdClient.resolveInfoHashToStreamUrl(item.infoHash, item.title);
           return this.buildStream(item, true, url);
         } catch {
           return this.buildStream(item, false);
@@ -172,6 +167,7 @@ export class NyaaClient {
       sizeBytes: item.sizeBytes,
       seeders: item.seeders,
       url,
+      infoHash: item.infoHash,
       videoCodec: undefined,
       audio: undefined,
       hdr: undefined,
@@ -181,25 +177,6 @@ export class NyaaClient {
     };
   }
 
-  private async resolveCachedUrl(infoHash: string, title: string): Promise<string | undefined> {
-    const magnet = buildMagnet(infoHash, title);
-    const { id } = await this.rdClient.addMagnet(magnet);
-    await this.rdClient.selectFiles(id, "all");
-    const torrentInfo = await this.rdClient.getTorrentInfo(id);
-
-    const selectedFiles = (torrentInfo.files ?? []).filter((file) => file.selected === 1);
-    const largestFileIndex = selectedFiles.reduce(
-      (maxIndex, file, index) =>
-        file.bytes > (selectedFiles[maxIndex]?.bytes ?? 0) ? index : maxIndex,
-      0
-    );
-
-    const link = torrentInfo.links?.[largestFileIndex] ?? torrentInfo.links?.[0];
-    if (!link) return undefined;
-
-    const unrestricted = await this.rdClient.unrestrictLink(link);
-    return unrestricted.download ?? unrestricted.link;
-  }
 }
 
 export function createNyaaClient(rdApiKey: string): NyaaClient {

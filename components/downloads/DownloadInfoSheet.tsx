@@ -35,8 +35,9 @@ export function DownloadInfoSheet({
   const posterUrl = getPosterUrl(download.posterPath, "small");
   const isCompleted = download.status === "completed";
   const isFailed = download.status === "failed";
+  const isCaching = download.status === "caching";
   const isDownloading =
-    download.status === "downloading" || download.status === "pending";
+    download.status === "downloading" || download.status === "pending" || isCaching;
 
   const formatDate = (dateString?: string) => {
     if (!dateString) return "Unknown";
@@ -94,9 +95,13 @@ export function DownloadInfoSheet({
                 ? "Ready to watch"
                 : isFailed
                   ? "Download failed"
-                  : isDownloading
-                    ? `Downloading (${Math.round(download.progress)}%)`
-                    : download.status
+                  : isCaching
+                    ? "Caching on Real-Debrid"
+                    : isDownloading
+                      ? download.status === "pending"
+                        ? "Waiting..."
+                        : `Downloading (${Math.round(download.progress)}%)`
+                      : download.status
             }
             valueClassName={isFailed ? "text-red" : undefined}
           />

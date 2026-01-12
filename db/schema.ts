@@ -135,12 +135,13 @@ export const downloadsTable = sqliteTable("downloads", {
 
   // Download state
   status: text("status", {
-    enum: ["pending", "downloading", "completed", "failed", "paused"],
+    enum: ["pending", "caching", "downloading", "completed", "failed", "paused"],
   })
     .notNull()
     .default("pending"),
   progress: real("progress").default(0), // 0-100
   streamUrl: text("stream_url").notNull(), // Original URL for retry
+  infoHash: text("info_hash"),
 
   // Timestamps
   addedAt: text("added_at").default(sql`(CURRENT_TIMESTAMP)`),

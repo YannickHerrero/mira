@@ -39,6 +39,7 @@ export function useDownloads() {
         status: row.status as DownloadItem["status"],
         progress: row.progress ?? 0,
         streamUrl: row.streamUrl,
+        infoHash: row.infoHash ?? undefined,
         addedAt: row.addedAt ?? new Date().toISOString(),
         completedAt: row.completedAt ?? undefined,
       }));
@@ -60,6 +61,7 @@ export function useDownloads() {
         status: download.status,
         progress: download.progress,
         streamUrl: download.streamUrl,
+        infoHash: download.infoHash,
         addedAt: download.addedAt,
         completedAt: download.completedAt,
       });
@@ -134,7 +136,9 @@ export function useDownloadStatus(
     download,
     isDownloaded: download?.status === "completed",
     isDownloading:
-      download?.status === "downloading" || download?.status === "pending",
+      download?.status === "downloading" ||
+      download?.status === "pending" ||
+      download?.status === "caching",
     isFailed: download?.status === "failed",
     progress: download?.progress ?? 0,
     canDownload: isDownloadSupported && !download,

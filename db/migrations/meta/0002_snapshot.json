@@ -107,6 +107,13 @@
           "notNull": true,
           "autoincrement": false
         },
+        "info_hash": {
+          "name": "info_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
         "added_at": {
           "name": "added_at",
           "type": "text",

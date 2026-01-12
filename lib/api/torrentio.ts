@@ -241,6 +241,7 @@ export class TorrentioClient {
       sizeBytes,
       seeders,
       url: stream.url,
+      infoHash: stream.infoHash,
       videoCodec,
       audio,
       hdr,

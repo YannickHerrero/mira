@@ -8,6 +8,8 @@ import { SourceCard } from "./SourceCard";
 import { SourceActionSheet } from "./SourceActionSheet";
 import { useDownloads, useDownloadStatus } from "@/hooks/useDownloads";
 import { useMediaPlayer } from "@/hooks/useSettings";
+import { useApiKeyStore } from "@/stores/api-keys";
+import { createRealDebridClient } from "@/lib/api/realdebrid";
 import { mediumImpact } from "@/lib/haptics";
 import { Check, Play, Eye } from "@/lib/icons";
 import type { Stream, MediaType } from "@/lib/types";
@@ -28,6 +30,18 @@ function getUrlExtension(url?: string): string | null {
   const extension = cleanUrl.split(".").pop();
   if (!extension || extension.length > 5) return null;
   return extension.toLowerCase();
+}
+
+function getStreamKey(stream: Stream): string {
+  return stream.url ?? stream.infoHash ?? stream.title;
+}
+
+type PlaybackCacheStatus = "idle" | "caching" | "ready" | "failed";
+
+interface PlaybackCacheState {
+  status: PlaybackCacheStatus;
+  streamKey?: string;
+  url?: string;
 }
 
 function buildWebDownloadFileName({
@@ -124,9 +138,13 @@ export function SourceList({
   ListHeaderComponent: CustomHeaderComponent,
 }: SourceListProps) {
   const [selectedStream, setSelectedStream] = React.useState<Stream | null>(null);
+  const [playbackState, setPlaybackState] = React.useState<PlaybackCacheState>({
+    status: "idle",
+  });
   const [showAllSources, setShowAllSources] = React.useState(false);
   const actionSheetRef = React.useRef<BottomSheetModal>(null);
   
+  const realDebridApiKey = useApiKeyStore((s) => s.realDebridApiKey);
   const { queueDownload } = useDownloads();
   const { download, isDownloading, isDownloaded } = useDownloadStatus(
     tmdbId ?? 0,
@@ -149,6 +167,41 @@ export function SourceList({
   );
   const filtersActive = hasActiveFilters(filters);
 
+  const ensurePlaybackState = React.useCallback((stream: Stream) => {
+    const streamKey = getStreamKey(stream);
+    setPlaybackState((prev) => {
+      if (prev.streamKey === streamKey) {
+        return prev;
+      }
+      return {
+        status: stream.url ? "ready" : "idle",
+        streamKey,
+        url: stream.url,
+      };
+    });
+  }, []);
+
+  const startPlaybackCache = React.useCallback(
+    async (stream: Stream) => {
+      if (!stream.infoHash || !realDebridApiKey) {
+        setPlaybackState({ status: "failed", streamKey: getStreamKey(stream) });
+        return;
+      }
+
+      const streamKey = getStreamKey(stream);
+      setPlaybackState({ status: "caching", streamKey });
+
+      try {
+        const client = createRealDebridClient(realDebridApiKey);
+        const url = await client.resolveInfoHashToStreamUrl(stream.infoHash, stream.title);
+        setPlaybackState({ status: "ready", streamKey, url });
+      } catch {
+        setPlaybackState({ status: "failed", streamKey });
+      }
+    },
+    [realDebridApiKey]
+  );
+
   // Apply filters to streams (unless "Show All" is active)
   const filteredStreams = React.useMemo(() => {
     if (showAllSources || !filtersActive) {
@@ -163,9 +216,9 @@ export function SourceList({
     
     // 1. Move recommended to top
     if (recommendedStreams.length > 0) {
-      const recommendedUrls = new Set(recommendedStreams.map(s => s.url));
-      const recommended = result.filter(s => recommendedUrls.has(s.url));
-      const others = result.filter(s => !recommendedUrls.has(s.url));
+      const recommendedKeys = new Set(recommendedStreams.map((stream) => getStreamKey(stream)));
+      const recommended = result.filter((stream) => recommendedKeys.has(getStreamKey(stream)));
+      const others = result.filter((stream) => !recommendedKeys.has(getStreamKey(stream)));
       result = [...recommended, ...others];
     }
 
@@ -196,26 +249,75 @@ export function SourceList({
     });
   }, [download, playMedia]);
 
+  const openActionSheet = React.useCallback(
+    (stream: Stream) => {
+      if (Platform.OS === "web") return;
+      ensurePlaybackState(stream);
+      setSelectedStream(stream);
+      actionSheetRef.current?.present();
+    },
+    [ensurePlaybackState]
+  );
+
   const handleLongPress = React.useCallback(
     (stream: Stream) => {
       // Only show action sheet on native platforms
       if (Platform.OS === "web") return;
-      
+
       mediumImpact();
-      setSelectedStream(stream);
-      actionSheetRef.current?.present();
+      openActionSheet(stream);
     },
-    []
+    [openActionSheet]
   );
 
-  const handlePlay = React.useCallback(() => {
-    if (selectedStream) {
-      onSelectStream(selectedStream);
+  const handleCardPress = React.useCallback(
+    (stream: Stream) => {
+      if (stream.url) {
+        onSelectStream(stream);
+        return;
+      }
+
+      if (Platform.OS === "web") {
+        return;
+      }
+
+      openActionSheet(stream);
+      const streamKey = getStreamKey(stream);
+      if (
+        playbackState.streamKey !== streamKey ||
+        playbackState.status === "idle" ||
+        playbackState.status === "failed"
+      ) {
+        startPlaybackCache(stream);
+      }
+    },
+    [onSelectStream, openActionSheet, playbackState, startPlaybackCache]
+  );
+
+  const handlePlay = React.useCallback(async () => {
+    if (!selectedStream) return false;
+
+    if (selectedStream.url) {
+      await onSelectStream(selectedStream);
+      return true;
     }
-  }, [selectedStream, onSelectStream]);
+
+    const streamKey = getStreamKey(selectedStream);
+    if (playbackState.status === "ready" && playbackState.streamKey === streamKey && playbackState.url) {
+      await onSelectStream({ ...selectedStream, url: playbackState.url });
+      return true;
+    }
+
+    if (playbackState.status !== "caching") {
+      await startPlaybackCache(selectedStream);
+    }
+
+    return false;
+  }, [selectedStream, onSelectStream, playbackState, startPlaybackCache]);
 
   const handleDownload = React.useCallback(async () => {
     if (!selectedStream || !tmdbId || !mediaType || !title) return;
+    if (!selectedStream.url && !selectedStream.infoHash) return;
 
     try {
       await queueDownload({
@@ -241,6 +343,23 @@ export function SourceList({
     posterPath,
     queueDownload,
   ]);
+
+  const selectedPlaybackState = React.useMemo<PlaybackCacheState>(() => {
+    if (!selectedStream) {
+      return { status: "idle" };
+    }
+
+    const streamKey = getStreamKey(selectedStream);
+    if (playbackState.streamKey === streamKey) {
+      return playbackState;
+    }
+
+    return {
+      status: selectedStream.url ? "ready" : "idle",
+      streamKey,
+      url: selectedStream.url,
+    };
+  }, [selectedStream, playbackState]);
 
   const handleWebDownload = React.useCallback(
     (stream: Stream) => {
@@ -272,18 +391,20 @@ export function SourceList({
   const renderItem = React.useCallback(
     ({ item }: { item: Stream }) => {
       // Check if this specific stream is the downloaded one
-      const isThisStreamDownloaded = 
-        download?.status === "completed" && 
-        download.streamUrl === item.url;
-      
+      const streamKey = getStreamKey(item);
+      const isThisStreamDownloaded =
+        download?.status === "completed" && download.streamUrl === item.url;
+
       const isRecommended = recommendedStreams.some(
-        (s) => s.url === item.url && s.title === item.title
+        (stream) => getStreamKey(stream) === streamKey
       );
-      
-      // For download status indicator (downloading/pending)
+
+      // For download status indicator (downloading/pending/caching)
       const streamDownloadStatus = isThisStreamDownloaded
         ? "completed"
-        : download?.status === "downloading" || download?.status === "pending"
+        : download?.status === "downloading" ||
+            download?.status === "pending" ||
+            download?.status === "caching"
           ? download.status
           : download?.status === "completed"
             ? "completed" // Another source is downloaded, show muted state
@@ -292,7 +413,7 @@ export function SourceList({
        return (
           <SourceCard
             stream={item}
-            onPress={() => onSelectStream(item)}
+            onPress={() => handleCardPress(item)}
             onLongPress={() => handleLongPress(item)}
             onDownload={() => handleWebDownload(item)}
             showWebDownload={Platform.OS === "web" && !!item.url}
@@ -307,7 +428,7 @@ export function SourceList({
        );
     },
     [
-      onSelectStream,
+      handleCardPress,
       handleLongPress,
       handleWebDownload,
       download,
@@ -503,6 +624,7 @@ export function SourceList({
             onDownload={handleDownload}
             isDownloading={isDownloading}
             isDownloaded={isDownloaded}
+            playbackStatus={selectedPlaybackState.status}
           />
         </BottomSheet>
       )}

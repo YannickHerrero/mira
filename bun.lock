@@ -56,6 +56,7 @@
         "expo-status-bar": "~3.0.8",
         "expo-system-ui": "~6.0.7",
         "expo-web-browser": "~15.0.8",
+        "fast-xml-parser": "^5.3.3",
         "gh-pages": "^6.3.0",
         "i18next": "^25.7.4",
         "lucide-react-native": "^0.514.0",
@@ -1129,6 +1130,8 @@
 
     "fast-json-stable-stringify": ["fast-json-stable-stringify@2.1.0", "", {}, "sha512-lhd/wF+Lk98HZoTCtlVraHtfh5XYijIjalXck7saUtuanSDyLMxnHhSXEDJqHxD7msR8D0uCmqlkwjCV8xvwHw=="],
 
+    "fast-xml-parser": ["fast-xml-parser@5.3.3", "", { "dependencies": { "strnum": "^2.1.0" }, "bin": { "fxparser": "src/cli/cli.js" } }, "sha512-2O3dkPAAC6JavuMm8+4+pgTk+5hoAs+CjZ+sWcQLkX9+/tHRuTkQh/Oaifr8qDmZ8iEHb771Ea6G8CdwkrgvYA=="],
+
     "fastq": ["fastq@1.19.1", "", { "dependencies": { "reusify": "^1.0.4" } }, "sha512-GwLTyxkCXjXbxqIhTsMI2Nui8huMPtnxg7krajPJAjnEG/iiOS7i+zCtWGZR9G0NBKbXKh6X9m9UIsYX/N6vvQ=="],
 
     "fb-watchman": ["fb-watchman@2.0.2", "", { "dependencies": { "bser": "2.1.1" } }, "sha512-p5161BqbuCaSnB8jIbzQHOlpgsPmK5rJVDfDKO91Axs5NC1uu3HRQm6wt9cd9/+GtQQIO53JdGXXoyDpTAsgYA=="],
@@ -1786,6 +1789,8 @@
     "strip-json-comments": ["strip-json-comments@2.0.1", "", {}, "sha512-4gB8na07fecVVkOI6Rs4e7T6NOTki5EmL7TUduTs6bu3EdnSycntVJ4re8kgZA+wx9IueI2Y11bfbgwtzuE0KQ=="],
 
     "strip-outer": ["strip-outer@1.0.1", "", { "dependencies": { "escape-string-regexp": "^1.0.2" } }, "sha512-k55yxKHwaXnpYGsOzg4Vl8+tDrWylxDEpknGjhTiZB8dFRU5rTo9CAzeycivxV3s+zlTKwrs6WxMxR95n26kwg=="],
+
+    "strnum": ["strnum@2.1.2", "", {}, "sha512-l63NF9y/cLROq/yqKXSLtcMeeyOfnSQlfMSlzFt/K73oIaD8DGaQWd7Z34X9GPiKqP5rbSh84Hl4bOlLcjiSrQ=="],
 
     "structured-headers": ["structured-headers@0.4.1", "", {}, "sha512-0MP/Cxx5SzeeZ10p/bZI0S6MpgD+yxAhi1BOQ34jgnMXsCq3j1t6tQnZu+KdlL7dvJTLT3g9xN8tl10TqgFMcg=="],
 

@@ -9,7 +9,9 @@ import {
   type DownloadProgress,
   type DownloadStatus,
 } from "@/lib/download-manager";
+import { createRealDebridClient } from "@/lib/api/realdebrid";
 import type { MediaType, Stream } from "@/lib/types";
+import { useApiKeyStore } from "@/stores/api-keys";
 
 export interface DownloadItem {
   id: string;
@@ -26,6 +28,7 @@ export interface DownloadItem {
   status: DownloadStatus;
   progress: number;
   streamUrl: string;
+  infoHash?: string;
   addedAt: string;
   completedAt?: string;
 }
@@ -101,7 +104,7 @@ export const useDownloadsStore = create<DownloadsState>((set, get) => ({
 
       // Find any downloads that were interrupted (downloading status)
       const interruptedDownloads = downloads.filter(
-        (d) => d.status === "downloading" || d.status === "pending"
+        (d) => d.status === "downloading" || d.status === "pending" || d.status === "caching"
       );
 
       // Reset interrupted downloads to pending
@@ -114,7 +117,7 @@ export const useDownloadsStore = create<DownloadsState>((set, get) => ({
 
       // Update local state with corrected statuses
       const correctedDownloads = downloads.map((d) =>
-        d.status === "downloading"
+        d.status === "downloading" || d.status === "caching"
           ? { ...d, status: "pending" as DownloadStatus, progress: 0 }
           : d
       );
@@ -144,8 +147,8 @@ export const useDownloadsStore = create<DownloadsState>((set, get) => ({
     const { tmdbId, mediaType, seasonNumber, episodeNumber, title, posterPath, stream } =
       params;
 
-    if (!stream.url) {
-      throw new Error("Stream URL is required for download");
+    if (!stream.url && !stream.infoHash) {
+      throw new Error("Stream URL or info hash is required for download");
     }
 
     // Check if already downloaded or downloading
@@ -160,7 +163,8 @@ export const useDownloadsStore = create<DownloadsState>((set, get) => ({
       }
       if (
         existing.status === "downloading" ||
-        existing.status === "pending"
+        existing.status === "pending" ||
+        existing.status === "caching"
       ) {
         throw new Error("This content is already in the download queue");
       }
@@ -184,7 +188,8 @@ export const useDownloadsStore = create<DownloadsState>((set, get) => ({
       quality: stream.quality,
       status: "pending",
       progress: 0,
-      streamUrl: stream.url,
+      streamUrl: stream.url ?? "",
+      infoHash: stream.infoHash,
       addedAt: now,
     };
 
@@ -226,22 +231,73 @@ export const useDownloadsStore = create<DownloadsState>((set, get) => ({
       return;
     }
 
-    // Start downloading
+    const needsCaching = download.streamUrl.length === 0;
+    const initialStatus: DownloadStatus = needsCaching ? "caching" : "downloading";
+
     set((s) => ({
       activeDownloadId: nextId,
       downloads: s.downloads.map((d) =>
-        d.id === nextId ? { ...d, status: "downloading" as DownloadStatus } : d
+        d.id === nextId ? { ...d, status: initialStatus } : d
       ),
     }));
 
     if (dbFunctions) {
-      await dbFunctions.updateInDb(nextId, { status: "downloading" });
+      await dbFunctions.updateInDb(nextId, { status: initialStatus });
+    }
+
+    let streamUrl = download.streamUrl;
+
+    if (needsCaching) {
+      try {
+        const apiKey = useApiKeyStore.getState().realDebridApiKey;
+        if (!apiKey || !download.infoHash) {
+          throw new Error("Real-Debrid cache unavailable");
+        }
+        const client = createRealDebridClient(apiKey);
+        streamUrl = await client.resolveInfoHashToStreamUrl(download.infoHash, download.title);
+
+        const cacheUpdates = {
+          streamUrl,
+          status: "downloading" as DownloadStatus,
+        };
+
+        set((s) => ({
+          downloads: s.downloads.map((d) =>
+            d.id === nextId ? { ...d, ...cacheUpdates } : d
+          ),
+        }));
+
+        if (dbFunctions) {
+          await dbFunctions.updateInDb(nextId, cacheUpdates);
+        }
+      } catch (error) {
+        console.error("Download cache failed:", error);
+
+        const updates = {
+          status: "failed" as DownloadStatus,
+        };
+
+        set((s) => ({
+          activeDownloadId: null,
+          downloadQueue: s.downloadQueue.slice(1),
+          downloads: s.downloads.map((d) =>
+            d.id === nextId ? { ...d, ...updates } : d
+          ),
+        }));
+
+        if (dbFunctions) {
+          await dbFunctions.updateInDb(nextId, updates);
+        }
+
+        get().processQueue();
+        return;
+      }
     }
 
     try {
       const result = await startDownload(
         download.id,
-        download.streamUrl,
+        streamUrl,
         download.fileName,
         (progress: DownloadProgress) => {
           get().updateProgress(download.id, progress.progress);
@@ -399,7 +455,7 @@ export const useDownloadsStore = create<DownloadsState>((set, get) => ({
 
   getPendingDownloads: () => {
     return get().downloads.filter(
-      (d) => d.status === "pending" || d.status === "downloading"
+      (d) => d.status === "pending" || d.status === "caching" || d.status === "downloading"
     );
   },
 }));
