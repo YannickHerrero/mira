@@ -82,11 +82,6 @@ export default function LibraryScreen() {
   const [selectedDownload, setSelectedDownload] = React.useState<DownloadItem | null>(null);
   const downloadInfoSheetRef = React.useRef<BottomSheetModal>(null);
 
-  React.useEffect(() => {
-    if (isTab(normalizedTab) && normalizedTab !== activeTab) {
-      setActiveTab(normalizedTab);
-    }
-  }, [activeTab, normalizedTab]);
 
   // Refetch data when screen gains focus
   useFocusEffect(
@@ -98,6 +93,12 @@ export default function LibraryScreen() {
     }, [refetchContinue, refetchLists, refetchWatchlist, refetchFavorites])
   );
 
+  React.useEffect(() => {
+    if (isTab(normalizedTab)) {
+      setActiveTab(normalizedTab);
+    }
+  }, [normalizedTab]);
+
   const handleRefresh = React.useCallback(async () => {
     setRefreshing(true);
     await Promise.all([
@@ -108,6 +109,16 @@ export default function LibraryScreen() {
     ]);
     setRefreshing(false);
   }, [refetchContinue, refetchLists, refetchWatchlist, refetchFavorites]);
+
+  const handleTabChange = React.useCallback(
+    (nextTab: TabType) => {
+      if (normalizedTab) {
+        router.setParams({ tab: undefined });
+      }
+      setActiveTab(nextTab);
+    },
+    [normalizedTab, router]
+  );
 
   const handleListPress = (listId: string) => {
     lightImpact();
@@ -276,28 +287,28 @@ export default function LibraryScreen() {
           label={t("library.watchlist")}
           icon={<ListChecks size={16} />}
           isActive={activeTab === "watchlist"}
-          onPress={() => setActiveTab("watchlist")}
+          onPress={() => handleTabChange("watchlist")}
           badge={watchlistItems.length > 0 ? watchlistItems.length : undefined}
         />
         <TabButton
           label={t("library.continue")}
           icon={<Clock size={16} />}
           isActive={activeTab === "continue"}
-          onPress={() => setActiveTab("continue")}
+          onPress={() => handleTabChange("continue")}
           badge={continueItems.length > 0 ? continueItems.length : undefined}
         />
         <TabButton
           label={t("library.lists")}
           icon={<List size={16} />}
           isActive={activeTab === "lists"}
-          onPress={() => setActiveTab("lists")}
+          onPress={() => handleTabChange("lists")}
           badge={customLists.length > 0 ? customLists.length : undefined}
         />
         <TabButton
           label={t("library.favorites")}
           icon={<Heart size={16} />}
           isActive={activeTab === "favorites"}
-          onPress={() => setActiveTab("favorites")}
+          onPress={() => handleTabChange("favorites")}
           badge={favoriteItems.length > 0 ? favoriteItems.length : undefined}
         />
         {showDownloadsTab && (
@@ -305,7 +316,7 @@ export default function LibraryScreen() {
             label={t("library.downloads")}
             icon={<Download size={16} />}
             isActive={activeTab === "downloads"}
-            onPress={() => setActiveTab("downloads")}
+            onPress={() => handleTabChange("downloads")}
             badge={downloadItems.length > 0 ? downloadItems.length : undefined}
           />
         )}
