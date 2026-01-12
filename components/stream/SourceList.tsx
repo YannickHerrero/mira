@@ -1,5 +1,5 @@
 import * as React from "react";
-import { View, FlatList, Platform } from "react-native";
+import { Alert, View, FlatList, Platform } from "react-native";
 import type { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { Text } from "@/components/ui/text";
 import { Button } from "@/components/ui/button";
@@ -271,8 +271,17 @@ export function SourceList({
 
   const handleCardPress = React.useCallback(
     (stream: Stream) => {
-      if (stream.url) {
+      if (stream.url && stream.isCached) {
         onSelectStream(stream);
+        return;
+      }
+
+      if (!stream.isCached && stream.infoHash) {
+        startPlaybackCache(stream);
+        Alert.alert(
+          "Caching started",
+          "This source is being cached on Real-Debrid. Please come back later to watch it."
+        );
         return;
       }
 
@@ -281,22 +290,14 @@ export function SourceList({
       }
 
       openActionSheet(stream);
-      const streamKey = getStreamKey(stream);
-      if (
-        playbackState.streamKey !== streamKey ||
-        playbackState.status === "idle" ||
-        playbackState.status === "failed"
-      ) {
-        startPlaybackCache(stream);
-      }
     },
-    [onSelectStream, openActionSheet, playbackState, startPlaybackCache]
+    [onSelectStream, openActionSheet, startPlaybackCache]
   );
 
   const handlePlay = React.useCallback(async () => {
     if (!selectedStream) return false;
 
-    if (selectedStream.url) {
+    if (selectedStream.url && selectedStream.isCached) {
       await onSelectStream(selectedStream);
       return true;
     }
@@ -307,11 +308,16 @@ export function SourceList({
       return true;
     }
 
-    if (playbackState.status !== "caching") {
+    if (selectedStream.infoHash && playbackState.status !== "caching") {
       await startPlaybackCache(selectedStream);
     }
 
-    return false;
+    Alert.alert(
+      "Caching started",
+      "This source is being cached on Real-Debrid. Please come back later to watch it."
+    );
+
+    return true;
   }, [selectedStream, onSelectStream, playbackState, startPlaybackCache]);
 
   const handleDownload = React.useCallback(async () => {
