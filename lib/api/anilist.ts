@@ -31,6 +31,14 @@ type AniListMutationResponse = {
   };
 };
 
+type AniListProgressResponse = {
+  Media: {
+    mediaListEntry: {
+      progress: number | null;
+    } | null;
+  } | null;
+};
+
 const ANILIST_API_URL = "https://graphql.anilist.co";
 
 export class AniListClient {
@@ -106,6 +114,21 @@ export class AniListClient {
     );
 
     return data.Page.media ?? [];
+  }
+
+  async getProgress(mediaId: number) {
+    const query = `
+      query ($id: Int!) {
+        Media(id: $id, type: ANIME) {
+          mediaListEntry {
+            progress
+          }
+        }
+      }
+    `;
+
+    const data = await this.request<AniListProgressResponse>(query, { id: mediaId });
+    return data.Media?.mediaListEntry?.progress ?? 0;
   }
 
   async saveProgress({

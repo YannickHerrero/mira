@@ -90,6 +90,11 @@ export async function processAniListSyncQueue() {
 
     for (const item of queue) {
       try {
+        const currentProgress = await client.getProgress(item.anilistId);
+        if (currentProgress >= item.progress) {
+          continue;
+        }
+
         await client.saveProgress({
           mediaId: item.anilistId,
           progress: item.progress,
