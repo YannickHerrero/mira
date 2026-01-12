@@ -126,6 +126,17 @@ export default function SynchronizationSettings() {
     await clearAccessToken();
   };
 
+  const handleDisconnectConfirm = () => {
+    Alert.alert(
+      t("settings.disconnectAnilistTitle"),
+      t("settings.disconnectAnilistDesc"),
+      [
+        { text: t("settings.cancel"), style: "cancel" },
+        { text: t("settings.disconnect"), style: "destructive", onPress: handleDisconnect },
+      ]
+    );
+  };
+
   if (isLoading) {
     return (
       <View className="flex-1 bg-base items-center justify-center">
@@ -245,7 +256,7 @@ export default function SynchronizationSettings() {
 
             {accessToken ? (
               <Button
-                onPress={handleDisconnect}
+                onPress={handleDisconnectConfirm}
                 disabled={!enableAnilistSync}
               >
                 <Text>{t("settings.disconnect")}</Text>
