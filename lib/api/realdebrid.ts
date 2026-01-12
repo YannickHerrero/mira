@@ -271,7 +271,23 @@ export class RealDebridClient {
     const start = Date.now();
 
     while (Date.now() - start < timeoutMs) {
-      const info = await this.getTorrentInfo(torrentId);
+      let info: RDTorrentInfo | null = null;
+
+      try {
+        info = await this.getTorrentInfo(torrentId);
+      } catch (error) {
+        if (error instanceof Error && error.message.includes("(404)")) {
+          await sleep(pollIntervalMs);
+          continue;
+        }
+        throw error;
+      }
+
+      if (!info) {
+        await sleep(pollIntervalMs);
+        continue;
+      }
+
       if (info.status === "downloaded" && info.links && info.links.length > 0) {
         return info;
       }

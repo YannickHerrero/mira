@@ -1,2 +1,3 @@
 - 2026-01-12: Implemented Nyaa RSS sourcing with Real-Debrid cache checks for anime streams.
 - 2026-01-12: Added uncached stream caching for play/download flows.
+- 2026-01-12: Handle 404 polling when waiting for RD torrents.
