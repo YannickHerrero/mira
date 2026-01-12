@@ -50,7 +50,7 @@ export function SourceCard({
       onPress={onPress}
       onLongPress={onLongPress}
       delayLongPress={400}
-      className="bg-card rounded-lg p-4 mb-3 active:opacity-80 border border-border"
+      className="bg-surface0 rounded-lg p-4 mb-3 active:opacity-80 border border-surface1"
     >
       <View className="flex-row items-start justify-between">
         {/* Left side - main info */}
@@ -66,7 +66,7 @@ export function SourceCard({
                      ? "bg-purple-600"
                      : stream.quality === "1080p"
                        ? "bg-blue-600"
-                       : "bg-muted"
+                       : "bg-surface0"
                  )}
                >
                  <Text className="text-xs font-bold text-white">
@@ -83,7 +83,7 @@ export function SourceCard({
 
              {stream.videoCodec && (
                <Badge variant="outline" className="px-2 py-0.5">
-                 <Text className="text-xs text-muted-foreground">
+                 <Text className="text-xs text-subtext0">
                    {stream.videoCodec}
                  </Text>
                </Badge>
@@ -91,19 +91,19 @@ export function SourceCard({
 
              {stream.audio && (
                <Badge variant="outline" className="px-2 py-0.5">
-                 <Text className="text-xs text-muted-foreground">{stream.audio}</Text>
+                 <Text className="text-xs text-subtext0">{stream.audio}</Text>
                </Badge>
              )}
 
              {stream.provider && (
                <Badge variant="outline" className="px-2 py-0.5">
-                 <Text className="text-xs text-muted-foreground">{stream.provider}</Text>
+                 <Text className="text-xs text-subtext0">{stream.provider}</Text>
                </Badge>
              )}
 
              {hasRdPlus && (
                <Badge variant="outline" className="px-2 py-0.5">
-                 <Text className="text-xs text-muted-foreground">RD+</Text>
+                 <Text className="text-xs text-subtext0">RD+</Text>
                </Badge>
              )}
 
@@ -125,7 +125,7 @@ export function SourceCard({
 
           {/* Title */}
           <Text
-            className="text-sm text-foreground mt-2"
+            className="text-sm text-text mt-2"
             numberOfLines={2}
           >
             {stream.title}
@@ -134,11 +134,11 @@ export function SourceCard({
            {/* Meta row */}
            <View className="flex-row items-center mt-2 gap-3">
              {stream.size && (
-               <Text className="text-xs text-muted-foreground">{stream.size}</Text>
+               <Text className="text-xs text-subtext0">{stream.size}</Text>
              )}
 
              {stream.seeders !== undefined && stream.seeders > 0 && (
-               <Text className="text-xs text-muted-foreground">
+               <Text className="text-xs text-subtext0">
                  {stream.seeders} seeders
                </Text>
              )}
@@ -148,12 +148,12 @@ export function SourceCard({
           {sortedLanguages.length > 0 && (
             <View className="flex-row flex-wrap gap-1 mt-2">
               {displayLanguages.map((lang) => (
-                <Text key={lang} className="text-xs text-muted-foreground">
+                <Text key={lang} className="text-xs text-subtext0">
                   {lang}
                 </Text>
               ))}
               {remainingLanguagesCount > 0 && (
-                <Text className="text-xs text-muted-foreground">
+                <Text className="text-xs text-subtext0">
                   +{remainingLanguagesCount} more
                 </Text>
               )}
@@ -168,35 +168,35 @@ export function SourceCard({
               <Check size={20} className="text-white" />
             </View>
           ) : showDownloadIndicator ? (
-            <View className="w-12 h-12 rounded-full bg-muted items-center justify-center relative">
-              <Download size={20} className="text-foreground" />
+            <View className="w-12 h-12 rounded-full bg-surface0 items-center justify-center relative">
+              <Download size={20} className="text-text" />
               {downloadStatus === "downloading" && downloadProgress !== undefined && (
                 <View
-                  className="absolute bottom-0 left-0 right-0 h-1 bg-primary/30 rounded-full overflow-hidden"
+                  className="absolute bottom-0 left-0 right-0 h-1 bg-lavender/30 rounded-full overflow-hidden"
                 >
                   <View
-                    className="h-full bg-primary"
+                    className="h-full bg-lavender"
                     style={{ width: `${downloadProgress}%` }}
                   />
                 </View>
               )}
             </View>
           ) : downloadStatus === "completed" ? (
-            <View className="w-12 h-12 rounded-full bg-muted items-center justify-center">
-              <Play size={20} className="text-muted-foreground ml-0.5" fill="currentColor" />
+            <View className="w-12 h-12 rounded-full bg-surface0 items-center justify-center">
+              <Play size={20} className="text-subtext0 ml-0.5" fill="currentColor" />
             </View>
           ) : (
-            <View className="w-12 h-12 rounded-full bg-primary items-center justify-center">
-              <Play size={20} className="text-primary-foreground ml-0.5" fill="currentColor" />
+            <View className="w-12 h-12 rounded-full bg-lavender items-center justify-center">
+              <Play size={20} className="text-crust ml-0.5" fill="currentColor" />
             </View>
           )}
 
           {showWebDownload && onDownload && (
             <Pressable
               onPress={onDownload}
-              className="w-10 h-10 rounded-full bg-muted items-center justify-center"
+              className="w-10 h-10 rounded-full bg-surface0 items-center justify-center"
             >
-              <Download size={18} className="text-foreground" />
+              <Download size={18} className="text-text" />
             </Pressable>
           )}
         </View>

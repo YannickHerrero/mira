@@ -38,9 +38,9 @@ function LanguageItemRow({ item, onPress, selected }: ItemProps) {
         <View className="pr-4 pt-1">{item.icon}</View>
         <View className="flex-1">
           <H4>{item.title}</H4>
-          <Text className="text-sm text-muted-foreground">{item.subtitle}</Text>
+          <Text className="text-sm text-subtext0">{item.subtitle}</Text>
         </View>
-        <View>{selected && <Check className="text-accent-foreground" />}</View>
+        <View>{selected && <Check className="text-crust" />}</View>
       </View>
     </Pressable>
   );
@@ -61,43 +61,43 @@ export function LanguageSettingItem({ className }: LanguageSettingItemProps) {
         title: t("language.systemDefault"),
         subtitle: t("theme.deviceSettingsDesc"),
         value: "system" as const,
-        icon: <Smartphone className="text-foreground" />,
+        icon: <Smartphone className="text-text" />,
       },
       {
         title: t("language.english"),
         subtitle: "English",
         value: "en" as const,
-        icon: <Globe className="text-foreground" />,
+        icon: <Globe className="text-text" />,
       },
       {
         title: t("language.french"),
         subtitle: "Français",
         value: "fr" as const,
-        icon: <Globe className="text-foreground" />,
+        icon: <Globe className="text-text" />,
       },
       {
         title: t("language.spanish"),
         subtitle: "Español",
         value: "es" as const,
-        icon: <Globe className="text-foreground" />,
+        icon: <Globe className="text-text" />,
       },
       {
         title: t("language.german"),
         subtitle: "Deutsch",
         value: "de" as const,
-        icon: <Globe className="text-foreground" />,
+        icon: <Globe className="text-text" />,
       },
       {
         title: t("language.italian"),
         subtitle: "Italiano",
         value: "it" as const,
-        icon: <Globe className="text-foreground" />,
+        icon: <Globe className="text-text" />,
       },
       {
         title: t("language.portuguese"),
         subtitle: "Português",
         value: "pt" as const,
-        icon: <Globe className="text-foreground" />,
+        icon: <Globe className="text-text" />,
       },
     ],
     [t]
@@ -129,7 +129,7 @@ export function LanguageSettingItem({ className }: LanguageSettingItemProps) {
       </BottomSheetOpenTrigger>
       <BottomSheetContent>
         <BottomSheetHeader>
-          <Text className="text-foreground text-xl font-bold pb-1">
+          <Text className="text-text text-xl font-bold pb-1">
             {t("language.select")}
           </Text>
         </BottomSheetHeader>

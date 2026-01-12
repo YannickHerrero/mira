@@ -259,7 +259,7 @@ export function PlayerControls({
                 ]}
               >
                 <Text
-                  className={`text-sm ${playerState.playbackRate === rate ? "text-primary font-bold" : "text-white"}`}
+                  className={`text-sm ${playerState.playbackRate === rate ? "text-lavender font-bold" : "text-white"}`}
                 >
                   {rate}x
                 </Text>
@@ -282,7 +282,7 @@ export function PlayerControls({
                   ]}
                 >
                   <Text
-                    className={`text-sm ${getSelectedAudioIndex() === track.index ? "text-primary font-bold" : "text-white"}`}
+                    className={`text-sm ${getSelectedAudioIndex() === track.index ? "text-lavender font-bold" : "text-white"}`}
                     numberOfLines={1}
                   >
                     {track.title || track.language || `Track ${track.index}`}
@@ -305,7 +305,7 @@ export function PlayerControls({
                 ]}
               >
                 <Text
-                  className={`text-sm ${getSelectedTextIndex() === "off" ? "text-primary font-bold" : "text-white"}`}
+                  className={`text-sm ${getSelectedTextIndex() === "off" ? "text-lavender font-bold" : "text-white"}`}
                 >
                   Off
                 </Text>
@@ -320,7 +320,7 @@ export function PlayerControls({
                   ]}
                 >
                   <Text
-                    className={`text-sm ${getSelectedTextIndex() === track.index ? "text-primary font-bold" : "text-white"}`}
+                    className={`text-sm ${getSelectedTextIndex() === track.index ? "text-lavender font-bold" : "text-white"}`}
                     numberOfLines={1}
                   >
                     {track.title || track.language || `Subtitle ${track.index}`}

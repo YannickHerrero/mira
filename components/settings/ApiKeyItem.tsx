@@ -95,9 +95,9 @@ export function ApiKeyItem({
       return <CheckCircle size={20} className="text-lavender" />;
     }
     if (isValid === false) {
-      return <XCircle size={20} className="text-destructive" />;
+      return <XCircle size={20} className="text-red" />;
     }
-    return <View className="w-5 h-5 rounded-full bg-muted" />;
+    return <View className="w-5 h-5 rounded-full bg-surface0" />;
   };
 
   return (
@@ -115,11 +115,11 @@ export function ApiKeyItem({
       <BottomSheetContent>
         <BottomSheetHeader>
           <View className="flex-1 gap-1">
-            <Text className="text-foreground text-xl font-bold">
+            <Text className="text-text text-xl font-bold">
               {label}
             </Text>
             {description && (
-              <Text className="text-muted-foreground text-sm">
+              <Text className="text-subtext0 text-sm">
                 {description}
               </Text>
             )}
@@ -128,8 +128,8 @@ export function ApiKeyItem({
         <BottomSheetView className="gap-4">
           {/* Extra info (like username for Real-Debrid) */}
           {extraInfo && isValid && (
-            <View className="mb-4 p-3 bg-muted/30 rounded-lg">
-              <Text className="text-muted-foreground text-sm">
+            <View className="mb-4 p-3 bg-surface0/30 rounded-lg">
+              <Text className="text-subtext0 text-sm">
                 {extraInfo}
               </Text>
             </View>
@@ -147,7 +147,7 @@ export function ApiKeyItem({
           />
 
           {saveError && (
-            <Text className="text-sm text-destructive mb-2">{saveError}</Text>
+            <Text className="text-sm text-red mb-2">{saveError}</Text>
           )}
 
           {/* Action buttons */}
@@ -158,12 +158,12 @@ export function ApiKeyItem({
               disabled={isSaving}
               className="flex-1"
             >
-              <Text className="text-primary-foreground font-medium">
+              <Text className="text-crust font-medium">
                 {isSaving ? "Validating..." : value ? "Update" : "Save"}
               </Text>
             </Button>
             <Button variant="secondary" onPress={handleCancel} className="flex-1">
-              <Text className="text-secondary-foreground font-medium">Cancel</Text>
+              <Text className="text-text font-medium">Cancel</Text>
             </Button>
           </View>
 
@@ -173,8 +173,8 @@ export function ApiKeyItem({
               onPress={openHelpUrl}
               className="flex-row items-center justify-center gap-1 py-2"
             >
-              <Text className="text-sm text-primary">{helpLabel || "Get API key"}</Text>
-              <ExternalLink size={14} className="text-primary" />
+              <Text className="text-sm text-lavender">{helpLabel || "Get API key"}</Text>
+              <ExternalLink size={14} className="text-lavender" />
             </Pressable>
           )}
         </BottomSheetView>

@@ -31,16 +31,16 @@ export function SeasonPicker({
           className={cn(
             "px-4 py-2 rounded-full",
             selectedSeason === season.seasonNumber
-              ? "bg-primary"
-              : "bg-muted"
+              ? "bg-lavender"
+              : "bg-surface0"
           )}
         >
           <Text
             className={cn(
               "text-sm font-medium",
               selectedSeason === season.seasonNumber
-                ? "text-primary-foreground"
-                : "text-muted-foreground"
+                ? "text-crust"
+                : "text-subtext0"
             )}
           >
             Season {season.seasonNumber}

@@ -68,7 +68,7 @@ export function MediaCard({
     >
       {/* Poster */}
       <View
-        className="rounded-lg overflow-hidden bg-muted"
+        className="rounded-lg overflow-hidden bg-surface0"
         style={posterStyle}
       >
         {posterUrl ? (
@@ -80,9 +80,9 @@ export function MediaCard({
         ) : (
           <View className="flex-1 items-center justify-center">
             {media.mediaType === "movie" ? (
-              <Film size={32} className="text-muted-foreground" />
+              <Film size={32} className="text-subtext0" />
             ) : (
-              <Tv size={32} className="text-muted-foreground" />
+              <Tv size={32} className="text-subtext0" />
             )}
           </View>
         )}
@@ -121,13 +121,13 @@ export function MediaCard({
       {/* Title and year */}
       <View className="mt-2" style={fillWidth ? undefined : { width }}>
         <Text
-          className="text-sm font-medium text-foreground"
+          className="text-sm font-medium text-text"
           numberOfLines={2}
         >
           {media.title}
         </Text>
         {media.year && (
-          <Text className="text-xs text-muted-foreground mt-0.5">
+          <Text className="text-xs text-subtext0 mt-0.5">
             {media.year}
           </Text>
         )}

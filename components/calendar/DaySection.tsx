@@ -40,7 +40,7 @@ export function DaySection({ date, releases }: DaySectionProps) {
     <View className="mb-6">
       {/* Date header */}
       <View className="flex-row items-center mb-3 px-4">
-        <Text className="text-sm font-semibold text-foreground">
+        <Text className="text-sm font-semibold text-text">
           {dateLabel}
         </Text>
       </View>

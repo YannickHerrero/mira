@@ -31,10 +31,10 @@ export function ReleaseItem({ release }: ReleaseItemProps) {
   return (
     <Pressable
       onPress={handlePress}
-      className="flex-row bg-card rounded-lg border border-border p-3 mb-3 active:opacity-70"
+      className="flex-row bg-surface0 rounded-lg border border-surface1 p-3 mb-3 active:opacity-70"
     >
       {/* Poster */}
-      <View className="w-16 h-24 rounded-md overflow-hidden bg-muted mr-3">
+      <View className="w-16 h-24 rounded-md overflow-hidden bg-surface0 mr-3">
         {posterUrl ? (
           <Image
             source={{ uri: posterUrl }}
@@ -44,9 +44,9 @@ export function ReleaseItem({ release }: ReleaseItemProps) {
         ) : (
           <View className="flex-1 items-center justify-center">
             {release.media.mediaType === "movie" ? (
-              <Film size={24} className="text-muted-foreground" />
+              <Film size={24} className="text-subtext0" />
             ) : (
-              <Tv size={24} className="text-muted-foreground" />
+              <Tv size={24} className="text-subtext0" />
             )}
           </View>
         )}
@@ -54,29 +54,29 @@ export function ReleaseItem({ release }: ReleaseItemProps) {
 
       {/* Info */}
       <View className="flex-1 justify-center">
-        <Text className="text-sm font-medium text-foreground mb-1">
+        <Text className="text-sm font-medium text-text mb-1">
           {release.media.title}
         </Text>
 
         {/* Release info */}
         {release.releaseType === "episode" && release.episodeInfo ? (
-          <Text className="text-xs text-muted-foreground">
+          <Text className="text-xs text-subtext0">
             S{release.episodeInfo.seasonNumber} E{release.episodeInfo.episodeNumber}{" "}
             • {release.episodeInfo.episodeName}
           </Text>
         ) : (
-          <Text className="text-xs text-muted-foreground">Movie Release</Text>
+          <Text className="text-xs text-subtext0">Movie Release</Text>
         )}
 
         {/* Media type badge */}
         <View className="flex-row items-center mt-2 gap-2">
-          <Badge variant="secondary" className="px-1.5 py-0.5 bg-primary/10">
-            <Text variant="sectionTitle" className="text-primary font-medium">
+          <Badge variant="secondary" className="px-1.5 py-0.5 bg-lavender/10">
+            <Text variant="sectionTitle" className="text-lavender font-medium">
               {release.media.mediaType === "movie" ? "Movie" : "TV"}
             </Text>
           </Badge>
           {release.media.score !== undefined && release.media.score > 0 && (
-            <Text className="text-xs text-muted-foreground">
+            <Text className="text-xs text-subtext0">
               {release.media.score.toFixed(1)}★
             </Text>
           )}

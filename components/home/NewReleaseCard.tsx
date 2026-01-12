@@ -72,7 +72,7 @@ export function NewReleaseCard({ release, cardWidth }: NewReleaseCardProps) {
         >
           <View className="flex-1 flex-row p-4 gap-4 bg-black/30">
             {/* Poster thumbnail */}
-            <View className="w-[86px] h-[122px] rounded-lg overflow-hidden bg-muted">
+            <View className="w-[86px] h-[122px] rounded-lg overflow-hidden bg-surface0">
               <Image
                 source={{ uri: posterUrl }}
                 className="w-full h-full"
@@ -117,8 +117,8 @@ export function NewReleaseCard({ release, cardWidth }: NewReleaseCardProps) {
           </View>
         </ImageBackground>
       ) : (
-        <View className="flex-1 items-center justify-center bg-muted">
-          <Film size={32} className="text-muted-foreground" />
+        <View className="flex-1 items-center justify-center bg-surface0">
+          <Film size={32} className="text-subtext0" />
         </View>
       )}
     </View>

@@ -103,7 +103,7 @@ export function MediaGrid({
       >
         {ListHeaderComponent}
         <EmptyState
-          icon={emptyIcon ?? <Search size={48} className="text-muted-foreground" />}
+          icon={emptyIcon ?? <Search size={48} className="text-subtext0" />}
           title={emptyMessage}
         />
       </View>

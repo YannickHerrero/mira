@@ -54,14 +54,14 @@ function OrderedItem({
   const isLast = index === total - 1;
 
   return (
-    <View className="flex-row items-center py-2 px-1 bg-muted/30 rounded-lg mb-2">
+    <View className="flex-row items-center py-2 px-1 bg-surface0/30 rounded-lg mb-2">
       {/* Priority number */}
-      <View className="w-8 h-8 rounded-full bg-primary/20 items-center justify-center mr-3">
-        <Text className="text-primary font-bold text-sm">{index + 1}</Text>
+      <View className="w-8 h-8 rounded-full bg-lavender/20 items-center justify-center mr-3">
+        <Text className="text-lavender font-bold text-sm">{index + 1}</Text>
       </View>
 
       {/* Language label */}
-      <Text className="flex-1 text-foreground text-base">{label}</Text>
+      <Text className="flex-1 text-text text-base">{label}</Text>
 
       {/* Move up button */}
       <Pressable
@@ -74,7 +74,7 @@ function OrderedItem({
         className={`p-2 rounded ${isFirst ? "opacity-30" : ""}`}
         disabled={isFirst}
       >
-        <ChevronUp size={20} className="text-muted-foreground" />
+        <ChevronUp size={20} className="text-subtext0" />
       </Pressable>
 
       {/* Move down button */}
@@ -88,7 +88,7 @@ function OrderedItem({
         className={`p-2 rounded ${isLast ? "opacity-30" : ""}`}
         disabled={isLast}
       >
-        <ChevronDown size={20} className="text-muted-foreground" />
+        <ChevronDown size={20} className="text-subtext0" />
       </Pressable>
 
       {/* Remove button */}
@@ -99,7 +99,7 @@ function OrderedItem({
         }}
         className="p-2 rounded ml-1"
       >
-        <X size={20} className="text-destructive" />
+        <X size={20} className="text-red" />
       </Pressable>
     </View>
   );
@@ -128,14 +128,14 @@ function AddLanguageItem({ label, isSelected, onPress }: AddLanguageItemProps) {
       disabled={isSelected}
     >
       <Text
-        className={`text-base ${isSelected ? "text-muted-foreground" : "text-foreground"}`}
+        className={`text-base ${isSelected ? "text-subtext0" : "text-text"}`}
       >
         {label}
       </Text>
       {isSelected ? (
-        <Check size={20} className="text-primary" />
+        <Check size={20} className="text-lavender" />
       ) : (
-        <Plus size={20} className="text-muted-foreground" />
+        <Plus size={20} className="text-subtext0" />
       )}
     </Pressable>
   );
@@ -177,10 +177,10 @@ export function AudioPreferenceItem({ className }: PreferenceItemProps) {
       <BottomSheetContent snapPoints={["70%"]} enableDynamicSizing={false}>
         <BottomSheetHeader>
           <View className="flex-1 gap-1">
-            <Text className="text-foreground text-xl font-bold">
+            <Text className="text-text text-xl font-bold">
               Audio Language Preferences
             </Text>
-            <Text className="text-muted-foreground text-sm">
+            <Text className="text-subtext0 text-sm">
               Set your preferred audio languages in priority order
             </Text>
           </View>
@@ -190,7 +190,7 @@ export function AudioPreferenceItem({ className }: PreferenceItemProps) {
             {/* Selected languages (ordered) */}
             {preferredAudioLanguages.length > 0 && (
               <View className="mb-4">
-                <Text className="text-muted-foreground text-xs uppercase mb-2 px-1">
+                <Text className="text-subtext0 text-xs uppercase mb-2 px-1">
                   Your Preferences (in order)
                 </Text>
                 {preferredAudioLanguages.map((lang, index) => (
@@ -209,12 +209,12 @@ export function AudioPreferenceItem({ className }: PreferenceItemProps) {
 
             {/* Available languages to add */}
             <View>
-              <Text className="text-muted-foreground text-xs uppercase mb-2 px-1">
+              <Text className="text-subtext0 text-xs uppercase mb-2 px-1">
                 {preferredAudioLanguages.length > 0
                   ? "Add More Languages"
                   : "Select Languages"}
               </Text>
-              <View className="h-px bg-border mb-2" />
+              <View className="h-px bg-surface1 mb-2" />
               {availableLanguages.map((lang) => (
                 <AddLanguageItem
                   key={lang}
@@ -226,8 +226,8 @@ export function AudioPreferenceItem({ className }: PreferenceItemProps) {
             </View>
 
             {/* Info text */}
-            <View className="mt-4 p-3 bg-muted/30 rounded-lg">
-              <Text className="text-muted-foreground text-xs">
+            <View className="mt-4 p-3 bg-surface0/30 rounded-lg">
+              <Text className="text-subtext0 text-xs">
                 The player will try to select audio tracks matching your preferences
                 in order. If no match is found, the default track will be used.
               </Text>
@@ -277,10 +277,10 @@ export function SubtitlePreferenceItem({ className }: PreferenceItemProps) {
       <BottomSheetContent snapPoints={["70%"]} enableDynamicSizing={false}>
         <BottomSheetHeader>
           <View className="flex-1 gap-1">
-            <Text className="text-foreground text-xl font-bold">
+            <Text className="text-text text-xl font-bold">
               Subtitle Language Preferences
             </Text>
-            <Text className="text-muted-foreground text-sm">
+            <Text className="text-subtext0 text-sm">
               Set your preferred subtitle languages in priority order
             </Text>
           </View>
@@ -290,7 +290,7 @@ export function SubtitlePreferenceItem({ className }: PreferenceItemProps) {
             {/* Selected languages (ordered) */}
             {preferredSubtitleLanguages.length > 0 && (
               <View className="mb-4">
-                <Text className="text-muted-foreground text-xs uppercase mb-2 px-1">
+                <Text className="text-subtext0 text-xs uppercase mb-2 px-1">
                   Your Preferences (in order)
                 </Text>
                 {preferredSubtitleLanguages.map((lang, index) => (
@@ -309,10 +309,10 @@ export function SubtitlePreferenceItem({ className }: PreferenceItemProps) {
 
             {/* "Off" option - special handling */}
             <View className="mb-4">
-              <Text className="text-muted-foreground text-xs uppercase mb-2 px-1">
+              <Text className="text-subtext0 text-xs uppercase mb-2 px-1">
                 Disable Option
               </Text>
-              <View className="h-px bg-border mb-2" />
+              <View className="h-px bg-surface1 mb-2" />
               <AddLanguageItem
                 label="Off (disable if no match)"
                 isSelected={offSelected}
@@ -322,12 +322,12 @@ export function SubtitlePreferenceItem({ className }: PreferenceItemProps) {
 
             {/* Available languages to add */}
             <View>
-              <Text className="text-muted-foreground text-xs uppercase mb-2 px-1">
+              <Text className="text-subtext0 text-xs uppercase mb-2 px-1">
                 {preferredSubtitleLanguages.length > 0
                   ? "Add More Languages"
                   : "Select Languages"}
               </Text>
-              <View className="h-px bg-border mb-2" />
+              <View className="h-px bg-surface1 mb-2" />
               {availableLanguages.map((lang) => (
                 <AddLanguageItem
                   key={lang}
@@ -339,8 +339,8 @@ export function SubtitlePreferenceItem({ className }: PreferenceItemProps) {
             </View>
 
             {/* Info text */}
-            <View className="mt-4 p-3 bg-muted/30 rounded-lg">
-              <Text className="text-muted-foreground text-xs">
+            <View className="mt-4 p-3 bg-surface0/30 rounded-lg">
+              <Text className="text-subtext0 text-xs">
                 The player will try to enable subtitles matching your preferences
                 in order. Add "Off" to your list to disable subtitles if none of
                 your preferred languages are available.

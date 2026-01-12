@@ -14,7 +14,7 @@ export function SectionHeader({ title, onSeeMore }: SectionHeaderProps) {
 
   return (
     <View className="flex-row items-center justify-between px-4 mb-4">
-      <Text variant="sectionTitle" className="text-foreground/50">
+      <Text variant="sectionTitle" className="text-text/50">
         {title}
       </Text>
       {onSeeMore && (

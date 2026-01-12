@@ -54,8 +54,8 @@ export function MediaSection({
           variant={isMuted ? (isUppercase ? "sectionTitle" : "caption") : undefined}
           className={
             isMuted
-              ? "text-foreground/50"
-              : "text-lg font-semibold text-foreground"
+              ? "text-text/50"
+              : "text-lg font-semibold text-text"
           }
         >
           {title}
@@ -67,12 +67,12 @@ export function MediaSection({
               className={
                 isMuted
                   ? "text-lavender mr-1"
-                  : "text-sm text-primary mr-1"
+                  : "text-sm text-lavender mr-1"
               }
             >
               {isUppercase ? t("common.seeMore").toUpperCase() : t("common.seeMore")}
             </Text>
-            <ChevronRight size={isMuted ? 14 : 16} className={isMuted ? "text-lavender" : "text-primary"} />
+            <ChevronRight size={isMuted ? 14 : 16} className={isMuted ? "text-lavender" : "text-lavender"} />
           </Pressable>
         )}
       </View>

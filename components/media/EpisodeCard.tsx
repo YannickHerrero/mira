@@ -28,7 +28,7 @@ export function EpisodeCard({ episode, onPress, onLongPress, watchProgress, isCo
     <Container
       {...containerProps}
       className={cn(
-        "flex-row bg-card rounded-lg overflow-hidden mb-3",
+        "flex-row bg-surface0 rounded-lg overflow-hidden mb-3",
         !asView && "active:opacity-80"
       )}
     >
@@ -41,16 +41,16 @@ export function EpisodeCard({ episode, onPress, onLongPress, watchProgress, isCo
             resizeMode="cover"
           />
         ) : (
-          <View className="flex-1 bg-muted items-center justify-center">
-            <Play size={24} className="text-muted-foreground" />
+          <View className="flex-1 bg-surface0 items-center justify-center">
+            <Play size={24} className="text-subtext0" />
           </View>
         )}
 
         {/* Play overlay or completed indicator */}
         <View className="absolute inset-0 items-center justify-center bg-black/30">
           {isCompleted ? (
-            <View className="w-10 h-10 rounded-full bg-primary items-center justify-center">
-              <Check size={20} className="text-primary-foreground" />
+            <View className="w-10 h-10 rounded-full bg-lavender items-center justify-center">
+              <Check size={20} className="text-crust" />
             </View>
           ) : (
             <View className="w-10 h-10 rounded-full bg-white/90 items-center justify-center">
@@ -63,7 +63,7 @@ export function EpisodeCard({ episode, onPress, onLongPress, watchProgress, isCo
         {watchProgress !== undefined && watchProgress > 0 && (
           <View className="absolute bottom-0 left-0 right-0 h-1 bg-black/50">
             <View
-              className="h-full bg-primary"
+              className="h-full bg-lavender"
               style={{ width: `${watchProgress}%` }}
             />
           </View>
@@ -72,14 +72,14 @@ export function EpisodeCard({ episode, onPress, onLongPress, watchProgress, isCo
 
       {/* Info */}
       <View className="flex-1 p-3 justify-center">
-        <Text className="text-xs text-muted-foreground mb-0.5">
+        <Text className="text-xs text-subtext0 mb-0.5">
           Episode {episode.episodeNumber}
         </Text>
-        <Text className="text-sm font-medium text-foreground" numberOfLines={1}>
+        <Text className="text-sm font-medium text-text" numberOfLines={1}>
           {episode.title}
         </Text>
         {episode.runtime && (
-          <Text className="text-xs text-muted-foreground mt-1">
+          <Text className="text-xs text-subtext0 mt-1">
             {episode.runtime} min
           </Text>
         )}

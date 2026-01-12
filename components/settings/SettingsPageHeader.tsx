@@ -22,9 +22,9 @@ export function SettingsPageHeader({ title }: SettingsPageHeaderProps) {
         hitSlop={8}
         className="active:opacity-70"
       >
-        <ChevronLeft size={24} className="text-foreground" />
+        <ChevronLeft size={24} className="text-text" />
       </Pressable>
-      <Text className="text-lg font-semibold text-foreground">
+      <Text className="text-lg font-semibold text-text">
         {title}
       </Text>
     </View>

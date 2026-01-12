@@ -54,7 +54,7 @@ export function NewReleasesCarousel({ releases }: NewReleasesCarouselProps) {
             <View
               key={index}
               className={`h-1.5 rounded-full ${
-                index === activeIndex ? "w-4 bg-lavender" : "w-1.5 bg-foreground/30"
+                index === activeIndex ? "w-4 bg-lavender" : "w-1.5 bg-text/30"
               }`}
             />
           ))}

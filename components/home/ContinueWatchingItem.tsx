@@ -43,7 +43,7 @@ export function ContinueWatchingItem({ item }: ContinueWatchingItemProps) {
     >
       <View className="flex-row items-center flex-1 gap-4">
         {/* Square thumbnail */}
-        <View className="w-24 h-24 rounded-2xl overflow-hidden bg-muted">
+        <View className="w-24 h-24 rounded-2xl overflow-hidden bg-surface0">
           {posterUrl ? (
             <Image
               source={{ uri: posterUrl }}
@@ -53,9 +53,9 @@ export function ContinueWatchingItem({ item }: ContinueWatchingItemProps) {
           ) : (
             <View className="flex-1 items-center justify-center">
               {isTV ? (
-                <Tv size={24} className="text-muted-foreground" />
+                <Tv size={24} className="text-subtext0" />
               ) : (
-                <Film size={24} className="text-muted-foreground" />
+                <Film size={24} className="text-subtext0" />
               )}
             </View>
           )}
@@ -64,7 +64,7 @@ export function ContinueWatchingItem({ item }: ContinueWatchingItemProps) {
         {/* Info */}
         <View className="flex-1 gap-2">
           {/* Episode number */}
-          <Text variant="body" className="text-foreground/50">
+          <Text variant="body" className="text-text/50">
             {episodeLabel}
           </Text>
 
@@ -75,8 +75,8 @@ export function ContinueWatchingItem({ item }: ContinueWatchingItemProps) {
 
           {/* Continue with play icon */}
           <View className="flex-row items-center gap-2">
-            <Play size={14} className="text-foreground/50" />
-            <Text variant="body" className="text-foreground/50">
+            <Play size={14} className="text-text/50" />
+            <Text variant="body" className="text-text/50">
               {t("home.continue")}
             </Text>
           </View>
@@ -84,7 +84,7 @@ export function ContinueWatchingItem({ item }: ContinueWatchingItemProps) {
       </View>
 
       {/* Chevron */}
-      <ChevronRight size={20} className="text-foreground/50" />
+      <ChevronRight size={20} className="text-text/50" />
     </Pressable>
   );
 }

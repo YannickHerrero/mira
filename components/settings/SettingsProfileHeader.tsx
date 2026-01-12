@@ -21,20 +21,20 @@ export function SettingsProfileHeader() {
     >
       {/* Avatar with edit button */}
       <View className="relative w-[100px] h-[100px] mb-4">
-        <View className="w-full h-full rounded-full bg-muted items-center justify-center overflow-hidden">
-          <CircleUser size={60} className="text-muted-foreground" />
+        <View className="w-full h-full rounded-full bg-surface0 items-center justify-center overflow-hidden">
+          <CircleUser size={60} className="text-subtext0" />
         </View>
         <Link href="/settings/account" asChild>
           <Pressable className="absolute bottom-0 right-0 rounded-full overflow-hidden">
             <BlurView intensity={50} tint="dark" className="p-2">
-              <Pencil size={16} className="text-foreground" />
+              <Pencil size={16} className="text-text" />
             </BlurView>
           </Pressable>
         </Link>
       </View>
 
       {/* Username */}
-      <Text className="text-[28px] font-bold text-foreground mb-6">
+      <Text className="text-[28px] font-bold text-text mb-6">
         {displayName}
       </Text>
     </View>

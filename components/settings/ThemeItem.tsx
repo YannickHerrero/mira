@@ -1,7 +1,13 @@
-import {BottomSheet, BottomSheetContent, BottomSheetHeader, BottomSheetOpenTrigger, BottomSheetView} from "@/components/primitives/bottomSheet/bottom-sheet.native";
+import {
+  BottomSheet,
+  BottomSheetContent,
+  BottomSheetHeader,
+  BottomSheetOpenTrigger,
+  BottomSheetView,
+} from "@/components/primitives/bottomSheet/bottom-sheet.native";
 import ListItem from "@/components/ui/list-item";
-import {Text} from "@/components/ui/text";
-import {Palette} from "@/lib/icons";
+import { Text } from "@/components/ui/text";
+import { Palette } from "@/lib/icons";
 
 type ThemeSettingItemProps = {
   className?: string;
@@ -19,10 +25,10 @@ export const ThemeSettingItem = ({ className }: ThemeSettingItemProps) => {
       </BottomSheetOpenTrigger>
       <BottomSheetContent>
         <BottomSheetHeader>
-          <Text className="text-foreground text-xl font-bold pb-1">Theme</Text>
+          <Text className="text-text text-xl font-bold pb-1">Theme</Text>
         </BottomSheetHeader>
         <BottomSheetView className="gap-2">
-          <Text className="text-sm text-muted-foreground">Coming soon.</Text>
+          <Text className="text-sm text-subtext0">Coming soon.</Text>
         </BottomSheetView>
       </BottomSheetContent>
     </BottomSheet>

@@ -124,10 +124,10 @@ export function ListSelectorSheet({
     <BottomSheetContent ref={sheetRef} enableDynamicSizing>
       <BottomSheetHeader>
         <View className="flex-1 gap-1">
-          <Text className="text-lg font-semibold text-foreground">
+          <Text className="text-lg font-semibold text-text">
             {t("list.addToList")}
           </Text>
-          <Text className="text-xs text-muted-foreground">
+          <Text className="text-xs text-subtext0">
             {t("list.addToListDesc")}
           </Text>
         </View>
@@ -142,11 +142,11 @@ export function ListSelectorSheet({
             {/* List items */}
             <View className="mb-4 gap-2">
               {lists.length === 0 ? (
-                <View className="rounded-2xl border border-dashed border-border/60 px-4 py-6">
-                  <Text className="text-sm text-muted-foreground">
+                <View className="rounded-2xl border border-dashed border-surface1/60 px-4 py-6">
+                  <Text className="text-sm text-subtext0">
                     {t("library.noLists")}
                   </Text>
-                  <Text className="text-xs text-muted-foreground mt-1">
+                  <Text className="text-xs text-subtext0 mt-1">
                     {t("library.noListsDesc")}
                   </Text>
                 </View>
@@ -160,8 +160,8 @@ export function ListSelectorSheet({
                       className={cn(
                         "flex-row items-center gap-3 rounded-2xl border px-4 py-3 active:opacity-80",
                         isSelected
-                          ? "border-primary/40 bg-primary/10"
-                          : "border-border/40 bg-muted/10",
+                          ? "border-lavender/40 bg-lavender/10"
+                          : "border-surface1/40 bg-surface0/10",
                       )}
                     >
                       <Checkbox
@@ -170,24 +170,24 @@ export function ListSelectorSheet({
                       />
                       <View className="flex-1">
                         <View className="flex-row items-center gap-2">
-                          <Text className="text-base text-foreground">
+                          <Text className="text-base text-text">
                             {list.name}
                           </Text>
                           {list.isDefault && (
-                            <View className="rounded-full bg-muted/40 px-2 py-0.5">
-                              <Text className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                            <View className="rounded-full bg-surface0/40 px-2 py-0.5">
+                              <Text className="text-[10px] uppercase tracking-wide text-subtext0">
                                 {t("list.defaultLabel")}
                               </Text>
                             </View>
                           )}
                         </View>
-                        <Text className="text-xs text-muted-foreground mt-0.5">
+                        <Text className="text-xs text-subtext0 mt-0.5">
                           {t("library.item", { count: list.itemCount })}
                         </Text>
                       </View>
                       {isSelected && (
-                        <View className="h-7 w-7 items-center justify-center rounded-full bg-primary/15">
-                          <Check size={16} className="text-primary" />
+                        <View className="h-7 w-7 items-center justify-center rounded-full bg-lavender/15">
+                          <Check size={16} className="text-lavender" />
                         </View>
                       )}
                     </Pressable>
@@ -198,8 +198,8 @@ export function ListSelectorSheet({
 
             {/* Create new list section */}
             {isCreatingList ? (
-              <View className="mb-4 rounded-2xl border border-border/40 bg-muted/10 p-4">
-                <Text className="text-sm font-medium text-foreground mb-3">
+              <View className="mb-4 rounded-2xl border border-surface1/40 bg-surface0/10 p-4">
+                <Text className="text-sm font-medium text-text mb-3">
                   {t("list.newList")}
                 </Text>
                 <BottomSheetTextInput
@@ -226,7 +226,7 @@ export function ListSelectorSheet({
                     onPress={handleCreateList}
                     disabled={!newListName.trim()}
                   >
-                    <Text className="text-primary-foreground">{t("list.create")}</Text>
+                    <Text className="text-base">{t("list.create")}</Text>
                   </Button>
                 </View>
               </View>
@@ -236,16 +236,16 @@ export function ListSelectorSheet({
                   lightImpact();
                   setIsCreatingList(true);
                 }}
-                className="flex-row items-center rounded-2xl border border-dashed border-border/60 px-4 py-3 active:opacity-70"
+                className="flex-row items-center rounded-2xl border border-dashed border-surface1/60 px-4 py-3 active:opacity-70"
               >
                 <View className="w-5 h-5 mr-3 items-center justify-center">
-                  <Plus size={20} className="text-primary" />
+                  <Plus size={20} className="text-lavender" />
                 </View>
                 <View>
-                  <Text className="text-base text-foreground font-medium">
+                  <Text className="text-base text-text font-medium">
                     {t("list.createNew")}
                   </Text>
-                  <Text className="text-xs text-muted-foreground">
+                  <Text className="text-xs text-subtext0">
                     {t("list.createNewDesc")}
                   </Text>
                 </View>
@@ -269,7 +269,7 @@ export function ListSelectorSheet({
                 {isSaving ? (
                   <ActivityIndicator size="small" color="white" />
                 ) : (
-                  <Text className="text-primary-foreground font-semibold">
+                  <Text className="text-base font-semibold">
                     {t("common.done")}
                   </Text>
                 )}

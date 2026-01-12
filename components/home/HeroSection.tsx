@@ -54,7 +54,7 @@ export function HeroSection({ media, episodeInfo }: HeroSectionProps) {
           resizeMode="cover"
         />
       ) : (
-        <View className="flex-1 bg-muted" />
+        <View className="flex-1 bg-surface0" />
       )}
 
       {/* Gradient overlay - flush with bottom */}

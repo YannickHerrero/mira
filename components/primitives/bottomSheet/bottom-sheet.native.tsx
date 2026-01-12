@@ -211,7 +211,7 @@ function BottomSheetView({
   return (
     <View
       style={style}
-      className={cn("px-4 pt-5 pb-6 bg-background", className)}
+      className={cn("px-4 pt-5 pb-6 bg-base", className)}
       {...props}
     >
       {children}
@@ -231,10 +231,10 @@ const BottomSheetTextInput = React.forwardRef<
     <GBottomSheetTextInput
       ref={ref}
       className={cn(
-        "rounded-md border border-input bg-background px-3 text-xl h-14 leading-[1.25] text-foreground items-center  placeholder:text-muted-foreground disabled:opacity-50",
+        "rounded-md border border-surface1 bg-base px-3 text-xl h-14 leading-[1.25] text-text items-center  placeholder:text-subtext0 disabled:opacity-50",
         className,
       )}
-      placeholderClassName={cn("text-muted-foreground", placeholderClassName)}
+      placeholderClassName={cn("text-subtext0", placeholderClassName)}
       {...props}
     />
   );
@@ -270,7 +270,7 @@ const BottomSheetHeader = React.forwardRef<
     <View
       ref={ref}
       className={cn(
-        "border-b border-border/40 flex-row items-center justify-between px-4 pb-4 bg-background",
+        "border-b border-surface1/40 flex-row items-center justify-between px-4 pb-4 bg-base",
         className,
       )}
       {...props}
@@ -315,9 +315,9 @@ const BottomSheetActionRow = React.forwardRef<
         className={cn(
           "flex-row items-center gap-3 active:opacity-70",
           isGrouped
-            ? "px-4 py-4 border-b border-border/50 last:border-b-0"
+            ? "px-4 py-4 border-b border-surface1/50 last:border-b-0"
             : "rounded-xl px-3 py-3",
-          !isGrouped && (isDestructive ? "bg-destructive/10" : "bg-muted/20"),
+          !isGrouped && (isDestructive ? "bg-red/10" : "bg-surface0/20"),
           className,
         )}
         {...props}
@@ -328,7 +328,7 @@ const BottomSheetActionRow = React.forwardRef<
               "items-center justify-center",
               isGrouped ? "h-6 w-6" : "h-10 w-10 rounded-full",
               !isGrouped &&
-              (isDestructive ? "bg-destructive/20" : "bg-muted/40"),
+              (isDestructive ? "bg-red/20" : "bg-surface0/40"),
             )}
           >
             {icon}
@@ -338,13 +338,13 @@ const BottomSheetActionRow = React.forwardRef<
           <Text
             className={cn(
               "text-base font-medium",
-              isDestructive ? "text-destructive" : "text-foreground",
+              isDestructive ? "text-red" : "text-text",
             )}
           >
             {title}
           </Text>
           {description ? (
-            <Text className="text-xs text-muted-foreground mt-0.5">
+            <Text className="text-xs text-subtext0 mt-0.5">
               {description}
             </Text>
           ) : null}
@@ -366,7 +366,7 @@ const BottomSheetActionGroup = React.forwardRef<
   return (
     <View
       ref={ref}
-      className={cn("bg-muted/20 rounded-2xl overflow-hidden", className)}
+      className={cn("bg-surface0/20 rounded-2xl overflow-hidden", className)}
       {...props}
     />
   );

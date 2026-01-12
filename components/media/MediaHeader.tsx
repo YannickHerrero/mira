@@ -29,7 +29,7 @@ export function MediaHeader({ media }: MediaHeaderProps) {
             resizeMode="cover"
           />
         ) : (
-          <View className="flex-1 bg-muted" />
+          <View className="flex-1 bg-surface0" />
         )}
 
         {/* Gradient overlay */}
@@ -52,7 +52,7 @@ export function MediaHeader({ media }: MediaHeaderProps) {
       >
         <View className="flex-row">
           {/* Poster */}
-          <View className="rounded-lg overflow-hidden bg-muted shadow-lg" style={{ width: 120, height: 180 }}>
+          <View className="rounded-lg overflow-hidden bg-surface0 shadow-lg" style={{ width: 120, height: 180 }}>
             {posterUrl ? (
               <Image
                 source={{ uri: posterUrl }}
@@ -60,27 +60,27 @@ export function MediaHeader({ media }: MediaHeaderProps) {
                 resizeMode="cover"
               />
             ) : (
-              <View className="flex-1 bg-muted" />
+              <View className="flex-1 bg-surface0" />
             )}
           </View>
 
           {/* Info */}
           <View className="flex-1 ml-4 justify-end pb-2">
             {/* Title */}
-            <Text className="text-xl font-bold text-foreground" numberOfLines={2}>
+            <Text className="text-xl font-bold text-text" numberOfLines={2}>
               {media.title}
             </Text>
 
             {/* Metadata row */}
             <View className="flex-row items-center flex-wrap mt-2 gap-2">
               {media.year && (
-                <Text className="text-sm text-muted-foreground">{media.year}</Text>
+                <Text className="text-sm text-subtext0">{media.year}</Text>
               )}
 
               {media.score !== undefined && media.score > 0 && (
                 <View className="flex-row items-center">
                   <Star size={14} className="text-yellow-400 mr-1" fill="#facc15" />
-                  <Text className="text-sm text-foreground font-medium">
+                  <Text className="text-sm text-text font-medium">
                     {media.score.toFixed(1)}
                   </Text>
                 </View>
@@ -98,7 +98,7 @@ export function MediaHeader({ media }: MediaHeaderProps) {
               <View className="flex-row flex-wrap mt-2 gap-1">
                 {media.genres.slice(0, 3).map((genre) => (
                   <Badge key={genre} variant="outline" className="px-2 py-0.5">
-                    <Text className="text-xs text-muted-foreground">{genre}</Text>
+                    <Text className="text-xs text-subtext0">{genre}</Text>
                   </Badge>
                 ))}
               </View>
@@ -109,7 +109,7 @@ export function MediaHeader({ media }: MediaHeaderProps) {
         {/* Description */}
         {media.description && (
           <Text
-            className="text-sm text-muted-foreground mt-4 leading-relaxed"
+            className="text-sm text-subtext0 mt-4 leading-relaxed"
             numberOfLines={4}
           >
             {media.description}

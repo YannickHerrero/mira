@@ -325,7 +325,7 @@ export function SourceList({
     return (
       <View className="flex-1 items-center justify-center py-12">
         <ActivityIndicator size="large" />
-        <Text className="text-muted-foreground mt-4">Loading sources...</Text>
+        <Text className="text-subtext0 mt-4">Loading sources...</Text>
       </View>
     );
   }
@@ -333,7 +333,7 @@ export function SourceList({
   if (error) {
     return (
       <View className="flex-1 items-center justify-center py-12 px-6">
-        <Text className="text-destructive text-center">{error}</Text>
+        <Text className="text-red text-center">{error}</Text>
       </View>
     );
   }
@@ -342,10 +342,10 @@ export function SourceList({
     <View className="flex-1 items-center justify-center py-12 px-6">
       {streams.length === 0 ? (
         <>
-          <Text className="text-muted-foreground text-center">
+          <Text className="text-subtext0 text-center">
             No sources found for this title.
           </Text>
-          <Text className="text-muted-foreground text-center text-sm mt-2">
+          <Text className="text-subtext0 text-center text-sm mt-2">
             {showUncached
               ? "No cached or uncached sources yet."
               : "Try uncached sources or check back later."}
@@ -355,17 +355,17 @@ export function SourceList({
             className="flex-row items-center justify-center mt-4"
             onPress={onToggleShowUncached}
           >
-            <Text className="text-foreground">
+            <Text className="text-text">
               {showUncached ? "Hide uncached sources" : "Show uncached sources"}
             </Text>
           </Button>
         </>
       ) : (
         <>
-          <Text className="text-muted-foreground text-center">
+          <Text className="text-subtext0 text-center">
             No sources match your filters.
           </Text>
-          <Text className="text-muted-foreground text-center text-sm mt-2">
+          <Text className="text-subtext0 text-center text-sm mt-2">
             {streams.length} source{streams.length !== 1 ? "s" : ""} available
           </Text>
           <Button
@@ -373,8 +373,8 @@ export function SourceList({
             className="flex-row items-center justify-center mt-4"
             onPress={() => setShowAllSources(true)}
           >
-            <Eye size={16} className="text-foreground mr-2" />
-            <Text className="text-foreground">
+            <Eye size={16} className="text-text mr-2" />
+            <Text className="text-text">
               Show All {streams.length} Sources
             </Text>
           </Button>
@@ -383,7 +383,7 @@ export function SourceList({
             className="flex-row items-center justify-center mt-3"
             onPress={onToggleShowUncached}
           >
-            <Text className="text-foreground">
+            <Text className="text-text">
               {showUncached ? "Hide uncached sources" : "Show uncached sources"}
             </Text>
           </Button>
@@ -423,8 +423,8 @@ export function SourceList({
                   className="flex-row items-center justify-center"
                   onPress={handlePlayDownloaded}
                 >
-                  <Play size={16} className="text-primary-foreground mr-2" fill="currentColor" />
-                  <Text className="text-primary-foreground font-medium">
+                  <Play size={16} className="text-crust mr-2" fill="currentColor" />
+                  <Text className="text-crust font-medium">
                     Play Downloaded
                   </Text>
                 </Button>
@@ -433,7 +433,7 @@ export function SourceList({
 
             {streams.length > 0 && (
               <>
-                <Text className="text-sm text-muted-foreground mb-1">
+                <Text className="text-sm text-subtext0 mb-1">
                   {filtersActive && !showAllSources ? (
                     <>
                       Showing {filteredStreams.length} of {streams.length} source
@@ -453,7 +453,7 @@ export function SourceList({
               </>
             )}
             {Platform.OS !== "web" && !isDownloaded && streams.length > 0 && (
-              <Text className="text-xs text-muted-foreground mb-3">
+              <Text className="text-xs text-subtext0 mb-3">
                 Long press a source to download for offline viewing
               </Text>
             )}
@@ -470,8 +470,8 @@ export function SourceList({
                 className="flex-row items-center justify-center"
                 onPress={() => setShowAllSources(true)}
               >
-                <Eye size={16} className="text-foreground mr-2" />
-                <Text className="text-foreground">
+                <Eye size={16} className="text-text mr-2" />
+                <Text className="text-text">
                   Show All {streams.length} Sources
                 </Text>
               </Button>
@@ -486,7 +486,7 @@ export function SourceList({
               )}
               onPress={onToggleShowUncached}
             >
-              <Text className={showUncached ? "text-primary-foreground" : "text-foreground"}>
+              <Text className={showUncached ? "text-crust" : "text-text"}>
                 {showUncached ? "Hide uncached sources" : "Show uncached sources"}
               </Text>
             </Button>

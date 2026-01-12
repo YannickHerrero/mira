@@ -61,16 +61,16 @@ export function DownloadInfoSheet({
               resizeMode="cover"
             />
           ) : (
-            <View className="w-16 h-24 rounded-lg bg-muted items-center justify-center">
-              <Download size={24} className="text-muted-foreground" />
+            <View className="w-16 h-24 rounded-lg bg-surface0 items-center justify-center">
+              <Download size={24} className="text-subtext0" />
             </View>
           )}
           <View className="flex-1 ml-3 justify-center">
-            <Text className="text-lg font-semibold text-foreground" numberOfLines={2}>
+            <Text className="text-lg font-semibold text-text" numberOfLines={2}>
               {download.title}
             </Text>
             {download.quality && (
-              <Text className="text-sm text-muted-foreground mt-1">
+              <Text className="text-sm text-subtext0 mt-1">
                 {download.quality}
               </Text>
             )}
@@ -78,7 +78,7 @@ export function DownloadInfoSheet({
         </View>
 
         {/* Info rows */}
-        <View className="border-t border-border pt-4 mb-4">
+        <View className="border-t border-surface1 pt-4 mb-4">
           <InfoRow label="File name" value={download.fileName} />
           {download.fileSize && (
             <InfoRow label="Size" value={formatBytes(download.fileSize)} />
@@ -98,7 +98,7 @@ export function DownloadInfoSheet({
                     ? `Downloading (${Math.round(download.progress)}%)`
                     : download.status
             }
-            valueClassName={isFailed ? "text-destructive" : undefined}
+            valueClassName={isFailed ? "text-red" : undefined}
           />
         </View>
 
@@ -109,7 +109,7 @@ export function DownloadInfoSheet({
               layout="grouped"
               title="Play Now"
               description="Watch this download"
-              icon={<Play size={20} className="text-foreground" />}
+              icon={<Play size={20} className="text-text" />}
               onPress={() => {
                 onPlay();
                 dismiss();
@@ -122,7 +122,7 @@ export function DownloadInfoSheet({
               layout="grouped"
               title="Retry Download"
               description="Try the download again"
-              icon={<RefreshCw size={20} className="text-foreground" />}
+              icon={<RefreshCw size={20} className="text-text" />}
               onPress={() => {
                 onRetry();
                 dismiss();
@@ -134,7 +134,7 @@ export function DownloadInfoSheet({
             layout="grouped"
             title="Delete Download"
             description="Remove from device"
-            icon={<Trash size={20} className="text-destructive" />}
+            icon={<Trash size={20} className="text-red" />}
             variant="destructive"
             onPress={() => {
               onDelete();
@@ -156,9 +156,9 @@ interface InfoRowProps {
 function InfoRow({ label, value, valueClassName }: InfoRowProps) {
   return (
     <View className="flex-row justify-between py-2">
-      <Text className="text-sm text-muted-foreground">{label}</Text>
+      <Text className="text-sm text-subtext0">{label}</Text>
       <Text
-        className={`text-sm text-foreground flex-1 text-right ml-4 ${valueClassName ?? ""}`}
+        className={`text-sm text-text flex-1 text-right ml-4 ${valueClassName ?? ""}`}
         numberOfLines={1}
       >
         {value}

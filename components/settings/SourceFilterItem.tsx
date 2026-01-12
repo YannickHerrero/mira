@@ -37,8 +37,8 @@ function MultiSelectItem({ label, selected, onPress }: MultiSelectItemProps) {
       className="py-3 flex-row items-center justify-between"
       onPress={onPress}
     >
-      <Text className="text-foreground text-base">{label}</Text>
-      {selected && <Check size={20} className="text-primary" />}
+      <Text className="text-text text-base">{label}</Text>
+      {selected && <Check size={20} className="text-lavender" />}
     </Pressable>
   );
 }
@@ -92,7 +92,7 @@ export function QualityFilterItem({ className }: FilterItemProps) {
       </BottomSheetOpenTrigger>
       <BottomSheetContent>
         <BottomSheetHeader>
-          <Text className="text-foreground text-xl font-bold pb-1">
+          <Text className="text-text text-xl font-bold pb-1">
             Select Quality
           </Text>
         </BottomSheetHeader>
@@ -104,7 +104,7 @@ export function QualityFilterItem({ className }: FilterItemProps) {
             onPress={selectAll}
           />
 
-          <View className="h-px bg-border my-2" />
+          <View className="h-px bg-surface1 my-2" />
 
           {/* Individual quality options */}
           {QUALITY_OPTIONS.map((quality) => (
@@ -178,7 +178,7 @@ export function LanguageFilterItem({ className }: FilterItemProps) {
       </BottomSheetOpenTrigger>
       <BottomSheetContent snapPoints={["70%"]} enableDynamicSizing={false}>
         <BottomSheetHeader>
-          <Text className="text-foreground text-xl font-bold pb-1">
+          <Text className="text-text text-xl font-bold pb-1">
             Select Languages
           </Text>
         </BottomSheetHeader>
@@ -194,7 +194,7 @@ export function LanguageFilterItem({ className }: FilterItemProps) {
                 selected={isAllSelected}
                 onPress={selectAll}
               />
-              <View className="h-px bg-border my-2" />
+              <View className="h-px bg-surface1 my-2" />
             </View>
           }
         />

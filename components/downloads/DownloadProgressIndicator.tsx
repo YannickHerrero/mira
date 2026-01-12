@@ -76,17 +76,17 @@ export function DownloadProgressIndicator() {
       <Pressable onPress={toggleExpanded}>
         <Animated.View
           style={animatedContainerStyle}
-          className="bg-card border border-border rounded-2xl shadow-lg overflow-hidden"
+          className="bg-surface0 border border-surface1 rounded-2xl shadow-lg overflow-hidden"
         >
           {/* Collapsed state - just icon with progress ring */}
           {!isExpanded && (
             <View className="flex-1 items-center justify-center">
               <View className="relative w-10 h-10 items-center justify-center">
                 {/* Progress ring background */}
-                <View className="absolute inset-0 rounded-full border-2 border-muted" />
+                <View className="absolute inset-0 rounded-full border-2 border-surface0" />
                 {/* Progress ring */}
                 <View
-                  className="absolute inset-0 rounded-full border-2 border-primary"
+                  className="absolute inset-0 rounded-full border-2 border-lavender"
                   style={{
                     borderTopColor: "transparent",
                     borderRightColor: progress > 25 ? undefined : "transparent",
@@ -95,11 +95,11 @@ export function DownloadProgressIndicator() {
                     transform: [{ rotate: `${(progress / 100) * 360}deg` }],
                   }}
                 />
-                <Download size={18} className="text-foreground" />
+                <Download size={18} className="text-text" />
               </View>
               {queueCount > 0 && (
-                <View className="absolute -top-1 -right-1 w-5 h-5 bg-primary rounded-full items-center justify-center">
-                  <Text className="text-xs text-primary-foreground font-bold">
+                <View className="absolute -top-1 -right-1 w-5 h-5 bg-lavender rounded-full items-center justify-center">
+                  <Text className="text-xs text-crust font-bold">
                     {queueCount + 1}
                   </Text>
                 </View>
@@ -113,12 +113,12 @@ export function DownloadProgressIndicator() {
               <View className="flex-row items-start justify-between mb-2">
                 <View className="flex-1 mr-2">
                   <Text
-                    className="text-sm font-medium text-foreground"
+                    className="text-sm font-medium text-text"
                     numberOfLines={1}
                   >
                     {activeDownload.title}
                   </Text>
-                  <Text className="text-xs text-muted-foreground">
+                  <Text className="text-xs text-subtext0">
                     {Math.round(progress)}% complete
                     {queueCount > 0 && ` • ${queueCount} in queue`}
                   </Text>
@@ -128,20 +128,20 @@ export function DownloadProgressIndicator() {
                   className="p-1 -mr-1 active:opacity-70"
                   hitSlop={8}
                 >
-                  <X size={16} className="text-muted-foreground" />
+                  <X size={16} className="text-subtext0" />
                 </Pressable>
               </View>
 
               {/* Progress bar */}
-              <View className="h-2 bg-muted rounded-full overflow-hidden">
+              <View className="h-2 bg-surface0 rounded-full overflow-hidden">
                 <View
-                  className="h-full bg-primary rounded-full"
+                  className="h-full bg-lavender rounded-full"
                   style={{ width: `${progress}%` }}
                 />
               </View>
 
               {activeDownload.fileSize && (
-                <Text className="text-xs text-muted-foreground mt-1">
+                <Text className="text-xs text-subtext0 mt-1">
                   {formatBytes((activeDownload.fileSize * progress) / 100)} /{" "}
                   {formatBytes(activeDownload.fileSize)}
                 </Text>

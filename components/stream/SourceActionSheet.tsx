@@ -54,7 +54,7 @@ export function SourceActionSheet({
                         ? "bg-purple-600"
                         : stream.quality === "1080p"
                           ? "bg-blue-600"
-                          : "bg-muted"
+                          : "bg-surface0"
                     )}
                   >
                     <Text className="text-xs font-bold text-white">
@@ -73,7 +73,7 @@ export function SourceActionSheet({
 
                 {stream.videoCodec && (
                   <Badge variant="outline" className="px-2 py-0.5">
-                    <Text className="text-xs text-muted-foreground">
+                    <Text className="text-xs text-subtext0">
                       {stream.videoCodec}
                     </Text>
                   </Badge>
@@ -82,7 +82,7 @@ export function SourceActionSheet({
 
               {/* Title */}
               <Text
-                className="text-sm text-foreground"
+                className="text-sm text-text"
                 numberOfLines={2}
               >
                 {stream.title}
@@ -90,11 +90,11 @@ export function SourceActionSheet({
 
               {/* Meta info */}
               <View className="flex-row items-center mt-2 gap-3">
-                <Text className="text-xs text-muted-foreground">
+                <Text className="text-xs text-subtext0">
                   {stream.provider}
                 </Text>
                 {stream.size && (
-                  <Text className="text-xs text-muted-foreground">
+                  <Text className="text-xs text-subtext0">
                     {stream.size}
                   </Text>
                 )}
@@ -102,13 +102,13 @@ export function SourceActionSheet({
             </View>
 
             {/* Actions */}
-            <View className="border-t border-border/60 pt-4">
+            <View className="border-t border-surface1/60 pt-4">
               <BottomSheetActionGroup>
                 <BottomSheetActionRow
                   layout="grouped"
                   title="Play Now"
                   description="Stream directly"
-                  icon={<Play size={20} className="text-foreground" />}
+                  icon={<Play size={20} className="text-text" />}
                   onPress={() => {
                     onPlay();
                     dismiss();
@@ -134,7 +134,7 @@ export function SourceActionSheet({
                             ? `${formatBytes(stream.sizeBytes)} will be saved`
                             : "Save for offline viewing"
                     }
-                    icon={<Download size={20} className="text-foreground" />}
+                    icon={<Download size={20} className="text-text" />}
                     className={!canDownload ? "opacity-60" : undefined}
                     onPress={() => {
                       if (canDownload) {

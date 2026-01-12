@@ -36,7 +36,7 @@ export const NotificationItem = () => {
           handleRequestPermissions();
         }
       }}
-      itemRight={() => <Text className="text-muted-foreground">
+      itemRight={() => <Text className="text-subtext0">
         {
           permission === Notifications.PermissionStatus.GRANTED
             ? "Enabled"
