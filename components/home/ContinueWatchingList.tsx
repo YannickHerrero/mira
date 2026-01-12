@@ -13,7 +13,7 @@ interface ContinueWatchingListProps {
 
 export function ContinueWatchingList({
   items,
-  maxItems = 3,
+  maxItems = 2,
 }: ContinueWatchingListProps) {
   const router = useRouter();
   const { t } = useTranslation();

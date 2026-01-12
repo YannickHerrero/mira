@@ -169,7 +169,7 @@ export default function HomeScreen() {
         <View className="gap-8 pb-32 mt-8">
           {/* Continue Watching (list style) */}
           {continueItems.length > 0 && (
-            <ContinueWatchingList items={continueItems} maxItems={3} />
+            <ContinueWatchingList items={continueItems} maxItems={2} />
           )}
 
           {/* New Releases */}
