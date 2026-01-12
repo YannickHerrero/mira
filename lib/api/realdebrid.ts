@@ -62,6 +62,35 @@ interface RDError {
   error_code: number;
 }
 
+interface RDInstantAvailabilityResponse {
+  [hash: string]: {
+    rd?: Array<unknown>;
+  };
+}
+
+interface RDTorrentInfoFile {
+  id: number;
+  path: string;
+  bytes: number;
+  selected: number;
+}
+
+interface RDTorrentInfo {
+  id: string;
+  filename?: string;
+  links?: string[];
+  files?: RDTorrentInfoFile[];
+}
+
+interface RDAddMagnetResponse {
+  id: string;
+}
+
+interface RDUnrestrictResponse {
+  download?: string;
+  link?: string;
+}
+
 // ============================================
 // Real-Debrid Client
 // ============================================
@@ -145,6 +174,74 @@ export class RealDebridClient {
     } catch {
       return false;
     }
+  }
+
+  /**
+   * Check instant availability for torrent hashes
+   */
+  async getInstantAvailability(infoHashes: string[]): Promise<Record<string, boolean>> {
+    if (infoHashes.length === 0) return {};
+
+    const hashPath = infoHashes.join("/");
+    const response = await this.fetch<RDInstantAvailabilityResponse>(
+      `/torrents/instantAvailability/${hashPath}`
+    );
+
+    return infoHashes.reduce<Record<string, boolean>>((acc, hash) => {
+      const data = response[hash];
+      acc[hash] = Array.isArray(data?.rd) && data.rd.length > 0;
+      return acc;
+    }, {});
+  }
+
+  /**
+   * Add a magnet to Real-Debrid
+   */
+  async addMagnet(magnet: string): Promise<RDAddMagnetResponse> {
+    const body = new URLSearchParams({ magnet }).toString();
+    return this.fetch<RDAddMagnetResponse>("/torrents/addMagnet", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body,
+    });
+  }
+
+  /**
+   * Select files for a torrent
+   */
+  async selectFiles(torrentId: string, files: "all" | string[]): Promise<void> {
+    const filesValue = files === "all" ? "all" : files.join(",");
+    const body = new URLSearchParams({ files: filesValue }).toString();
+    await this.fetch<void>(`/torrents/selectFiles/${torrentId}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body,
+    });
+  }
+
+  /**
+   * Get torrent info
+   */
+  async getTorrentInfo(torrentId: string): Promise<RDTorrentInfo> {
+    return this.fetch<RDTorrentInfo>(`/torrents/info/${torrentId}`);
+  }
+
+  /**
+   * Unrestrict a download link
+   */
+  async unrestrictLink(link: string): Promise<RDUnrestrictResponse> {
+    const body = new URLSearchParams({ link }).toString();
+    return this.fetch<RDUnrestrictResponse>("/unrestrict/link", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body,
+    });
   }
 
   /**

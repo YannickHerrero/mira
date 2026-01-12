@@ -30,6 +30,7 @@ export default function SourcesScreen() {
 
   const [imdbId, setImdbId] = React.useState<string | null>(null);
   const [mediaTitle, setMediaTitle] = React.useState<string>("");
+  const [mediaOriginalTitle, setMediaOriginalTitle] = React.useState<string | undefined>();
   const [posterPath, setPosterPath] = React.useState<string | undefined>();
   const [backdropPath, setBackdropPath] = React.useState<string | undefined>();
   const [episodeStillPath, setEpisodeStillPath] = React.useState<string | undefined>();
@@ -70,6 +71,7 @@ export default function SourcesScreen() {
         if (mediaType === "tv") {
           const { media } = await client.getTvDetailsById(tmdbId);
           setMediaTitle(media.title);
+          setMediaOriginalTitle(media.titleOriginal);
           setPosterPath(media.posterPath);
           setBackdropPath(media.backdropPath);
           setGenres(media.genres);
@@ -92,6 +94,7 @@ export default function SourcesScreen() {
         } else {
           const media = await client.getMovieDetails(tmdbId);
           setMediaTitle(media.title);
+          setMediaOriginalTitle(media.titleOriginal);
           setPosterPath(media.posterPath);
           setBackdropPath(media.backdropPath);
           setGenres(media.genres);
@@ -122,6 +125,9 @@ export default function SourcesScreen() {
     mediaType,
     season: seasonNumber,
     episode: episodeNumber,
+    title: mediaTitle,
+    originalTitle: mediaOriginalTitle,
+    year,
     isAnime,
     enabled: !!imdbId,
     showUncached,

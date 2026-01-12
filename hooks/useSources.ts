@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import type { Stream, MediaType } from "@/lib/types";
+import { createNyaaClient } from "@/lib/api/nyaa";
 import { createTorrentioClient } from "@/lib/api/torrentio";
 import { useApiKeyStore } from "@/stores/api-keys";
 import { calculateSourceScore, getRecommendedSources } from "@/lib/api/source-scoring";
@@ -10,6 +11,9 @@ interface UseSourcesOptions {
   mediaType: MediaType;
   season?: number;
   episode?: number;
+  title?: string;
+  originalTitle?: string;
+  year?: number;
   isAnime?: boolean;
   enabled?: boolean;
   showUncached?: boolean;
@@ -28,6 +32,9 @@ export function useSources({
   mediaType,
   season,
   episode,
+  title,
+  originalTitle,
+  year,
   isAnime = false,
   enabled = true,
   showUncached = false,
@@ -40,6 +47,36 @@ export function useSources({
   const realDebridApiKey = useApiKeyStore((s) => s.realDebridApiKey);
   const { preferredAudioLanguages } = useStreamingPreferences();
 
+  const buildNyaaQueries = () => {
+    if (!title) return [];
+
+    const formatEpisodeToken = (seasonNumber?: number, episodeNumber?: number) => {
+      if (seasonNumber === undefined || episodeNumber === undefined) return "";
+      const seasonLabel = seasonNumber.toString().padStart(2, "0");
+      const episodeLabel = episodeNumber.toString().padStart(2, "0");
+      return `S${seasonLabel}E${episodeLabel}`;
+    };
+
+    const episodeToken = formatEpisodeToken(season, episode);
+    const baseTokens = (baseTitle: string) => {
+      const tokens = [baseTitle.trim()];
+      if (mediaType === "tv" && episodeToken) {
+        tokens.push(episodeToken);
+      }
+      if (mediaType === "movie" && year) {
+        tokens.push(year.toString());
+      }
+      return tokens.filter(Boolean).join(" ");
+    };
+
+    const queries = [baseTokens(title)];
+    if (originalTitle && originalTitle.toLowerCase() !== title.toLowerCase()) {
+      queries.push(baseTokens(originalTitle));
+    }
+
+    return queries.filter(Boolean);
+  };
+
   const fetchSources = useCallback(async () => {
     if (!imdbId || !realDebridApiKey || !enabled) {
       return;
@@ -49,16 +86,31 @@ export function useSources({
     setError(null);
 
     try {
-      const client = createTorrentioClient(realDebridApiKey);
+      const torrentioClient = createTorrentioClient(realDebridApiKey);
 
       let results: Stream[];
       if (season !== undefined && episode !== undefined) {
         // TV episode
-        results = await client.getEpisodeStreams(imdbId, season, episode, showUncached);
+        results = await torrentioClient.getEpisodeStreams(imdbId, season, episode, showUncached);
       } else {
         // Movie
-        results = await client.getMovieStreams(imdbId, showUncached);
+        results = await torrentioClient.getMovieStreams(imdbId, showUncached);
       }
+
+      let nyaaResults: Stream[] = [];
+      if (isAnime) {
+        try {
+          const queries = buildNyaaQueries();
+          if (queries.length > 0) {
+            const nyaaClient = createNyaaClient(realDebridApiKey);
+            nyaaResults = await nyaaClient.searchAnime({ queries });
+          }
+        } catch {
+          nyaaResults = [];
+        }
+      }
+
+      const mergedResults = [...results, ...nyaaResults];
 
       const scoringOptions = {
         mediaType,
@@ -67,11 +119,11 @@ export function useSources({
       };
 
       // Get recommended sources
-      const recommended = getRecommendedSources(results, scoringOptions);
+      const recommended = getRecommendedSources(mergedResults, scoringOptions);
       setRecommendedStreams(recommended);
 
       // Sort all streams by score
-      results.sort((a, b) => {
+      mergedResults.sort((a, b) => {
         const scoreA = calculateSourceScore(a, scoringOptions);
         const scoreB = calculateSourceScore(b, scoringOptions);
         
@@ -99,7 +151,7 @@ export function useSources({
         return a.sizeBytes - b.sizeBytes;
       });
 
-      setStreams(results);
+      setStreams(mergedResults);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load sources");
       setStreams([]);
@@ -107,7 +159,7 @@ export function useSources({
     } finally {
       setIsLoading(false);
     }
-  }, [imdbId, mediaType, season, episode, isAnime, realDebridApiKey, enabled, preferredAudioLanguages, showUncached]);
+  }, [imdbId, mediaType, season, episode, title, originalTitle, year, isAnime, realDebridApiKey, enabled, preferredAudioLanguages, showUncached]);
 
   useEffect(() => {
     if (enabled && imdbId) {
