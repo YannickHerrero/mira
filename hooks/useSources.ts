@@ -16,7 +16,6 @@ interface UseSourcesOptions {
   year?: number;
   isAnime?: boolean;
   enabled?: boolean;
-  showUncached?: boolean;
 }
 
 interface UseSourcesResult {
@@ -37,7 +36,6 @@ export function useSources({
   year,
   isAnime = false,
   enabled = true,
-  showUncached = false,
 }: UseSourcesOptions): UseSourcesResult {
   const [streams, setStreams] = useState<Stream[]>([]);
   const [recommendedStreams, setRecommendedStreams] = useState<Stream[]>([]);
@@ -88,29 +86,30 @@ export function useSources({
     try {
       const torrentioClient = createTorrentioClient(realDebridApiKey);
 
-      let results: Stream[];
-      if (season !== undefined && episode !== undefined) {
-        // TV episode
-        results = await torrentioClient.getEpisodeStreams(imdbId, season, episode, showUncached);
-      } else {
-        // Movie
-        results = await torrentioClient.getMovieStreams(imdbId, showUncached);
-      }
+      const torrentioPromise =
+        season !== undefined && episode !== undefined
+          ? torrentioClient.getEpisodeStreams(imdbId, season, episode, true)
+          : torrentioClient.getMovieStreams(imdbId, true);
 
-      let nyaaResults: Stream[] = [];
-      if (isAnime) {
-        try {
-          const queries = buildNyaaQueries();
-          if (queries.length > 0) {
-            const nyaaClient = createNyaaClient(realDebridApiKey);
-            nyaaResults = await nyaaClient.searchAnime({ queries });
-          }
-        } catch {
-          nyaaResults = [];
-        }
-      }
+      const nyaaPromise = isAnime
+        ? (async () => {
+            try {
+              const queries = buildNyaaQueries();
+              if (queries.length === 0) return [];
+              const nyaaClient = createNyaaClient(realDebridApiKey);
+              return await nyaaClient.searchAnime({ queries });
+            } catch {
+              return [];
+            }
+          })()
+        : Promise.resolve([] as Stream[]);
 
-      const mergedResults = [...results, ...nyaaResults];
+      const [torrentioResults, nyaaResults] = await Promise.all([
+        torrentioPromise,
+        nyaaPromise,
+      ]);
+
+      const mergedResults = [...torrentioResults, ...nyaaResults];
 
       const scoringOptions = {
         mediaType,
@@ -159,7 +158,7 @@ export function useSources({
     } finally {
       setIsLoading(false);
     }
-  }, [imdbId, mediaType, season, episode, title, originalTitle, year, isAnime, realDebridApiKey, enabled, preferredAudioLanguages, showUncached]);
+  }, [imdbId, mediaType, season, episode, title, originalTitle, year, isAnime, realDebridApiKey, enabled, preferredAudioLanguages]);
 
   useEffect(() => {
     if (enabled && imdbId) {

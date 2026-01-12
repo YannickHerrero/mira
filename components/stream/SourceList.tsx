@@ -1,8 +1,9 @@
 import * as React from "react";
-import { View, FlatList, ActivityIndicator, Platform } from "react-native";
+import { View, FlatList, Platform } from "react-native";
 import type { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { Text } from "@/components/ui/text";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { BottomSheet } from "@/components/primitives/bottomSheet/bottom-sheet.native";
 import { SourceCard } from "./SourceCard";
 import { SourceActionSheet } from "./SourceActionSheet";
@@ -16,7 +17,6 @@ import type { Stream, MediaType } from "@/lib/types";
 import { useSourceFilters } from "@/hooks/useSourceFilters";
 import { useStreamingPreferences } from "@/hooks/useStreamingPreferences";
 import { filterStreams, hasActiveFilters } from "@/lib/filter-streams";
-import { cn } from "@/lib/utils";
 
 const INVALID_FILENAME_CHARS = /[<>:"/\\|?*\u0000-\u001F]/g;
 
@@ -112,8 +112,6 @@ interface SourceListProps {
   mediaTitle?: string;
   episodeTitle?: string;
   year?: number;
-  showUncached: boolean;
-  onToggleShowUncached: () => void;
   // Custom header component (e.g., hero section)
   ListHeaderComponent?: React.ReactNode;
 }
@@ -133,8 +131,6 @@ export function SourceList({
   mediaTitle,
   episodeTitle,
   year,
-  showUncached,
-  onToggleShowUncached,
   ListHeaderComponent: CustomHeaderComponent,
 }: SourceListProps) {
   const [selectedStream, setSelectedStream] = React.useState<Stream | null>(null);
@@ -442,12 +438,26 @@ export function SourceList({
     []
   );
 
+  const loadingItems = React.useMemo(() => Array.from({ length: 6 }, (_, index) => index), []);
+
   if (isLoading) {
     return (
-      <View className="flex-1 items-center justify-center py-12">
-        <ActivityIndicator size="large" />
-        <Text className="text-subtext0 mt-4">Loading sources...</Text>
-      </View>
+      <FlatList
+        data={loadingItems}
+        keyExtractor={(item) => `skeleton-${item}`}
+        contentContainerStyle={{
+          paddingHorizontal: 16,
+          paddingBottom: 16,
+          flexGrow: 1,
+        }}
+        showsVerticalScrollIndicator={false}
+        ListHeaderComponent={<View>{CustomHeaderComponent}</View>}
+        renderItem={() => (
+          <View className="mb-3">
+            <Skeleton className="h-24 rounded-lg" />
+          </View>
+        )}
+      />
     );
   }
 
@@ -467,19 +477,8 @@ export function SourceList({
             No sources found for this title.
           </Text>
           <Text className="text-subtext0 text-center text-sm mt-2">
-            {showUncached
-              ? "No cached or uncached sources yet."
-              : "Try uncached sources or check back later."}
+            Check back later for new sources.
           </Text>
-          <Button
-            variant="outline"
-            className="flex-row items-center justify-center mt-4"
-            onPress={onToggleShowUncached}
-          >
-            <Text className="text-text">
-              {showUncached ? "Hide uncached sources" : "Show uncached sources"}
-            </Text>
-          </Button>
         </>
       ) : (
         <>
@@ -490,22 +489,13 @@ export function SourceList({
             {streams.length} source{streams.length !== 1 ? "s" : ""} available
           </Text>
           <Button
-            variant="outline"
+            variant="secondary"
             className="flex-row items-center justify-center mt-4"
             onPress={() => setShowAllSources(true)}
           >
             <Eye size={16} className="text-text mr-2" />
             <Text className="text-text">
               Show All {streams.length} Sources
-            </Text>
-          </Button>
-          <Button
-            variant="outline"
-            className="flex-row items-center justify-center mt-3"
-            onPress={onToggleShowUncached}
-          >
-            <Text className="text-text">
-              {showUncached ? "Hide uncached sources" : "Show uncached sources"}
             </Text>
           </Button>
         </>
@@ -587,7 +577,7 @@ export function SourceList({
           <View className="mt-4 mb-8">
             {filtersActive && !showAllSources && filteredStreams.length < streams.length ? (
               <Button
-                variant="outline"
+                variant="secondary"
                 className="flex-row items-center justify-center"
                 onPress={() => setShowAllSources(true)}
               >
@@ -597,20 +587,6 @@ export function SourceList({
                 </Text>
               </Button>
             ) : null}
-            <Button
-              variant={showUncached ? "default" : "outline"}
-              className={cn(
-                "flex-row items-center justify-center",
-                filtersActive && !showAllSources && filteredStreams.length < streams.length
-                  ? "mt-3"
-                  : ""
-              )}
-              onPress={onToggleShowUncached}
-            >
-              <Text className={showUncached ? "text-crust" : "text-text"}>
-                {showUncached ? "Hide uncached sources" : "Show uncached sources"}
-              </Text>
-            </Button>
           </View>
         }
       />

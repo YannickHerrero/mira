@@ -1,10 +1,11 @@
 import * as React from "react";
-import { View, ActivityIndicator, Pressable, Image } from "react-native";
+import { View, Pressable, Image } from "react-native";
 import { useLocalSearchParams, Stack, useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
 import { Text } from "@/components/ui/text";
+import { Skeleton } from "@/components/ui/skeleton";
 import { SourceList } from "@/components/stream";
 import { useApiKeyStore } from "@/stores/api-keys";
 import { useLanguageStore } from "@/stores/language";
@@ -38,7 +39,6 @@ export default function SourcesScreen() {
   const [genres, setGenres] = React.useState<string[]>([]);
   const [year, setYear] = React.useState<number | undefined>();
   const [isAnime, setIsAnime] = React.useState(false);
-  const [showUncached, setShowUncached] = React.useState(false);
   const [isLoadingMedia, setIsLoadingMedia] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
 
@@ -129,8 +129,7 @@ export default function SourcesScreen() {
     originalTitle: mediaOriginalTitle,
     year,
     isAnime,
-    enabled: !!imdbId,
-    showUncached,
+    enabled: !!imdbId && !isLoadingMedia,
   });
 
   const handleSelectStream = async (stream: { url?: string }) => {
@@ -157,27 +156,7 @@ export default function SourcesScreen() {
       ? `${mediaTitle} - S${seasonNumber}E${episodeNumber}`
       : mediaTitle;
 
-  // Loading state
-  if (isLoadingMedia) {
-    return (
-      <View className="flex-1 bg-base">
-        <Stack.Screen options={{ headerShown: false }} />
-        <View className="px-4" style={{ paddingTop: insets.top + 8 }}>
-          <Pressable
-            onPress={() => router.back()}
-            className="overflow-hidden rounded-full self-start"
-          >
-            <BlurView intensity={50} tint="dark" className="p-2.5">
-              <ChevronLeft size={24} className="text-text" />
-            </BlurView>
-          </Pressable>
-        </View>
-        <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" />
-        </View>
-      </View>
-    );
-  }
+  const isLoading = isLoadingMedia || isLoadingSources;
 
   // Error state
   if (error) {
@@ -217,9 +196,8 @@ export default function SourcesScreen() {
       ? `Season ${seasonNumber} Episode ${episodeNumber}`
       : year?.toString();
 
-  // Hero section component to pass to SourceList
-  const heroSection = (
-    <View style={{ height: heroHeight + insets.top, marginBottom: 72, marginHorizontal: -16 }}>
+  const heroContent = (
+    <>
       {/* Backdrop Image */}
       {backdropUrl && (
         <Image
@@ -270,6 +248,34 @@ export default function SourcesScreen() {
           </Text>
         )}
       </View>
+    </>
+  );
+
+  const heroSkeleton = (
+    <>
+      <View className="absolute inset-0 bg-surface0" />
+      <View className="absolute px-4" style={{ top: insets.top + 8 }}>
+        <Pressable
+          onPress={() => router.back()}
+          className="overflow-hidden rounded-full"
+        >
+          <BlurView intensity={50} tint="dark" className="p-2.5">
+            <ChevronLeft size={24} className="text-text" />
+          </BlurView>
+        </Pressable>
+      </View>
+      <View className="absolute left-0 right-0 px-4" style={{ bottom: -40 }}>
+        <Skeleton className="h-3 w-24 rounded mb-2" />
+        <Skeleton className="h-6 w-48 rounded mb-2" />
+        <Skeleton className="h-3 w-28 rounded" />
+      </View>
+    </>
+  );
+
+  // Hero section component to pass to SourceList
+  const heroSection = (
+    <View style={{ height: heroHeight + insets.top, marginBottom: 72, marginHorizontal: -16 }}>
+      {isLoadingMedia ? heroSkeleton : heroContent}
     </View>
   );
 
@@ -280,7 +286,7 @@ export default function SourcesScreen() {
       <SourceList
         streams={streams}
         recommendedStreams={recommendedStreams}
-        isLoading={isLoadingSources}
+        isLoading={isLoading}
         error={sourcesError}
         onSelectStream={handleSelectStream}
         tmdbId={tmdbId}
@@ -292,8 +298,6 @@ export default function SourcesScreen() {
         mediaTitle={mediaTitle}
         episodeTitle={episodeTitle}
         year={year}
-        showUncached={showUncached}
-        onToggleShowUncached={() => setShowUncached((prev) => !prev)}
         ListHeaderComponent={heroSection}
       />
     </View>
