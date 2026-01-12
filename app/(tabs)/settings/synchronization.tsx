@@ -187,20 +187,23 @@ export default function SynchronizationSettings() {
                   onChangeText={setClientIdInput}
                   placeholder={t("settings.anilistClientIdPlaceholder")}
                   keyboardType="numeric"
+                  editable={!accessToken}
                   className="flex-1"
                 />
-                <Button
-                  variant="outline"
-                  onPress={() => setClientId(clientIdTrimmed)}
-                  disabled={!clientIdDirty || !clientIdTrimmed}
-                  className="h-10 w-10 native:h-12 native:w-12"
-                >
-                  {clientIdSaved ? (
-                    <Check size={18} className="text-text" />
-                  ) : (
-                    <Save size={18} className="text-text" />
-                  )}
-                </Button>
+                {!accessToken && (
+                  <Button
+                    variant="outline"
+                    onPress={() => setClientId(clientIdTrimmed)}
+                    disabled={!clientIdDirty || !clientIdTrimmed}
+                    className="h-10 w-10 native:h-12 native:w-12"
+                  >
+                    {clientIdSaved ? (
+                      <Check size={18} className="text-text" />
+                    ) : (
+                      <Save size={18} className="text-text" />
+                    )}
+                  </Button>
+                )}
               </View>
             </View>
 
@@ -220,39 +223,33 @@ export default function SynchronizationSettings() {
                   lineBreakStrategyIOS="none"
                   textBreakStrategy="simple"
                   scrollEnabled
+                  editable={!accessToken}
                   className="flex-1 overflow-hidden"
                 />
-                <Button
-                  variant="outline"
-                  onPress={() => setClientSecret(clientSecretTrimmed)}
-                  disabled={!clientSecretDirty || !clientSecretTrimmed}
-                  className="h-10 w-10 native:h-12 native:w-12"
-                >
-                  {clientSecretSaved ? (
-                    <Check size={18} className="text-text" />
-                  ) : (
-                    <Save size={18} className="text-text" />
-                  )}
-                </Button>
+                {!accessToken && (
+                  <Button
+                    variant="outline"
+                    onPress={() => setClientSecret(clientSecretTrimmed)}
+                    disabled={!clientSecretDirty || !clientSecretTrimmed}
+                    className="h-10 w-10 native:h-12 native:w-12"
+                  >
+                    {clientSecretSaved ? (
+                      <Check size={18} className="text-text" />
+                    ) : (
+                      <Save size={18} className="text-text" />
+                    )}
+                  </Button>
+                )}
               </View>
             </View>
 
             {accessToken ? (
-              <View className="flex-row items-center gap-2">
-                <Button variant="outline" disabled className="flex-1">
-                  <View className="flex-row items-center gap-2">
-                    <Check size={16} className="text-text" />
-                    <Text>{t("settings.anilistConnected")}</Text>
-                  </View>
-                </Button>
-                <Button
-                  variant="outline"
-                  onPress={handleDisconnect}
-                  disabled={!enableAnilistSync}
-                >
-                  <Text>{t("settings.disconnect")}</Text>
-                </Button>
-              </View>
+              <Button
+                onPress={handleDisconnect}
+                disabled={!enableAnilistSync}
+              >
+                <Text>{t("settings.disconnect")}</Text>
+              </Button>
             ) : (
               <Button
                 onPress={handleConnect}
