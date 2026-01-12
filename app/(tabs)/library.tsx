@@ -1,6 +1,6 @@
 import * as React from "react";
 import { View, ScrollView, Pressable, RefreshControl, Platform } from "react-native";
-import { useFocusEffect, useRouter } from "expo-router";
+import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import type { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { Text } from "@/components/ui/text";
@@ -40,7 +40,17 @@ type TabType = "watchlist" | "continue" | "lists" | "favorites" | "downloads";
 export default function LibraryScreen() {
   const router = useRouter();
   const { t } = useTranslation();
-  const [activeTab, setActiveTab] = React.useState<TabType>("watchlist");
+  const { tab } = useLocalSearchParams<{ tab?: string }>();
+  const normalizedTab = Array.isArray(tab) ? tab[0] : tab;
+  const isTab = (value?: string): value is TabType =>
+    value === "watchlist" ||
+    value === "continue" ||
+    value === "lists" ||
+    value === "favorites" ||
+    value === "downloads";
+  const [activeTab, setActiveTab] = React.useState<TabType>(() =>
+    isTab(normalizedTab) ? normalizedTab : "watchlist"
+  );
   const [refreshing, setRefreshing] = React.useState(false);
 
   const { items: continueItems, isLoading: loadingContinue, refetch: refetchContinue } = useContinueWatching();
@@ -71,6 +81,12 @@ export default function LibraryScreen() {
   // Bottom sheet for download info
   const [selectedDownload, setSelectedDownload] = React.useState<DownloadItem | null>(null);
   const downloadInfoSheetRef = React.useRef<BottomSheetModal>(null);
+
+  React.useEffect(() => {
+    if (isTab(normalizedTab) && normalizedTab !== activeTab) {
+      setActiveTab(normalizedTab);
+    }
+  }, [activeTab, normalizedTab]);
 
   // Refetch data when screen gains focus
   useFocusEffect(

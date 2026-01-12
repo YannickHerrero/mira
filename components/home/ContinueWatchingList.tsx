@@ -19,7 +19,7 @@ export function ContinueWatchingList({
   const { t } = useTranslation();
 
   const handleSeeMore = () => {
-    router.push("/library" as any);
+    router.push("/library?tab=continue" as any);
   };
 
   if (items.length === 0) {
