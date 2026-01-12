@@ -1,4 +1,4 @@
-import { ActivityIndicator, View } from "react-native";
+import { ActivityIndicator, Alert, View } from "react-native";
 import { ScrollView } from "react-native-gesture-handler";
 import { useTranslation } from "react-i18next";
 import * as Linking from "expo-linking";
@@ -31,6 +31,7 @@ export default function SynchronizationSettings() {
     setClientSecret,
   } = useAniListStore();
   const [isConnecting, setIsConnecting] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
   const [clientIdInput, setClientIdInput] = useState(clientId ?? "");
   const [clientSecretInput, setClientSecretInput] = useState(clientSecret ?? "");
 
@@ -64,44 +65,58 @@ export default function SynchronizationSettings() {
   const handleConnect = async () => {
     if (!clientId || !clientSecret) return;
 
+    setAuthError(null);
     setIsConnecting(true);
     try {
-      const redirectUri = Linking.createURL("anilist-auth", { scheme: "mira" });
+      const redirectUri = Linking.createURL("anilist-auth");
       const authUrl = `https://anilist.co/api/v2/oauth/authorize?client_id=${clientId}&response_type=code&redirect_uri=${encodeURIComponent(redirectUri)}`;
       const result = await WebBrowser.openAuthSessionAsync(authUrl, redirectUri);
 
-      if (result.type === "success" && result.url) {
-        const url = new URL(result.url);
-        const code = url.searchParams.get("code");
-
-        if (code) {
-          const tokenResponse = await fetch("https://anilist.co/api/v2/oauth/token", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              grant_type: "authorization_code",
-              client_id: clientId,
-              client_secret: clientSecret,
-              redirect_uri: redirectUri,
-              code,
-            }),
-          });
-
-          if (!tokenResponse.ok) {
-            const errorText = await tokenResponse.text();
-            throw new Error(`AniList token error: ${tokenResponse.status} ${errorText}`);
-          }
-
-          const tokenPayload = (await tokenResponse.json()) as { access_token?: string };
-
-          if (tokenPayload.access_token) {
-            await setAccessToken(tokenPayload.access_token);
-            await processAniListSyncQueue();
-          }
-        }
+      if (result.type !== "success" || !result.url) {
+        const message = result.type === "cancel" ? t("settings.anilistAuthCancelled") : t("settings.anilistAuthFailed");
+        setAuthError(message);
+        return;
       }
+
+      const url = new URL(result.url);
+      const code = url.searchParams.get("code");
+
+      if (!code) {
+        setAuthError(t("settings.anilistAuthMissingCode"));
+        return;
+      }
+
+      const tokenResponse = await fetch("https://anilist.co/api/v2/oauth/token", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          grant_type: "authorization_code",
+          client_id: clientId,
+          client_secret: clientSecret,
+          redirect_uri: redirectUri,
+          code,
+        }),
+      });
+
+      if (!tokenResponse.ok) {
+        const errorText = await tokenResponse.text();
+        throw new Error(`AniList token error: ${tokenResponse.status} ${errorText}`);
+      }
+
+      const tokenPayload = (await tokenResponse.json()) as { access_token?: string };
+
+      if (!tokenPayload.access_token) {
+        setAuthError(t("settings.anilistAuthMissingToken"));
+        return;
+      }
+
+      await setAccessToken(tokenPayload.access_token);
+      await processAniListSyncQueue();
+      Alert.alert(t("settings.anilistConnected"), t("settings.anilistAuthSuccess"));
     } catch (error) {
       console.warn("[SynchronizationSettings] AniList auth failed", error);
+      const message = error instanceof Error ? error.message : t("settings.anilistAuthFailed");
+      setAuthError(message);
     } finally {
       setIsConnecting(false);
     }
@@ -161,6 +176,7 @@ export default function SynchronizationSettings() {
               <Muted>
                 {accessToken ? t("settings.anilistConnected") : t("settings.anilistNotConnected")}
               </Muted>
+              {!accessToken && authError && <Muted>{authError}</Muted>}
             </View>
 
             <View className="gap-2">
