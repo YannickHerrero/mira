@@ -2,6 +2,7 @@ import * as React from "react";
 import { View } from "react-native";
 import { Text } from "@/components/ui/text";
 import { Button } from "@/components/ui/button";
+import { TextButton } from "@/components/ui/text-button";
 import { AlertCircle, RefreshCw, WifiOff } from "@/lib/icons";
 import { cn } from "@/lib/utils";
 
@@ -97,23 +98,22 @@ export function ErrorState({
       </Text>
 
       {onRetry && (
-        <Button
-          variant="outline"
+        <TextButton
+          variant="secondary"
           onPress={onRetry}
           disabled={isRetrying}
           className="mt-6"
-        >
-          <View className="flex-row items-center">
+          label={isRetrying ? "Retrying..." : "Try Again"}
+          leftIcon={
             <RefreshCw
               size={16}
               className={cn(
-                "mr-2 text-text",
+                "text-text",
                 isRetrying && "animate-spin"
               )}
             />
-            <Text>{isRetrying ? "Retrying..." : "Try Again"}</Text>
-          </View>
-        </Button>
+          }
+        />
       )}
     </View>
   );

@@ -1,7 +1,7 @@
 import * as React from "react";
 import { View } from "react-native";
 import { Text } from "@/components/ui/text";
-import { Button } from "@/components/ui/button";
+import { TextButton } from "@/components/ui/text-button";
 import { cn } from "@/lib/utils";
 
 interface EmptyStateProps {
@@ -42,9 +42,12 @@ export function EmptyState({
       )}
 
       {action && (
-        <Button variant="outline" onPress={action.onPress} className="mt-6">
-          <Text>{action.label}</Text>
-        </Button>
+        <TextButton
+          variant="secondary"
+          onPress={action.onPress}
+          className="mt-6"
+          label={action.label}
+        />
       )}
     </View>
   );

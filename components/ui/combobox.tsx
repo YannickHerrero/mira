@@ -12,6 +12,7 @@ import {
   BottomSheetTextInput,
   useBottomSheet,
 } from "./bottom-sheet";
+import {TextButton} from "@/components/ui/text-button";
 import {Button, buttonTextVariants, buttonVariants} from "./button";
 
 // TODO: refactor and move to UI
@@ -88,10 +89,18 @@ const Combobox = React.forwardRef<
           ? selectedItemProp?.value === listItem.value
           : selectedItem?.value === listItem.value;
         return (
-          <Button
+          <TextButton
             variant="ghost"
             className="items-center flex-row flex-1 justify-between px-3 py-4"
+            contentClassName="flex-1 justify-between"
             style={{minHeight: 70}}
+            label={listItem.label ?? ""}
+            textVariant="xl"
+            rightIcon={
+              isSelected ? (
+                <Check size={24} className={"text-text px-6 mt-1.5"} />
+              ) : null
+            }
             onPress={() => {
               if (onSelectedItemChange) {
                 onSelectedItemChange(onItemChange(listItem));
@@ -99,16 +108,7 @@ const Combobox = React.forwardRef<
               }
               setSelectedItem(onItemChange(listItem));
             }}
-          >
-            <View className="flex-row flex-1">
-              <Text className={"text-text text-xl"}>
-                {listItem.label}
-              </Text>
-            </View>
-            {isSelected && (
-              <Check size={24} className={"text-text px-6 mt-1.5"} />
-            )}
-          </Button>
+          />
         );
       },
       [selectedItem, selectedItemProp],

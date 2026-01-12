@@ -10,6 +10,7 @@ import { Switch } from "@/components/ui/switch";
 import { Text } from "@/components/ui/text";
 import { Muted } from "@/components/ui/typography";
 import { Button } from "@/components/ui/button";
+import { TextButton } from "@/components/ui/text-button";
 import { Input } from "@/components/ui/input";
 import { Check, Save } from "@/lib/icons";
 import { processAniListSyncQueue } from "@/lib/anilist-sync";
@@ -255,21 +256,21 @@ export default function SynchronizationSettings() {
             </View>
 
             {accessToken ? (
-              <Button
+              <TextButton
                 onPress={handleDisconnectConfirm}
                 disabled={!enableAnilistSync}
-              >
-                <Text>{t("settings.disconnect")}</Text>
-              </Button>
+                label={t("settings.disconnect")}
+              />
             ) : (
-              <Button
+              <TextButton
                 onPress={handleConnect}
                 disabled={!enableAnilistSync || !clientId || !clientSecret || isConnecting}
-              >
-                <Text>
-                  {isConnecting ? t("settings.connecting") : t("settings.connectAnilist")}
-                </Text>
-              </Button>
+                label={
+                  isConnecting
+                    ? t("settings.connecting")
+                    : t("settings.connectAnilist")
+                }
+              />
             )}
           </View>
 

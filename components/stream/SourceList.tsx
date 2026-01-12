@@ -2,7 +2,7 @@ import * as React from "react";
 import { Alert, View, FlatList, Platform } from "react-native";
 import type { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { Text } from "@/components/ui/text";
-import { Button } from "@/components/ui/button";
+import { TextButton } from "@/components/ui/text-button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BottomSheet } from "@/components/primitives/bottomSheet/bottom-sheet.native";
 import { SourceCard } from "./SourceCard";
@@ -502,16 +502,13 @@ export function SourceList({
           <Text className="text-subtext0 text-center text-sm mt-2">
             {streams.length} source{streams.length !== 1 ? "s" : ""} available
           </Text>
-          <Button
+          <TextButton
             variant="secondary"
-            className="flex-row items-center justify-center mt-4"
+            className="mt-4"
             onPress={() => setShowAllSources(true)}
-          >
-            <Eye size={16} className="text-text mr-2" />
-            <Text className="text-text">
-              Show All {streams.length} Sources
-            </Text>
-          </Button>
+            leftIcon={<Eye size={16} className="text-text" />}
+            label={`Show All ${streams.length} Sources`}
+          />
         </>
       )}
     </View>
@@ -543,16 +540,14 @@ export function SourceList({
                     Downloaded - Ready to watch offline
                   </Text>
                 </View>
-                <Button
+                <TextButton
                   size="sm"
-                  className="flex-row items-center justify-center"
                   onPress={handlePlayDownloaded}
-                >
-                  <Play size={16} className="text-crust mr-2" fill="currentColor" />
-                  <Text className="text-crust font-medium">
-                    Play Downloaded
-                  </Text>
-                </Button>
+                  leftIcon={
+                    <Play size={16} className="text-crust" fill="currentColor" />
+                  }
+                  label="Play Downloaded"
+                />
               </View>
             )}
 
@@ -590,16 +585,12 @@ export function SourceList({
         ListFooterComponent={
           <View className="mt-4 mb-8">
             {filtersActive && !showAllSources && filteredStreams.length < streams.length ? (
-              <Button
+              <TextButton
                 variant="secondary"
-                className="flex-row items-center justify-center"
                 onPress={() => setShowAllSources(true)}
-              >
-                <Eye size={16} className="text-text mr-2" />
-                <Text className="text-text">
-                  Show All {streams.length} Sources
-                </Text>
-              </Button>
+                leftIcon={<Eye size={16} className="text-text" />}
+                label={`Show All ${streams.length} Sources`}
+              />
             ) : null}
           </View>
         }

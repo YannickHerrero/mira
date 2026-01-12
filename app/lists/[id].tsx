@@ -5,7 +5,7 @@ import type { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useBottomSheetModal } from "@gorhom/bottom-sheet";
 import { useTranslation } from "react-i18next";
 import { Text } from "@/components/ui/text";
-import { Button } from "@/components/ui/button";
+import { TextButton } from "@/components/ui/text-button";
 import { MediaGrid } from "@/components/media";
 import {
   BottomSheet,
@@ -60,9 +60,7 @@ function ListActionsSheet({
   return (
     <BottomSheetContent ref={sheetRef}>
       <BottomSheetView className="pb-8 gap-4">
-        <Text className="text-lg font-semibold text-text">
-          {listName}
-        </Text>
+        <Text className="text-lg font-semibold text-text">{listName}</Text>
 
         <BottomSheetActionGroup>
           <BottomSheetActionRow
@@ -132,16 +130,19 @@ function RenameSheet({ sheetRef, currentName, onSave }: RenameSheetProps) {
           returnKeyType="done"
         />
         <View className="flex-row gap-3 mt-4">
-          <Button variant="outline" className="flex-1" onPress={() => dismiss()}>
-            <Text>{t("common.cancel")}</Text>
-          </Button>
-          <Button
+          <TextButton
+            variant="secondary"
+            className="flex-1"
+            onPress={() => dismiss()}
+            label={t("common.cancel")}
+          />
+          <TextButton
             className="flex-1"
             onPress={handleSave}
             disabled={!name.trim() || name.trim() === currentName}
-          >
-            <Text className="text-crust font-semibold">{t("common.save")}</Text>
-          </Button>
+            label={t("common.save")}
+            textVariant="strong"
+          />
         </View>
       </BottomSheetView>
     </BottomSheetContent>
@@ -201,7 +202,7 @@ export default function ListDetailScreen() {
             router.back();
           },
         },
-      ]
+      ],
     );
   };
 

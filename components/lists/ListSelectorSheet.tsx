@@ -10,8 +10,8 @@ import {
   BottomSheetTextInput,
 } from "@/components/primitives/bottomSheet/bottom-sheet.native";
 import { Text } from "@/components/ui/text";
-import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { TextButton } from "@/components/ui/text-button";
 import { Check, Plus } from "@/lib/icons";
 import { cn } from "@/lib/utils";
 import type { ListWithCount } from "@/hooks/useLists";
@@ -211,23 +211,22 @@ export function ListSelectorSheet({
                   returnKeyType="done"
                 />
                 <View className="flex-row gap-2 mt-3">
-                  <Button
+                  <TextButton
                     variant="secondary"
                     className="flex-1"
                     onPress={() => {
                       setIsCreatingList(false);
                       setNewListName("");
                     }}
-                  >
-                    <Text>{t("common.cancel")}</Text>
-                  </Button>
-                  <Button
+                    label={t("common.cancel")}
+                  />
+                  <TextButton
                     className="flex-1"
                     onPress={handleCreateList}
                     disabled={!newListName.trim()}
-                  >
-                    <Text className="text-base">{t("list.create")}</Text>
-                  </Button>
+                    label={t("list.create")}
+                    textVariant="base"
+                  />
                 </View>
               </View>
             ) : (
@@ -254,26 +253,21 @@ export function ListSelectorSheet({
 
             {/* Action buttons */}
             <View className="flex-row gap-3 pt-2">
-              <Button
+              <TextButton
                 variant="secondary"
                 className="flex-1"
                 onPress={handleCancel}
-              >
-                <Text>{t("common.cancel")}</Text>
-              </Button>
-              <Button
+                label={t("common.cancel")}
+              />
+              <TextButton
                 className="flex-1"
                 onPress={handleSave}
                 disabled={isSaving}
-              >
-                {isSaving ? (
-                  <ActivityIndicator size="small" color="white" />
-                ) : (
-                  <Text className="text-base font-semibold">
-                    {t("common.done")}
-                  </Text>
-                )}
-              </Button>
+                loading={isSaving}
+                loadingColor="white"
+                label={t("common.done")}
+                textVariant="baseStrong"
+              />
             </View>
           </>
         )}

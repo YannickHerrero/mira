@@ -10,8 +10,8 @@ import {
 } from "@/components/primitives/bottomSheet/bottom-sheet.native";
 import { Text } from "@/components/ui/text";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import ListItem from "@/components/ui/list-item";
+import { TextButton } from "@/components/ui/text-button";
 import { Key, CheckCircle, XCircle, ExternalLink } from "@/lib/icons";
 import * as WebBrowser from "expo-web-browser";
 
@@ -152,19 +152,19 @@ export function ApiKeyItem({
 
           {/* Action buttons */}
           <View className="flex-row gap-3">
-            <Button
+            <TextButton
               variant="default"
               onPress={handleSave}
               disabled={isSaving}
               className="flex-1"
-            >
-              <Text className="text-crust font-medium">
-                {isSaving ? "Validating..." : value ? "Update" : "Save"}
-              </Text>
-            </Button>
-            <Button variant="secondary" onPress={handleCancel} className="flex-1">
-              <Text className="text-text font-medium">Cancel</Text>
-            </Button>
+              label={isSaving ? "Validating..." : value ? "Update" : "Save"}
+            />
+            <TextButton
+              variant="secondary"
+              onPress={handleCancel}
+              className="flex-1"
+              label="Cancel"
+            />
           </View>
 
           {/* Help link */}

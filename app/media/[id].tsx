@@ -11,6 +11,7 @@ import { useBottomSheetModal } from "@gorhom/bottom-sheet";
 import { useTranslation } from "react-i18next";
 import { Text } from "@/components/ui/text";
 import { Button } from "@/components/ui/button";
+import { TextButton } from "@/components/ui/text-button";
 import { Muted } from "@/components/ui/typography";
 import {
   BottomSheet,
@@ -363,9 +364,11 @@ export default function MediaDetailScreen() {
   const renderTrackingFooter = React.useCallback(
     (props: any) => (
       <BottomSheetFooter bottomSheetFooterProps={props}>
-        <Button variant="secondary" onPress={handleCloseTracking}>
-          <Text>{t("media.cancel")}</Text>
-        </Button>
+        <TextButton
+          variant="secondary"
+          onPress={handleCloseTracking}
+          label={t("media.cancel")}
+        />
       </BottomSheetFooter>
     ),
     [handleCloseTracking, t]
@@ -566,14 +569,14 @@ export default function MediaDetailScreen() {
         {/* Action buttons */}
         <View className="flex-row px-4 mt-6 gap-3">
           {mediaType === "movie" ? (
-            <Button
-              className="flex-1 flex-row items-center justify-center"
+            <TextButton
+              className="flex-1"
               onPress={handleWatchMovie}
               disabled={!imdbId}
-            >
-              <Play size={18} className="text-crust mr-2" fill="currentColor" />
-              <Text className="text-crust font-semibold">{t("media.watchNow")}</Text>
-            </Button>
+              label={t("media.watchNow")}
+              leftIcon={<Play size={18} className="text-crust" fill="currentColor" />}
+              textVariant="strong"
+            />
           ) : (
             <View className="flex-1">
               <Text className="text-sm text-subtext0 mb-2">
@@ -728,14 +731,13 @@ export default function MediaDetailScreen() {
                   onSubmitEditing={() => handleSearchAniList()}
                   returnKeyType="search"
                 />
-                <Button
+                <TextButton
                   onPress={() => handleSearchAniList()}
                   disabled={isAniListSearching || !aniListSearchQuery.trim()}
-                >
-                  <Text>
-                    {isAniListSearching ? t("media.searching") : t("media.search")}
-                  </Text>
-                </Button>
+                  label={
+                    isAniListSearching ? t("media.searching") : t("media.search")
+                  }
+                />
               </View>
 
               {currentTracking && (
@@ -748,9 +750,11 @@ export default function MediaDetailScreen() {
                       </Text>
                       {currentTrackingMeta && <Muted>{currentTrackingMeta}</Muted>}
                     </View>
-                    <Button variant="destructive" onPress={handleRemoveTracking}>
-                      <Text>{t("media.removeTracking")}</Text>
-                    </Button>
+                    <TextButton
+                      variant="destructive"
+                      onPress={handleRemoveTracking}
+                      label={t("media.removeTracking")}
+                    />
                   </View>
                 </View>
               )}
