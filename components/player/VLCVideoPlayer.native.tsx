@@ -30,6 +30,8 @@ export function VLCVideoPlayer({
   const playerRef = React.useRef<VLCPlayer | null>(null);
   const [controlsVisible, setControlsVisible] = React.useState(true);
   const [isLoaded, setIsLoaded] = React.useState(false);
+  const [hasStartedPlayback, setHasStartedPlayback] = React.useState(false);
+  const [isMenuOpen, setIsMenuOpen] = React.useState(false);
   const hideControlsTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
   const originalBrightnessRef = React.useRef<number>(1);
 
@@ -88,12 +90,12 @@ export function VLCVideoPlayer({
       clearTimeout(hideControlsTimeoutRef.current);
     }
 
-    if (playerState.isPlaying && !playerState.isLocked) {
+    if (playerState.isPlaying && !playerState.isLocked && hasStartedPlayback && !isMenuOpen) {
       hideControlsTimeoutRef.current = setTimeout(() => {
         setControlsVisible(false);
       }, 3000);
     }
-  }, [playerState.isPlaying, playerState.isLocked]);
+  }, [playerState.isPlaying, playerState.isLocked, hasStartedPlayback, isMenuOpen]);
 
   // Show controls and reset timer
   const showControls = React.useCallback(() => {
@@ -115,6 +117,7 @@ export function VLCVideoPlayer({
       duration: event.duration,
       seekable: event.seekable,
     });
+    setHasStartedPlayback(true);
     setPlayerState((prev) => ({
       ...prev,
       isPlaying: true,
@@ -290,12 +293,13 @@ export function VLCVideoPlayer({
     showControls();
   };
 
-  const handleSeek = (time: number) => {
+  const handleSeek = (time: number, options?: { showControls?: boolean }) => {
     const duration = playerState.duration;
     if (duration <= 0) return;
 
     const clampedTime = Math.max(0, Math.min(time, duration));
     const seekPos = clampedTime / duration;
+    const shouldShowControls = options?.showControls ?? true;
 
     // Mark as seeking and store target position
     isSeekingRef.current = true;
@@ -309,7 +313,9 @@ export function VLCVideoPlayer({
     }
 
     setPlayerState((prev) => ({ ...prev, position: clampedTime }));
-    showControls();
+    if (shouldShowControls) {
+      showControls();
+    }
 
     // Safety timeout: if seek doesn't complete within 5 seconds, reset seeking state
     setTimeout(() => {
@@ -320,8 +326,8 @@ export function VLCVideoPlayer({
     }, 5000);
   };
 
-  const handleSeekRelative = (delta: number) => {
-    handleSeek(playerState.position + delta);
+  const handleSeekRelative = (delta: number, options?: { showControls?: boolean }) => {
+    handleSeek(playerState.position + delta, options);
   };
 
   const handleVolumeChange = (volume: number) => {
@@ -364,11 +370,13 @@ export function VLCVideoPlayer({
   const handleSelectAudioTrack = (track: SelectedTrack) => {
     console.log(LOG_PREFIX, "Selecting audio track:", track);
     setPlayerState((prev) => ({ ...prev, selectedAudioTrack: track }));
+    showControls();
   };
 
   const handleSelectTextTrack = (track: SelectedTrack | undefined) => {
     console.log(LOG_PREFIX, "Selecting text track:", track);
     setPlayerState((prev) => ({ ...prev, selectedTextTrack: track }));
+    showControls();
   };
 
   // Get numeric track value for VLC
@@ -405,7 +413,7 @@ export function VLCVideoPlayer({
 
   // Reset timer when playing state changes
   React.useEffect(() => {
-    if (playerState.isPlaying && !playerState.isLocked) {
+    if (playerState.isPlaying && !playerState.isLocked && hasStartedPlayback && !isMenuOpen) {
       resetHideControlsTimer();
     } else {
       if (hideControlsTimeoutRef.current) {
@@ -415,7 +423,7 @@ export function VLCVideoPlayer({
         setControlsVisible(true);
       }
     }
-  }, [playerState.isPlaying, playerState.isLocked, resetHideControlsTimer]);
+  }, [playerState.isPlaying, playerState.isLocked, hasStartedPlayback, isMenuOpen, resetHideControlsTimer]);
 
   return (
     <View style={styles.container}>
@@ -446,14 +454,13 @@ export function VLCVideoPlayer({
       {/* Gesture layer */}
       <PlayerGestures
         onTap={toggleControls}
-        onDoubleTapLeft={() => handleSeekRelative(-10)}
-        onDoubleTapRight={() => handleSeekRelative(10)}
-        onHorizontalSwipe={handleSeekRelative}
+        onDoubleTapLeft={() => handleSeekRelative(-10, { showControls: false })}
+        onDoubleTapRight={() => handleSeekRelative(10, { showControls: false })}
+        onHorizontalSwipe={(delta) => handleSeekRelative(delta, { showControls: false })}
         onVolumeChange={handleVolumeChange}
         onBrightnessChange={handleBrightnessChange}
         currentVolume={playerState.volume / 255}
         currentBrightness={playerState.brightness}
-        showControls={showControls}
         isLocked={playerState.isLocked}
       />
 
@@ -473,6 +480,8 @@ export function VLCVideoPlayer({
         onSelectAudioTrack={handleSelectAudioTrack}
         onSelectTextTrack={handleSelectTextTrack}
         onToggleLock={handleToggleLock}
+        onUserInteraction={showControls}
+        onMenuStateChange={setIsMenuOpen}
       />
     </View>
   );

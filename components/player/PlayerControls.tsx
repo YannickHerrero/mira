@@ -23,6 +23,8 @@ interface PlayerControlsProps {
   onSelectAudioTrack: (track: SelectedTrack) => void;
   onSelectTextTrack: (track: SelectedTrack | undefined) => void;
   onToggleLock: () => void;
+  onUserInteraction?: () => void;
+  onMenuStateChange?: (isOpen: boolean) => void;
 }
 
 const PLAYBACK_RATES = [0.5, 0.75, 1, 1.25, 1.5, 2];
@@ -41,6 +43,8 @@ export function PlayerControls({
   onSelectAudioTrack,
   onSelectTextTrack,
   onToggleLock,
+  onUserInteraction,
+  onMenuStateChange,
 }: PlayerControlsProps) {
   const [activeMenu, setActiveMenu] = React.useState<MenuType>(null);
 
@@ -50,6 +54,10 @@ export function PlayerControls({
       setActiveMenu(null);
     }
   }, [visible]);
+
+  React.useEffect(() => {
+    onMenuStateChange?.(activeMenu !== null);
+  }, [activeMenu, onMenuStateChange]);
 
   const containerStyle = useAnimatedStyle(() => ({
     opacity: withTiming(visible ? 1 : 0, { duration: 200 }),
@@ -68,6 +76,7 @@ export function PlayerControls({
   };
 
   const toggleMenu = (menu: MenuType) => {
+    onUserInteraction?.();
     selectionChanged();
     setActiveMenu((prev) => (prev === menu ? null : menu));
   };

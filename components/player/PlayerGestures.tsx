@@ -23,7 +23,6 @@ interface PlayerGesturesProps {
   onBrightnessChange: (newBrightness: number) => void;
   currentVolume: number;
   currentBrightness: number;
-  showControls: () => void;
   isLocked: boolean;
 }
 
@@ -36,7 +35,6 @@ export function PlayerGestures({
   onBrightnessChange,
   currentVolume,
   currentBrightness,
-  showControls,
   isLocked,
 }: PlayerGesturesProps) {
   const { width } = useWindowDimensions();
@@ -118,7 +116,6 @@ export function PlayerGestures({
         accumulatedSeek.value = seekDelta;
         seekIndicatorValue.value = Math.round(seekDelta);
         seekIndicatorOpacity.value = withTiming(1, { duration: 100 });
-        runOnJS(showControls)();
       } else if (!isHorizontal && Math.abs(deltaY) > 10) {
         // Vertical swipe
         if (isRightSide) {

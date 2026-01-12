@@ -21,6 +21,7 @@ export function VLCVideoPlayer({
   const containerRef = React.useRef<HTMLDivElement>(null);
   const [controlsVisible, setControlsVisible] = React.useState(true);
   const [isLoaded, setIsLoaded] = React.useState(false);
+  const [hasStartedPlayback, setHasStartedPlayback] = React.useState(false);
   const hideControlsTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [playerState, setPlayerState] = React.useState<PlayerState>({
@@ -47,12 +48,12 @@ export function VLCVideoPlayer({
       clearTimeout(hideControlsTimeoutRef.current);
     }
 
-    if (playerState.isPlaying) {
+    if (playerState.isPlaying && hasStartedPlayback) {
       hideControlsTimeoutRef.current = setTimeout(() => {
         setControlsVisible(false);
       }, 3000);
     }
-  }, [playerState.isPlaying]);
+  }, [playerState.isPlaying, hasStartedPlayback]);
 
   const showControls = React.useCallback(() => {
     setControlsVisible(true);
@@ -91,6 +92,7 @@ export function VLCVideoPlayer({
   };
 
   const handlePlay = () => {
+    setHasStartedPlayback(true);
     setPlayerState((prev) => ({ ...prev, isPlaying: true, isBuffering: false }));
     resetHideControlsTimer();
   };
@@ -166,6 +168,7 @@ export function VLCVideoPlayer({
     const clampedVolume = Math.max(0, Math.min(1, volume));
     video.volume = clampedVolume;
     setPlayerState((prev) => ({ ...prev, volume: clampedVolume }));
+    showControls();
   };
 
   const handlePlaybackRateChange = (rate: number) => {
@@ -174,6 +177,7 @@ export function VLCVideoPlayer({
 
     video.playbackRate = rate;
     setPlayerState((prev) => ({ ...prev, playbackRate: rate }));
+    showControls();
   };
 
   const handleFullscreen = () => {
@@ -198,7 +202,7 @@ export function VLCVideoPlayer({
 
   // Reset timer when playing state changes
   React.useEffect(() => {
-    if (playerState.isPlaying) {
+    if (playerState.isPlaying && hasStartedPlayback) {
       resetHideControlsTimer();
     } else {
       if (hideControlsTimeoutRef.current) {
@@ -206,7 +210,7 @@ export function VLCVideoPlayer({
       }
       setControlsVisible(true);
     }
-  }, [playerState.isPlaying, resetHideControlsTimer]);
+  }, [playerState.isPlaying, hasStartedPlayback, resetHideControlsTimer]);
 
   // Keyboard controls
   React.useEffect(() => {
