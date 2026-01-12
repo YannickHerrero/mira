@@ -68,12 +68,12 @@ export default function SearchScreen() {
   // Not configured state
   if (!isLoadingKeys && !isConfigured) {
     return (
-      <View className="flex-1 bg-background items-center justify-center px-6">
-        <Search size={48} className="text-muted-foreground mb-4" />
-        <Text className="text-xl font-semibold text-foreground text-center">
+      <View className="flex-1 bg-base items-center justify-center px-6">
+        <Search size={48} className="text-subtext0 mb-4" />
+        <Text className="text-xl font-semibold text-text text-center">
           {t("search.apiRequired")}
         </Text>
-        <Text className="text-muted-foreground mt-2 text-center">
+        <Text className="text-subtext0 mt-2 text-center">
           {t("search.apiRequiredDesc")}
         </Text>
       </View>
@@ -81,7 +81,7 @@ export default function SearchScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-background" edges={["top"]}>
+    <SafeAreaView className="flex-1 bg-base" edges={["top"]}>
       {/* Page Title */}
       <View className="px-4 pt-4">
         <Text variant="pageTitle">
@@ -94,13 +94,13 @@ export default function SearchScreen() {
         {/* Search Input Row */}
         <View className="flex-row items-center gap-3">
           <View className="flex-1 flex-row items-center bg-surface0 rounded-lg px-4 py-2 gap-2">
-            <Search size={24} className="text-foreground" />
+            <Search size={24} className="text-text" />
             <Input
               ref={inputRef}
               value={query}
               onChangeText={setQuery}
               placeholder={t("search.placeholder")}
-              placeholderClassName="text-muted-foreground"
+              placeholderClassName="text-subtext0"
               className="flex-1 border-0 bg-transparent text-[11px] h-8"
               autoCapitalize="none"
               autoCorrect={false}
@@ -127,13 +127,13 @@ export default function SearchScreen() {
             />
             <FilterButton
               label={t("search.filterMovies")}
-              icon={<Film size={14} className={filter === "movie" ? "text-primary-foreground" : "text-muted-foreground"} />}
+              icon={<Film size={14} className={filter === "movie" ? "text-crust" : "text-subtext0"} />}
               isActive={filter === "movie"}
               onPress={() => setFilter("movie")}
             />
             <FilterButton
               label={t("search.filterTvShows")}
-              icon={<Tv size={14} className={filter === "tv" ? "text-primary-foreground" : "text-muted-foreground"} />}
+              icon={<Tv size={14} className={filter === "tv" ? "text-crust" : "text-subtext0"} />}
               isActive={filter === "tv"}
               onPress={() => setFilter("tv")}
             />
@@ -174,7 +174,7 @@ export default function SearchScreen() {
             data={filteredResults}
             isLoading={isLoading}
             emptyMessage={t("search.noResults")}
-            emptyIcon={<Search size={48} className="text-muted-foreground" />}
+            emptyIcon={<Search size={48} className="text-subtext0" />}
             contentPaddingBottom={96}
           />
         )}
@@ -201,14 +201,14 @@ function FilterButton({ label, icon, isActive, onPress }: FilterButtonProps) {
       onPress={handlePress}
       className={cn(
         "flex-row items-center px-3 py-1.5 rounded-full",
-        isActive ? "bg-primary" : "bg-muted"
+        isActive ? "bg-lavender" : "bg-surface0"
       )}
     >
       {icon && <View className="mr-1.5">{icon}</View>}
       <Text
         className={cn(
           "text-sm font-medium",
-          isActive ? "text-primary-foreground" : "text-muted-foreground"
+          isActive ? "text-crust" : "text-subtext0"
         )}
       >
         {label}

@@ -165,7 +165,7 @@ export default function LibraryScreen() {
             data={watchlistItems.map((item) => dbRecordToMedia(item.media))}
             isLoading={loadingWatchlist}
             emptyMessage={t("library.noWatchlist")}
-            emptyIcon={<ListChecks size={48} className="text-muted-foreground" />}
+            emptyIcon={<ListChecks size={48} className="text-subtext0" />}
             onRefresh={handleRefresh}
             isRefreshing={refreshing}
             contentPaddingBottom={96}
@@ -190,7 +190,7 @@ export default function LibraryScreen() {
         if (customLists.length === 0) {
           return (
             <EmptyState
-              icon={<List size={48} className="text-muted-foreground" />}
+              icon={<List size={48} className="text-subtext0" />}
               title={t("library.noLists")}
               description={t("library.noListsDesc")}
             />
@@ -212,7 +212,7 @@ export default function LibraryScreen() {
             data={favoriteItems.map(dbRecordToMedia)}
             isLoading={loadingFavorites}
             emptyMessage={t("library.noFavorites")}
-            emptyIcon={<Heart size={48} className="text-muted-foreground" />}
+            emptyIcon={<Heart size={48} className="text-subtext0" />}
             onRefresh={handleRefresh}
             isRefreshing={refreshing}
             contentPaddingBottom={96}
@@ -226,7 +226,7 @@ export default function LibraryScreen() {
         if (downloadItems.length === 0) {
           return (
             <EmptyState
-              icon={<Download size={48} className="text-muted-foreground" />}
+              icon={<Download size={48} className="text-subtext0" />}
               title={t("library.noDownloads")}
               description={t("library.noDownloadsDesc")}
             />
@@ -248,12 +248,12 @@ export default function LibraryScreen() {
   const showDownloadsTab = Platform.OS !== "web";
 
   return (
-    <View className="flex-1 bg-background">
+    <View className="flex-1 bg-base">
       {/* Tabs */}
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        className="flex-grow-0 border-b border-border"
+        className="flex-grow-0 border-b border-surface1"
         contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 12 }}
       >
         <TabButton
@@ -333,23 +333,23 @@ function TabButton({ label, icon, isActive, onPress, badge }: TabButtonProps) {
       onPress={handlePress}
       className={cn(
         "flex-row items-center px-4 py-2 mr-2 rounded-full",
-        isActive ? "bg-primary" : "bg-muted"
+        isActive ? "bg-lavender" : "bg-surface0"
       )}
     >
-      <View className={cn("mr-1.5", isActive ? "text-primary-foreground" : "text-muted-foreground")}>
+      <View className={cn("mr-1.5", isActive ? "text-crust" : "text-subtext0")}>
         {icon}
       </View>
       <Text
         className={cn(
           "text-sm font-medium",
-          isActive ? "text-primary-foreground" : "text-muted-foreground"
+          isActive ? "text-crust" : "text-subtext0"
         )}
       >
         {label}
       </Text>
       {badge !== undefined && (
-        <View className="ml-1.5 bg-background/20 rounded-full px-1.5 py-0.5">
-          <Text className="text-xs text-primary-foreground">{badge}</Text>
+        <View className="ml-1.5 bg-base/20 rounded-full px-1.5 py-0.5">
+          <Text className="text-xs text-crust">{badge}</Text>
         </View>
       )}
     </Pressable>
@@ -363,12 +363,12 @@ function DownloadLoadingState() {
       {Array.from({ length: 3 }).map((_, i) => (
         <View
           key={i}
-          className="flex-row bg-card rounded-lg overflow-hidden mb-3 border border-border h-28"
+          className="flex-row bg-surface0 rounded-lg overflow-hidden mb-3 border border-surface1 h-28"
         >
-          <View className="w-20 h-full bg-muted animate-pulse" />
+          <View className="w-20 h-full bg-surface0 animate-pulse" />
           <View className="flex-1 p-3 justify-center">
-            <View className="h-4 bg-muted rounded w-3/4 animate-pulse mb-2" />
-            <View className="h-3 bg-muted rounded w-1/2 animate-pulse" />
+            <View className="h-4 bg-surface0 rounded w-3/4 animate-pulse mb-2" />
+            <View className="h-3 bg-surface0 rounded w-1/2 animate-pulse" />
           </View>
         </View>
       ))}
@@ -382,12 +382,12 @@ function ListsLoadingState() {
       {Array.from({ length: 4 }).map((_, i) => (
         <View
           key={i}
-          className="flex-row items-center bg-card rounded-lg mb-3 border border-border p-4"
+          className="flex-row items-center bg-surface0 rounded-lg mb-3 border border-surface1 p-4"
         >
-          <View className="w-10 h-10 bg-muted rounded-lg animate-pulse mr-3" />
+          <View className="w-10 h-10 bg-surface0 rounded-lg animate-pulse mr-3" />
           <View className="flex-1">
-            <View className="h-4 bg-muted rounded w-1/3 animate-pulse mb-2" />
-            <View className="h-3 bg-muted rounded w-1/4 animate-pulse" />
+            <View className="h-4 bg-surface0 rounded w-1/3 animate-pulse mb-2" />
+            <View className="h-3 bg-surface0 rounded w-1/4 animate-pulse" />
           </View>
         </View>
       ))}
@@ -426,23 +426,23 @@ function ListsGrid({
         <Pressable
           key={list.id}
           onPress={() => onListPress(list.id)}
-          className="flex-row items-center bg-card rounded-lg mb-3 border border-border p-4 active:opacity-70"
+          className="flex-row items-center bg-surface0 rounded-lg mb-3 border border-surface1 p-4 active:opacity-70"
         >
-          <View className="w-10 h-10 bg-primary/10 rounded-lg items-center justify-center mr-3">
-            <List size={20} className="text-primary" />
+          <View className="w-10 h-10 bg-lavender/10 rounded-lg items-center justify-center mr-3">
+            <List size={20} className="text-lavender" />
           </View>
           <View className="flex-1">
-            <Text className="text-base font-medium text-foreground">
+            <Text className="text-base font-medium text-text">
               {list.name}
               {list.isDefault && (
-                <Text className="text-muted-foreground"> {t("library.default")}</Text>
+                <Text className="text-subtext0"> {t("library.default")}</Text>
               )}
             </Text>
-            <Text className="text-sm text-muted-foreground">
+            <Text className="text-sm text-subtext0">
               {t("library.item", { count: list.itemCount })}
             </Text>
           </View>
-          <ChevronRight size={20} className="text-muted-foreground" />
+          <ChevronRight size={20} className="text-subtext0" />
         </Pressable>
       ))}
     </ScrollView>
@@ -530,7 +530,7 @@ function ContinueWatchingGrid({
       data={mediaItems}
       isLoading={isLoading}
       emptyMessage={t("library.nothingToContinue")}
-      emptyIcon={<Play size={48} className="text-muted-foreground" />}
+      emptyIcon={<Play size={48} className="text-subtext0" />}
       renderItem={renderItem}
       onRefresh={onRefresh}
       isRefreshing={refreshing}

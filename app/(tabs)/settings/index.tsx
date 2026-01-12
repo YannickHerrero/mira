@@ -18,7 +18,7 @@ export default function SettingsIndex() {
 
   return (
     <ScrollView
-      className="flex-1 w-full bg-background"
+      className="flex-1 w-full bg-base"
       contentContainerStyle={{ paddingBottom: 96 }}
     >
       {/* Profile Header */}

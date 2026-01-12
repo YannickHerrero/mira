@@ -27,14 +27,14 @@ export default function AccountSettings() {
 
   if (isLoading) {
     return (
-      <View className="flex-1 bg-background items-center justify-center">
+      <View className="flex-1 bg-base items-center justify-center">
         <ActivityIndicator size="large" />
       </View>
     );
   }
 
   return (
-    <View className="flex-1 bg-background">
+    <View className="flex-1 bg-base">
       <SettingsPageHeader title={t("settings.account")} />
 
       <ScrollView
@@ -44,7 +44,7 @@ export default function AccountSettings() {
         <View className="mb-3">
           <Muted className="uppercase text-xs font-bold opacity-50 px-1">{t("settings.apiConfiguration")}</Muted>
         </View>
-        <View className="bg-muted/20 rounded-2xl overflow-hidden">
+        <View className="bg-surface0/20 rounded-2xl overflow-hidden">
           <ApiKeyItem
             label={t("settings.tmdb")}
             description={t("settings.tmdbDesc")}
@@ -54,7 +54,7 @@ export default function AccountSettings() {
             helpUrl="https://www.themoviedb.org/settings/api"
             helpLabel={t("settings.getTmdbKey")}
             onSave={setTmdbKey}
-            className="border-0 border-b border-border/30"
+            className="border-0 border-b border-surface1/30"
           />
 
           <ApiKeyItem
@@ -80,13 +80,13 @@ export default function AccountSettings() {
             {t("settings.dataSync")}
           </Muted>
         </View>
-        <View className="bg-muted/20 rounded-2xl overflow-hidden">
+        <View className="bg-surface0/20 rounded-2xl overflow-hidden">
           <ListItem
             itemLeft={(props) => <Archive {...props} />}
             label={t("settings.exportData")}
             description={t("settings.exportDataDesc")}
             onPress={exportData}
-            className="border-0 border-b border-border/30"
+            className="border-0 border-b border-surface1/30"
           />
           <ListItem
             itemLeft={(props) => <Download {...props} />}

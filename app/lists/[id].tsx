@@ -60,7 +60,7 @@ function ListActionsSheet({
   return (
     <BottomSheetContent ref={sheetRef}>
       <BottomSheetView className="pb-8 gap-4">
-        <Text className="text-lg font-semibold text-foreground">
+        <Text className="text-lg font-semibold text-text">
           {listName}
         </Text>
 
@@ -68,7 +68,7 @@ function ListActionsSheet({
           <BottomSheetActionRow
             layout="grouped"
             title={t("list.rename")}
-            icon={<Pencil size={20} className="text-foreground" />}
+            icon={<Pencil size={20} className="text-text" />}
             onPress={() => {
               dismiss();
               onRename();
@@ -79,7 +79,7 @@ function ListActionsSheet({
             <BottomSheetActionRow
               layout="grouped"
               title={t("list.delete")}
-              icon={<Trash size={20} className="text-destructive" />}
+              icon={<Trash size={20} className="text-red" />}
               variant="destructive"
               onPress={() => {
                 dismiss();
@@ -118,7 +118,7 @@ function RenameSheet({ sheetRef, currentName, onSave }: RenameSheetProps) {
   return (
     <BottomSheetContent ref={sheetRef}>
       <BottomSheetHeader>
-        <Text className="text-lg font-semibold text-foreground py-4">
+        <Text className="text-lg font-semibold text-text py-4">
           {t("list.renameList")}
         </Text>
       </BottomSheetHeader>
@@ -140,7 +140,7 @@ function RenameSheet({ sheetRef, currentName, onSave }: RenameSheetProps) {
             onPress={handleSave}
             disabled={!name.trim() || name.trim() === currentName}
           >
-            <Text className="text-primary-foreground font-semibold">{t("common.save")}</Text>
+            <Text className="text-crust font-semibold">{t("common.save")}</Text>
           </Button>
         </View>
       </BottomSheetView>
@@ -207,21 +207,21 @@ export default function ListDetailScreen() {
 
   if (!currentList) {
     return (
-      <View className="flex-1 bg-background items-center justify-center">
+      <View className="flex-1 bg-base items-center justify-center">
         <Stack.Screen options={{ title: t("library.lists") }} />
-        <Text className="text-muted-foreground">{t("list.notFound")}</Text>
+        <Text className="text-subtext0">{t("list.notFound")}</Text>
       </View>
     );
   }
 
   return (
-    <View className="flex-1 bg-background">
+    <View className="flex-1 bg-base">
       <Stack.Screen
         options={{
           title: currentList.name,
           headerRight: () => (
             <Pressable onPress={handleOpenActions} className="p-2">
-              <MoreVertical size={24} className="text-foreground" />
+              <MoreVertical size={24} className="text-text" />
             </Pressable>
           ),
         }}
@@ -231,7 +231,7 @@ export default function ListDetailScreen() {
         data={items.map((item) => dbRecordToMedia(item.media))}
         isLoading={isLoading}
         emptyMessage={t("library.listEmpty")}
-        emptyIcon={<List size={48} className="text-muted-foreground" />}
+        emptyIcon={<List size={48} className="text-subtext0" />}
         onRefresh={handleRefresh}
         isRefreshing={refreshing}
         contentPaddingBottom={96}

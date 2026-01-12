@@ -154,7 +154,7 @@ export default function SourcesScreen() {
   // Loading state
   if (isLoadingMedia) {
     return (
-      <View className="flex-1 bg-background">
+      <View className="flex-1 bg-base">
         <Stack.Screen options={{ headerShown: false }} />
         <View className="px-4" style={{ paddingTop: insets.top + 8 }}>
           <Pressable
@@ -162,7 +162,7 @@ export default function SourcesScreen() {
             className="overflow-hidden rounded-full self-start"
           >
             <BlurView intensity={50} tint="dark" className="p-2.5">
-              <ChevronLeft size={24} className="text-foreground" />
+              <ChevronLeft size={24} className="text-text" />
             </BlurView>
           </Pressable>
         </View>
@@ -176,7 +176,7 @@ export default function SourcesScreen() {
   // Error state
   if (error) {
     return (
-      <View className="flex-1 bg-background">
+      <View className="flex-1 bg-base">
         <Stack.Screen options={{ headerShown: false }} />
         <View className="px-4" style={{ paddingTop: insets.top + 8 }}>
           <Pressable
@@ -184,12 +184,12 @@ export default function SourcesScreen() {
             className="overflow-hidden rounded-full self-start"
           >
             <BlurView intensity={50} tint="dark" className="p-2.5">
-              <ChevronLeft size={24} className="text-foreground" />
+              <ChevronLeft size={24} className="text-text" />
             </BlurView>
           </Pressable>
         </View>
         <View className="flex-1 items-center justify-center px-6">
-          <Text className="text-destructive text-center">{error}</Text>
+          <Text className="text-red text-center">{error}</Text>
         </View>
       </View>
     );
@@ -243,7 +243,7 @@ export default function SourcesScreen() {
           className="overflow-hidden rounded-full"
         >
           <BlurView intensity={50} tint="dark" className="p-2.5">
-            <ChevronLeft size={24} className="text-foreground" />
+            <ChevronLeft size={24} className="text-text" />
           </BlurView>
         </Pressable>
       </View>
@@ -251,15 +251,15 @@ export default function SourcesScreen() {
       {/* Hero Text Content - overlapping below the image */}
       <View className="absolute left-0 right-0 px-4" style={{ bottom: -40 }}>
         {heroMutedText && (
-          <Text className="text-[10px] text-foreground opacity-50 lowercase mb-1">
+          <Text className="text-[10px] text-text opacity-50 lowercase mb-1">
             {heroMutedText}
           </Text>
         )}
-        <Text className="text-2xl font-bold text-foreground mb-1">
+        <Text className="text-2xl font-bold text-text mb-1">
           {heroTitle}
         </Text>
         {heroSubtitle && (
-          <Text className="text-xs font-semibold text-foreground">
+          <Text className="text-xs font-semibold text-text">
             {heroSubtitle}
           </Text>
         )}
@@ -268,7 +268,7 @@ export default function SourcesScreen() {
   );
 
   return (
-    <View className="flex-1 bg-background">
+    <View className="flex-1 bg-base">
       <Stack.Screen options={{ headerShown: false }} />
 
       <SourceList

@@ -21,14 +21,14 @@ export default function PlaybackSettings() {
 
   if (isLoading) {
     return (
-      <View className="flex-1 bg-background items-center justify-center">
+      <View className="flex-1 bg-base items-center justify-center">
         <ActivityIndicator size="large" />
       </View>
     );
   }
 
   return (
-    <View className="flex-1 bg-background">
+    <View className="flex-1 bg-base">
       <SettingsPageHeader title={t("settings.playbackSettings")} />
 
       <ScrollView
@@ -39,8 +39,8 @@ export default function PlaybackSettings() {
         <View className="mb-3">
           <Muted className="uppercase text-xs font-bold opacity-50 px-1">{t("settings.sourceFilters")}</Muted>
         </View>
-        <View className="bg-muted/20 rounded-2xl overflow-hidden">
-          <QualityFilterItem className="border-0 border-b border-border/30" />
+        <View className="bg-surface0/20 rounded-2xl overflow-hidden">
+          <QualityFilterItem className="border-0 border-b border-surface1/30" />
           <LanguageFilterItem className="border-0" />
         </View>
 
@@ -48,7 +48,7 @@ export default function PlaybackSettings() {
         <View className="mb-3 mt-8">
           <Muted className="uppercase text-xs font-bold opacity-50 px-1">{t("settings.playback")}</Muted>
         </View>
-        <View className="bg-muted/20 rounded-2xl overflow-hidden">
+        <View className="bg-surface0/20 rounded-2xl overflow-hidden">
           <ListItem
             itemLeft={(props) => <MonitorPlay {...props} />}
             label={t("settings.playInVlc")}

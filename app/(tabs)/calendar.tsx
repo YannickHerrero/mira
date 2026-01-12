@@ -93,8 +93,8 @@ export default function CalendarScreen() {
       }
 
       return (
-        <View className="mb-3 px-4 pt-4 bg-background">
-          <Text className="text-sm font-semibold text-foreground">
+        <View className="mb-3 px-4 pt-4 bg-base">
+          <Text className="text-sm font-semibold text-text">
             {dateLabel}
           </Text>
         </View>
@@ -123,17 +123,17 @@ export default function CalendarScreen() {
 
   if (error) {
     return (
-      <View className="flex-1 bg-background items-center justify-center px-4">
-        <Text className="text-center text-muted-foreground">{error}</Text>
+      <View className="flex-1 bg-base items-center justify-center px-4">
+        <Text className="text-center text-subtext0">{error}</Text>
       </View>
     );
   }
 
   if (isLoading && sections.length === 0) {
     return (
-      <View className="flex-1 bg-background items-center justify-center">
+      <View className="flex-1 bg-base items-center justify-center">
         <ActivityIndicator size="large" color="hsl(0 0% 98%)" />
-        <Text className="text-muted-foreground mt-4">
+        <Text className="text-subtext0 mt-4">
           {t("calendar.loading")}
         </Text>
       </View>
@@ -142,7 +142,7 @@ export default function CalendarScreen() {
 
   if (sections.length === 0) {
     return (
-      <View className="flex-1 bg-background">
+      <View className="flex-1 bg-base">
         <SectionList
           sections={[]}
           renderItem={() => null}
@@ -153,7 +153,7 @@ export default function CalendarScreen() {
           }
           ListEmptyComponent={
             <EmptyState
-              icon={<CalendarDays size={48} className="text-muted-foreground" />}
+              icon={<CalendarDays size={48} className="text-subtext0" />}
               title={t("calendar.noReleases")}
               description={t("calendar.noReleasesDesc")}
             />
@@ -164,7 +164,7 @@ export default function CalendarScreen() {
   }
 
   return (
-    <View className="flex-1 bg-background">
+    <View className="flex-1 bg-base">
       <SectionList
         ref={sectionListRef}
         sections={sections}

@@ -10,7 +10,7 @@ export default function AppearanceSettings() {
   const { t } = useTranslation();
 
   return (
-    <View className="flex-1 bg-background">
+    <View className="flex-1 bg-base">
       <SettingsPageHeader title={t("settings.appearance")} />
 
       <ScrollView
@@ -20,8 +20,8 @@ export default function AppearanceSettings() {
         <View className="mb-3">
           <Muted className="uppercase text-xs font-bold opacity-50 px-1">{t("settings.app")}</Muted>
         </View>
-        <View className="bg-muted/20 rounded-2xl overflow-hidden">
-          <ThemeSettingItem className="border-0 border-b border-border/30" />
+        <View className="bg-surface0/20 rounded-2xl overflow-hidden">
+          <ThemeSettingItem className="border-0 border-b border-surface1/30" />
           <LanguageSettingItem className="border-0" />
         </View>
       </ScrollView>

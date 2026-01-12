@@ -117,8 +117,8 @@ export default function HomeScreen() {
   // Migration error
   if (migrationError) {
     return (
-      <View className="flex-1 bg-background items-center justify-center px-6">
-        <Text className="text-destructive">{t("home.migrationError", { message: migrationError.message })}</Text>
+      <View className="flex-1 bg-base items-center justify-center px-6">
+        <Text className="text-red">{t("home.migrationError", { message: migrationError.message })}</Text>
       </View>
     );
   }
@@ -126,9 +126,9 @@ export default function HomeScreen() {
   // Loading migration
   if (!success) {
     return (
-      <View className="flex-1 bg-background items-center justify-center px-6">
+      <View className="flex-1 bg-base items-center justify-center px-6">
         <ActivityIndicator size="large" />
-        <Text className="text-muted-foreground mt-4">{t("home.loading")}</Text>
+        <Text className="text-subtext0 mt-4">{t("home.loading")}</Text>
       </View>
     );
   }
@@ -136,12 +136,12 @@ export default function HomeScreen() {
   // Not configured - prompt to set up API keys
   if (!loadingKeys && !isConfigured) {
     return (
-      <View className="flex-1 bg-background items-center justify-center px-6">
-        <Settings size={48} className="text-muted-foreground mb-4" />
-        <Text className="text-xl font-semibold text-foreground text-center">
+      <View className="flex-1 bg-base items-center justify-center px-6">
+        <Settings size={48} className="text-subtext0 mb-4" />
+        <Text className="text-xl font-semibold text-text text-center">
           {t("home.welcome")}
         </Text>
-        <Text className="text-muted-foreground mt-2 text-center">
+        <Text className="text-subtext0 mt-2 text-center">
           {t("home.configureKeys")}
         </Text>
       </View>
@@ -149,7 +149,7 @@ export default function HomeScreen() {
   }
 
   return (
-    <View className="flex-1 bg-background">
+    <View className="flex-1 bg-base">
       <ScrollView
         className="flex-1"
         showsVerticalScrollIndicator={false}

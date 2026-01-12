@@ -20,7 +20,7 @@ export default function AboutSettings() {
   };
 
   return (
-    <View className="flex-1 bg-background">
+    <View className="flex-1 bg-base">
       <SettingsPageHeader title={t("settings.aboutMira")} />
 
       <ScrollView
@@ -30,24 +30,24 @@ export default function AboutSettings() {
         <View className="mb-3">
           <Muted className="uppercase text-xs font-bold opacity-50 px-1">{t("settings.about")}</Muted>
         </View>
-        <View className="bg-muted/20 rounded-2xl overflow-hidden">
+        <View className="bg-surface0/20 rounded-2xl overflow-hidden">
           <ListItem
             itemLeft={(props) => <Star {...props} />}
             label={t("settings.rateMira")}
             onPress={() => openExternalURL("https://github.com/YannickHerrero/mira")}
-            className="border-0 border-b border-border/30"
+            className="border-0 border-b border-surface1/30"
           />
           <ListItem
             itemLeft={(props) => <Send {...props} />}
             label={t("settings.sendFeedback")}
             onPress={() => openExternalURL("https://github.com/YannickHerrero/mira/issues")}
-            className="border-0 border-b border-border/30"
+            className="border-0 border-b border-surface1/30"
           />
         </View>
 
         {/* Version */}
         <View className="py-8 items-center">
-          <Text className="text-muted-foreground text-sm">
+          <Text className="text-subtext0 text-sm">
             {t("settings.version", { version: "1.0.0" })}
           </Text>
         </View>

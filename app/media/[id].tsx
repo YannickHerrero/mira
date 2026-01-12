@@ -62,10 +62,10 @@ function EpisodeActionSheet({
       {episode && (
         <BottomSheetHeader>
           <View className="flex-1 gap-1">
-            <Text className="text-lg font-semibold text-foreground">
+            <Text className="text-lg font-semibold text-text">
               {t("media.episode", { number: episode.episodeNumber })}
             </Text>
-            <Text className="text-sm text-muted-foreground" numberOfLines={1}>
+            <Text className="text-sm text-subtext0" numberOfLines={1}>
               {episode.title}
             </Text>
           </View>
@@ -79,9 +79,9 @@ function EpisodeActionSheet({
               title={isCompleted ? t("media.markUnwatched") : t("media.markWatched")}
               icon={
                 isCompleted ? (
-                  <EyeOff size={20} className="text-foreground" />
+                  <EyeOff size={20} className="text-text" />
                 ) : (
-                  <Eye size={20} className="text-foreground" />
+                  <Eye size={20} className="text-text" />
                 )
               }
               onPress={() => {
@@ -93,7 +93,7 @@ function EpisodeActionSheet({
             <BottomSheetActionRow
               layout="grouped"
               title={t("media.markWatchedUpTo")}
-              icon={<ListChecks size={20} className="text-foreground" />}
+              icon={<ListChecks size={20} className="text-text" />}
               onPress={() => {
                 onMarkWatchedUpToHere();
                 dismiss();
@@ -382,7 +382,7 @@ export default function MediaDetailScreen() {
   // Loading state
   if (isLoading) {
     return (
-      <View className="flex-1 bg-background items-center justify-center">
+      <View className="flex-1 bg-base items-center justify-center">
         <Stack.Screen options={{ headerShown: false }} />
         <Pressable
           onPress={() => router.back()}
@@ -390,7 +390,7 @@ export default function MediaDetailScreen() {
           style={{ top: insets.top + 8, left: 16 }}
         >
           <BlurView intensity={50} tint="dark" className="p-2.5">
-            <ChevronLeft size={24} className="text-foreground" />
+            <ChevronLeft size={24} className="text-text" />
           </BlurView>
         </Pressable>
         <ActivityIndicator size="large" />
@@ -401,7 +401,7 @@ export default function MediaDetailScreen() {
   // Error state
   if (error || !media) {
     return (
-      <View className="flex-1 bg-background items-center justify-center px-6">
+      <View className="flex-1 bg-base items-center justify-center px-6">
         <Stack.Screen options={{ headerShown: false }} />
         <Pressable
           onPress={() => router.back()}
@@ -409,10 +409,10 @@ export default function MediaDetailScreen() {
           style={{ top: insets.top + 8, left: 16 }}
         >
           <BlurView intensity={50} tint="dark" className="p-2.5">
-            <ChevronLeft size={24} className="text-foreground" />
+            <ChevronLeft size={24} className="text-text" />
           </BlurView>
         </Pressable>
-        <Text className="text-destructive text-center">
+        <Text className="text-red text-center">
           {error || t("media.failedToLoad")}
         </Text>
       </View>
@@ -420,7 +420,7 @@ export default function MediaDetailScreen() {
   }
 
   return (
-    <View className="flex-1 bg-background">
+    <View className="flex-1 bg-base">
       <Stack.Screen options={{ headerShown: false }} />
 
       {/* Custom back button */}
@@ -430,7 +430,7 @@ export default function MediaDetailScreen() {
         style={{ top: insets.top + 8, left: 16 }}
       >
         <BlurView intensity={50} tint="dark" className="p-2.5">
-          <ChevronLeft size={24} className="text-foreground" />
+          <ChevronLeft size={24} className="text-text" />
         </BlurView>
       </Pressable>
 
@@ -446,12 +446,12 @@ export default function MediaDetailScreen() {
               onPress={handleWatchMovie}
               disabled={!imdbId}
             >
-              <Play size={18} className="text-primary-foreground mr-2" fill="currentColor" />
-              <Text className="text-primary-foreground font-semibold">{t("media.watchNow")}</Text>
+              <Play size={18} className="text-crust mr-2" fill="currentColor" />
+              <Text className="text-crust font-semibold">{t("media.watchNow")}</Text>
             </Button>
           ) : (
             <View className="flex-1">
-              <Text className="text-sm text-muted-foreground mb-2">
+              <Text className="text-sm text-subtext0 mb-2">
                 {t("media.selectEpisode")}
               </Text>
             </View>
@@ -465,9 +465,9 @@ export default function MediaDetailScreen() {
               onPress={handleToggleMovieWatched}
             >
               {isMovieWatched ? (
-                <Eye size={20} className="text-primary" />
+                <Eye size={20} className="text-lavender" />
               ) : (
-                <EyeOff size={20} className="text-foreground" />
+                <EyeOff size={20} className="text-text" />
               )}
             </Button>
           )}
@@ -479,9 +479,9 @@ export default function MediaDetailScreen() {
             onPress={handleOpenListSelector}
           >
             {isInAnyList ? (
-              <Check size={20} className="text-primary" />
+              <Check size={20} className="text-lavender" />
             ) : (
-              <List size={20} className="text-foreground" />
+              <List size={20} className="text-text" />
             )}
           </Button>
 
@@ -493,7 +493,7 @@ export default function MediaDetailScreen() {
           >
             <Heart
               size={20}
-              className={isFavorite ? "text-red-500" : "text-foreground"}
+              className={isFavorite ? "text-red-500" : "text-text"}
               fill={isFavorite ? "#ef4444" : "none"}
             />
           </Button>
