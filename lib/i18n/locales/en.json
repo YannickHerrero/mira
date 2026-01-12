@@ -209,6 +209,7 @@
     "selectAnilistEntry": "Select an AniList entry",
     "noAniListResults": "No results yet",
     "close": "Close",
+    "cancel": "Cancel",
     "episode": "Episode {{number}}",
     "markWatched": "Mark as watched",
     "markUnwatched": "Mark as unwatched",

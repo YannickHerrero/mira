@@ -12,22 +12,16 @@ import { Text } from "@/components/ui/text";
 import { Button } from "@/components/ui/button";
 import { Muted } from "@/components/ui/typography";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import {
   BottomSheet,
   BottomSheetActionGroup,
   BottomSheetActionRow,
   BottomSheetContent,
+  BottomSheetFooter,
   BottomSheetHeader,
+  BottomSheetTextInput,
   BottomSheetView,
 } from "@/components/primitives/bottomSheet/bottom-sheet.native";
+
 import {
   MediaHeader,
   SeasonPicker,
@@ -48,6 +42,7 @@ import {
   CheckCircle,
   Plus
 } from "@/lib/icons";
+
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { BlurView } from "expo-blur";
 import { useLibraryActions } from "@/hooks/useLibrary";
@@ -154,6 +149,7 @@ export default function MediaDetailScreen() {
   const [isInAnyList, setIsInAnyList] = React.useState(false);
   const actionSheetRef = React.useRef<BottomSheetModal>(null);
   const listSelectorSheetRef = React.useRef<BottomSheetModal>(null);
+  const trackingSheetRef = React.useRef<BottomSheetModal>(null);
 
   const { enableAnilistSync, loadSettings } = useSettingsStore();
   const {
@@ -163,7 +159,6 @@ export default function MediaDetailScreen() {
     removeMapping: removeAniListMapping,
   } = useAniListStore();
 
-  const [isTrackingDialogOpen, setIsTrackingDialogOpen] = React.useState(false);
   const [aniListSearchQuery, setAniListSearchQuery] = React.useState("");
   const [aniListSearchResults, setAniListSearchResults] = React.useState<AniListSearchResult[]>([]);
   const [isAniListSearching, setIsAniListSearching] = React.useState(false);
@@ -356,9 +351,24 @@ export default function MediaDetailScreen() {
     if (!media) return;
     setAniListSearchQuery(media.title);
     setAniListSearchResults([]);
-    setIsTrackingDialogOpen(true);
+    trackingSheetRef.current?.present();
     handleSearchAniList(media.title);
   };
+
+  const handleCloseTracking = () => {
+    trackingSheetRef.current?.dismiss();
+  };
+
+  const renderTrackingFooter = React.useCallback(
+    (props: any) => (
+      <BottomSheetFooter bottomSheetFooterProps={props}>
+        <Button variant="secondary" onPress={handleCloseTracking}>
+          <Text>{t("media.cancel")}</Text>
+        </Button>
+      </BottomSheetFooter>
+    ),
+    [handleCloseTracking, t]
+  );
 
   const handleSearchAniList = async (query?: string) => {
     const searchValue = query ?? aniListSearchQuery;
@@ -396,13 +406,13 @@ export default function MediaDetailScreen() {
       format: entry.format ?? null,
       year: entry.seasonYear ?? null,
     });
-    setIsTrackingDialogOpen(false);
+    handleCloseTracking();
   };
 
   const handleRemoveTracking = () => {
     if (!mappingKey) return;
     removeAniListMapping(mappingKey);
-    setIsTrackingDialogOpen(false);
+    handleCloseTracking();
   };
 
   const handleWatchMovie = () => {
@@ -537,95 +547,6 @@ export default function MediaDetailScreen() {
     <View className="flex-1 bg-base">
       <Stack.Screen options={{ headerShown: false }} />
 
-      <Dialog open={isTrackingDialogOpen} onOpenChange={setIsTrackingDialogOpen}>
-        <DialogContent className="w-full max-w-lg">
-          <DialogHeader>
-            <DialogTitle>{t("media.track")}</DialogTitle>
-            <DialogDescription>
-              {mediaType === "tv"
-                ? t("media.trackSeason", { season: trackingSeasonNumber })
-                : t("media.trackMovie")}
-            </DialogDescription>
-          </DialogHeader>
-          <View className="gap-3">
-            <Input
-              value={aniListSearchQuery}
-              onChangeText={setAniListSearchQuery}
-              placeholder={t("media.anilistSearchPlaceholder")}
-              onSubmitEditing={() => handleSearchAniList()}
-            />
-            <Button
-              onPress={() => handleSearchAniList()}
-              disabled={isAniListSearching || !aniListSearchQuery.trim()}
-            >
-              <Text>
-                {isAniListSearching ? t("media.searching") : t("media.search")}
-              </Text>
-            </Button>
-          </View>
-
-          {currentTracking && (
-            <View className="mt-4 gap-2">
-              <Muted>{t("media.currentTracking")}</Muted>
-              <View className="rounded-xl bg-surface0/30 p-3 gap-2">
-                <View>
-                  <Text className="text-base font-semibold text-text">
-                    {currentTracking.title}
-                  </Text>
-                  {currentTrackingMeta && <Muted>{currentTrackingMeta}</Muted>}
-                </View>
-                <Button variant="destructive" onPress={handleRemoveTracking}>
-                  <Text>{t("media.removeTracking")}</Text>
-                </Button>
-              </View>
-            </View>
-          )}
-
-          <View className="mt-4 gap-2">
-            <Muted>{t("media.selectAnilistEntry")}</Muted>
-            {isAniListSearching ? (
-              <View className="py-4 items-center">
-                <ActivityIndicator size="small" />
-              </View>
-            ) : aniListSearchResults.length === 0 ? (
-              <Muted>{t("media.noAniListResults")}</Muted>
-            ) : (
-              <View className="gap-2">
-                {aniListSearchResults.map((entry) => {
-                  const entryTitle = getAniListDisplayTitle(entry);
-                  const entryMeta = [
-                    entry.format,
-                    entry.seasonYear ? String(entry.seasonYear) : null,
-                  ]
-                    .filter(Boolean)
-                    .join(" • ");
-
-                  return (
-                    <Pressable
-                      key={entry.id}
-                      onPress={() => handleSelectAniListEntry(entry)}
-                      className="flex-row items-center gap-3 rounded-xl bg-surface0/30 p-3"
-                    >
-                      <View className="flex-1">
-                        <Text className="text-base font-semibold text-text">
-                          {entryTitle}
-                        </Text>
-                        {entryMeta ? <Muted>{entryMeta}</Muted> : null}
-                      </View>
-                    </Pressable>
-                  );
-                })}
-              </View>
-            )}
-          </View>
-
-          <DialogFooter>
-            <Button variant="outline" onPress={() => setIsTrackingDialogOpen(false)}>
-              <Text>{t("media.close")}</Text>
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       {/* Custom back button */}
       <Pressable
@@ -773,6 +694,109 @@ export default function MediaDetailScreen() {
         {/* Bottom padding */}
         <View className="h-8" />
       </ScrollView>
+
+      {/* AniList Tracking Sheet */}
+      <BottomSheet>
+        <BottomSheetContent
+          ref={trackingSheetRef}
+          enableDynamicSizing={false}
+          snapPoints={["95%"]}
+          footerComponent={renderTrackingFooter}
+        >
+          <BottomSheetHeader>
+            <View className="flex-1 gap-1">
+              <Text className="text-lg font-semibold text-text">
+                {t("media.track")}
+              </Text>
+              <Text className="text-sm text-subtext0">
+                {mediaType === "tv"
+                  ? t("media.trackSeason", { season: trackingSeasonNumber })
+                  : t("media.trackMovie")}
+              </Text>
+            </View>
+          </BottomSheetHeader>
+          <BottomSheetView className="flex-1 px-4 pt-4">
+            <ScrollView
+              contentContainerStyle={{ paddingBottom: 32 }}
+              showsVerticalScrollIndicator={false}
+            >
+              <View className="gap-3">
+                <BottomSheetTextInput
+                  value={aniListSearchQuery}
+                  onChangeText={setAniListSearchQuery}
+                  placeholder={t("media.anilistSearchPlaceholder")}
+                  onSubmitEditing={() => handleSearchAniList()}
+                  returnKeyType="search"
+                />
+                <Button
+                  onPress={() => handleSearchAniList()}
+                  disabled={isAniListSearching || !aniListSearchQuery.trim()}
+                >
+                  <Text>
+                    {isAniListSearching ? t("media.searching") : t("media.search")}
+                  </Text>
+                </Button>
+              </View>
+
+              {currentTracking && (
+                <View className="mt-6 gap-2">
+                  <Muted>{t("media.currentTracking")}</Muted>
+                  <View className="rounded-xl bg-surface0/30 p-3 gap-2">
+                    <View>
+                      <Text className="text-base font-semibold text-text">
+                        {currentTracking.title}
+                      </Text>
+                      {currentTrackingMeta && <Muted>{currentTrackingMeta}</Muted>}
+                    </View>
+                    <Button variant="destructive" onPress={handleRemoveTracking}>
+                      <Text>{t("media.removeTracking")}</Text>
+                    </Button>
+                  </View>
+                </View>
+              )}
+
+              <View className="mt-6 gap-2">
+                <Muted>{t("media.selectAnilistEntry")}</Muted>
+                {isAniListSearching ? (
+                  <View className="py-4 items-center">
+                    <ActivityIndicator size="small" />
+                  </View>
+                ) : aniListSearchResults.length === 0 ? (
+                  <Muted>{t("media.noAniListResults")}</Muted>
+                ) : (
+                  <View className="gap-2">
+                    {aniListSearchResults.map((entry) => {
+                      const entryTitle = getAniListDisplayTitle(entry);
+                      const entryMeta = [
+                        entry.format,
+                        entry.seasonYear ? String(entry.seasonYear) : null,
+                      ]
+                        .filter(Boolean)
+                        .join(" • ");
+
+                      return (
+                        <Pressable
+                          key={entry.id}
+                          onPress={() => handleSelectAniListEntry(entry)}
+                          className="flex-row items-center gap-3 rounded-xl bg-surface0/30 p-3"
+                        >
+                          <View className="flex-1">
+                            <Text className="text-base font-semibold text-text">
+                              {entryTitle}
+                            </Text>
+                            {entryMeta ? <Muted>{entryMeta}</Muted> : null}
+                          </View>
+                        </Pressable>
+                      );
+                    })}
+                  </View>
+                )}
+              </View>
+
+            </ScrollView>
+          </BottomSheetView>
+        </BottomSheetContent>
+      </BottomSheet>
 
       {/* Episode Action Sheet */}
       <BottomSheet>
