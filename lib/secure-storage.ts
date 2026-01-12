@@ -13,6 +13,8 @@ import { Platform } from "react-native";
 const KEYS = {
   TMDB_API_KEY: "mira_tmdb_api_key",
   REAL_DEBRID_API_KEY: "mira_real_debrid_api_key",
+  ANILIST_ACCESS_TOKEN: "mira_anilist_access_token",
+  ANILIST_CLIENT_SECRET: "mira_anilist_client_secret",
 } as const;
 
 type StorageKey = (typeof KEYS)[keyof typeof KEYS];
@@ -88,6 +90,34 @@ export async function getRealDebridApiKey(): Promise<string | null> {
 
 export async function deleteRealDebridApiKey(): Promise<void> {
   await deleteSecureItem(KEYS.REAL_DEBRID_API_KEY);
+}
+
+// ============================================
+// AniList Access Token
+// ============================================
+
+export async function setAniListAccessToken(token: string): Promise<void> {
+  await setSecureItem(KEYS.ANILIST_ACCESS_TOKEN, token);
+}
+
+export async function getAniListAccessToken(): Promise<string | null> {
+  return getSecureItem(KEYS.ANILIST_ACCESS_TOKEN);
+}
+
+export async function deleteAniListAccessToken(): Promise<void> {
+  await deleteSecureItem(KEYS.ANILIST_ACCESS_TOKEN);
+}
+
+export async function setAniListClientSecret(secret: string): Promise<void> {
+  await setSecureItem(KEYS.ANILIST_CLIENT_SECRET, secret);
+}
+
+export async function getAniListClientSecret(): Promise<string | null> {
+  return getSecureItem(KEYS.ANILIST_CLIENT_SECRET);
+}
+
+export async function deleteAniListClientSecret(): Promise<void> {
+  await deleteSecureItem(KEYS.ANILIST_CLIENT_SECRET);
 }
 
 // ============================================

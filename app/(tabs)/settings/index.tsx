@@ -10,6 +10,7 @@ import {
   Paintbrush,
   MonitorPlay,
   Volume2,
+  RefreshCw,
   Info
 } from "@/lib/icons";
 
@@ -66,6 +67,13 @@ export default function SettingsIndex() {
             itemLeft={(props) => <Volume2 {...props} />}
             label={t("settings.streamingSettings")}
             href="/settings/streaming"
+            className="bg-transparent border-0"
+          />
+
+          <ListItem
+            itemLeft={(props) => <RefreshCw {...props} />}
+            label={t("settings.synchronization")}
+            href="/settings/synchronization"
             className="bg-transparent border-0"
           />
 

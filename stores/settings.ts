@@ -6,16 +6,19 @@ const STORAGE_KEY = "app_settings";
 
 interface AppSettings {
   useVlcPlayer: boolean;
+  enableAnilistSync: boolean;
 }
 
 interface SettingsStore extends AppSettings {
   isLoading: boolean;
   loadSettings: () => void;
   setUseVlcPlayer: (value: boolean) => void;
+  setAnilistSyncEnabled: (value: boolean) => void;
 }
 
 const DEFAULT_SETTINGS: AppSettings = {
   useVlcPlayer: false,
+  enableAnilistSync: false,
 };
 
 function saveSettings(settings: AppSettings) {
@@ -45,8 +48,15 @@ export const useSettingsStore = create<SettingsStore>((set, get) => ({
 
   setUseVlcPlayer: (value: boolean) => {
     set({ useVlcPlayer: value });
-    const { useVlcPlayer } = get();
-    saveSettings({ useVlcPlayer });
+    const { useVlcPlayer, enableAnilistSync } = get();
+    saveSettings({ useVlcPlayer, enableAnilistSync });
+    markManualSyncSettingsUpdated("settings");
+  },
+
+  setAnilistSyncEnabled: (value: boolean) => {
+    set({ enableAnilistSync: value });
+    const { useVlcPlayer, enableAnilistSync } = get();
+    saveSettings({ useVlcPlayer, enableAnilistSync });
     markManualSyncSettingsUpdated("settings");
   },
 }));

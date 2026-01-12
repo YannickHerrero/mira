@@ -33,6 +33,7 @@ export { Pause } from "./Pause";
 export { Clock } from "./Clock";
 export { AlertCircle } from "./AlertCircle";
 export { RefreshCw } from "./RefreshCw";
+export { Save } from "./Save";
 export { WifiOff } from "./WifiOff";
 export { MonitorPlay } from "./MonitorPlay";
 export { Volume2 } from "./Volume2";

@@ -4,6 +4,7 @@ import { useDatabase } from "@/db/provider";
 import { watchProgressTable } from "@/db/schema";
 import { progressKey } from "@/lib/manual-sync-keys";
 import { clearManualSyncDeletion, markManualSyncDeletion } from "@/lib/manual-sync-metadata";
+import { enqueueAniListSync } from "@/lib/anilist-sync";
 import type { MediaType } from "@/lib/types";
 
 interface ProgressParams {
@@ -68,6 +69,15 @@ export function useWatchProgress() {
           "progress",
           progressKey(tmdbId, mediaType, seasonNumber, episodeNumber)
         );
+
+        if (completed) {
+          await enqueueAniListSync({
+            tmdbId,
+            mediaType,
+            seasonNumber,
+            episodeNumber,
+          });
+        }
       } catch (err) {
         console.error("[useWatchProgress] Failed to save progress:", err);
       }
@@ -107,6 +117,13 @@ export function useWatchProgress() {
           "progress",
           progressKey(tmdbId, mediaType, seasonNumber, episodeNumber)
         );
+
+        await enqueueAniListSync({
+          tmdbId,
+          mediaType,
+          seasonNumber,
+          episodeNumber,
+        });
       } catch (err) {
         console.error("[useWatchProgress] Failed to mark as completed:", err);
       }
@@ -245,6 +262,13 @@ export function useWatchProgress() {
             "progress",
             progressKey(tmdbId, "tv", ep.seasonNumber, ep.episodeNumber)
           );
+
+          await enqueueAniListSync({
+            tmdbId,
+            mediaType: "tv",
+            seasonNumber: ep.seasonNumber,
+            episodeNumber: ep.episodeNumber,
+          });
         }
       } catch (err) {
         console.error("[useWatchProgress] Failed to mark episodes as completed:", err);

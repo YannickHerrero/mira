@@ -10,6 +10,16 @@ import { useBottomSheetModal } from "@gorhom/bottom-sheet";
 import { useTranslation } from "react-i18next";
 import { Text } from "@/components/ui/text";
 import { Button } from "@/components/ui/button";
+import { Muted } from "@/components/ui/typography";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import {
   BottomSheet,
   BottomSheetActionGroup,
@@ -26,15 +36,30 @@ import {
 } from "@/components/media";
 import { MediaSection } from "@/components/library";
 import { ListSelectorSheet } from "@/components/lists";
-import { Play, Heart, Check, Eye, EyeOff, ListChecks, List, ChevronLeft } from "@/lib/icons";
+import {
+  Play,
+  Heart,
+  Check,
+  Eye,
+  EyeOff,
+  ListChecks,
+  List,
+  ChevronLeft,
+  CheckCircle,
+  Plus
+} from "@/lib/icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { BlurView } from "expo-blur";
 import { useLibraryActions } from "@/hooks/useLibrary";
 import { useListActions, useLists, useMediaLists } from "@/hooks/useLists";
 import { useWatchProgress } from "@/hooks/useWatchProgress";
 import { useApiKeyStore } from "@/stores/api-keys";
+import { useAniListStore } from "@/stores/anilist";
 import { useLanguageStore } from "@/stores/language";
+import { useSettingsStore } from "@/stores/settings";
+import { createAniListClient, type AniListSearchResult } from "@/lib/api/anilist";
 import { createTMDBClient } from "@/lib/api/tmdb";
+import { buildAniListMappingKey } from "@/lib/anilist-storage";
 import { useEpisodes } from "@/hooks/useMedia";
 import type { Media, MediaType, Season, Episode } from "@/lib/types";
 import type { BottomSheetModal } from "@gorhom/bottom-sheet";
@@ -130,6 +155,19 @@ export default function MediaDetailScreen() {
   const actionSheetRef = React.useRef<BottomSheetModal>(null);
   const listSelectorSheetRef = React.useRef<BottomSheetModal>(null);
 
+  const { enableAnilistSync, loadSettings } = useSettingsStore();
+  const {
+    mappings: aniListMappings,
+    loadState: loadAniListState,
+    setMapping: setAniListMapping,
+    removeMapping: removeAniListMapping,
+  } = useAniListStore();
+
+  const [isTrackingDialogOpen, setIsTrackingDialogOpen] = React.useState(false);
+  const [aniListSearchQuery, setAniListSearchQuery] = React.useState("");
+  const [aniListSearchResults, setAniListSearchResults] = React.useState<AniListSearchResult[]>([]);
+  const [isAniListSearching, setIsAniListSearching] = React.useState(false);
+
   const tmdbApiKey = useApiKeyStore((s) => s.tmdbApiKey);
   const resolvedLanguage = useLanguageStore((s) => s.resolvedLanguage);
   const {
@@ -147,11 +185,30 @@ export default function MediaDetailScreen() {
   const mediaType = type || "movie";
   const tmdbId = id ? parseInt(id, 10) : 0;
 
+  React.useEffect(() => {
+    loadAniListState();
+  }, [loadAniListState]);
+
+  React.useEffect(() => {
+    loadSettings();
+  }, [loadSettings]);
+
   // Fetch episodes for selected season (TV only)
   const { episodes, isLoading: isLoadingEpisodes } = useEpisodes(
     tmdbId,
     mediaType === "tv" ? selectedSeason : 0
   );
+
+  const trackingSeasonNumber = mediaType === "tv" ? selectedSeason : null;
+  const mappingKey = media
+    ? buildAniListMappingKey(media.id, mediaType, trackingSeasonNumber)
+    : null;
+  const currentTracking = mappingKey ? aniListMappings[mappingKey] : undefined;
+  const currentTrackingMeta = currentTracking
+    ? [currentTracking.format, currentTracking.year ? String(currentTracking.year) : null]
+        .filter(Boolean)
+        .join(" • ")
+    : null;
 
   // Fetch media details
   React.useEffect(() => {
@@ -291,6 +348,63 @@ export default function MediaDetailScreen() {
     setIsInAnyList(inList);
   };
 
+  const getAniListDisplayTitle = (entry: AniListSearchResult) => {
+    return entry.title.english ?? entry.title.romaji ?? entry.title.native ?? "Untitled";
+  };
+
+  const handleOpenTracking = () => {
+    if (!media) return;
+    setAniListSearchQuery(media.title);
+    setAniListSearchResults([]);
+    setIsTrackingDialogOpen(true);
+    handleSearchAniList(media.title);
+  };
+
+  const handleSearchAniList = async (query?: string) => {
+    const searchValue = query ?? aniListSearchQuery;
+    if (!searchValue.trim()) {
+      setAniListSearchResults([]);
+      return;
+    }
+
+    setIsAniListSearching(true);
+    try {
+      const client = createAniListClient(null);
+      const results = await client.searchMedia({
+        search: searchValue.trim(),
+        year: media?.year ?? null,
+        format: mediaType === "movie" ? "MOVIE" : null,
+      });
+      setAniListSearchResults(results);
+    } catch (error) {
+      console.warn("[MediaDetail] AniList search failed", error);
+      setAniListSearchResults([]);
+    } finally {
+      setIsAniListSearching(false);
+    }
+  };
+
+  const handleSelectAniListEntry = (entry: AniListSearchResult) => {
+    if (!media || !mappingKey) return;
+
+    setAniListMapping(mappingKey, {
+      tmdbId: media.id,
+      mediaType,
+      seasonNumber: trackingSeasonNumber,
+      anilistId: entry.id,
+      title: getAniListDisplayTitle(entry),
+      format: entry.format ?? null,
+      year: entry.seasonYear ?? null,
+    });
+    setIsTrackingDialogOpen(false);
+  };
+
+  const handleRemoveTracking = () => {
+    if (!mappingKey) return;
+    removeAniListMapping(mappingKey);
+    setIsTrackingDialogOpen(false);
+  };
+
   const handleWatchMovie = () => {
     router.push(`/media/${tmdbId}/sources?type=${mediaType}` as any);
   };
@@ -423,6 +537,96 @@ export default function MediaDetailScreen() {
     <View className="flex-1 bg-base">
       <Stack.Screen options={{ headerShown: false }} />
 
+      <Dialog open={isTrackingDialogOpen} onOpenChange={setIsTrackingDialogOpen}>
+        <DialogContent className="w-full max-w-lg">
+          <DialogHeader>
+            <DialogTitle>{t("media.track")}</DialogTitle>
+            <DialogDescription>
+              {mediaType === "tv"
+                ? t("media.trackSeason", { season: trackingSeasonNumber })
+                : t("media.trackMovie")}
+            </DialogDescription>
+          </DialogHeader>
+          <View className="gap-3">
+            <Input
+              value={aniListSearchQuery}
+              onChangeText={setAniListSearchQuery}
+              placeholder={t("media.anilistSearchPlaceholder")}
+              onSubmitEditing={() => handleSearchAniList()}
+            />
+            <Button
+              onPress={() => handleSearchAniList()}
+              disabled={isAniListSearching || !aniListSearchQuery.trim()}
+            >
+              <Text>
+                {isAniListSearching ? t("media.searching") : t("media.search")}
+              </Text>
+            </Button>
+          </View>
+
+          {currentTracking && (
+            <View className="mt-4 gap-2">
+              <Muted>{t("media.currentTracking")}</Muted>
+              <View className="rounded-xl bg-surface0/30 p-3 gap-2">
+                <View>
+                  <Text className="text-base font-semibold text-text">
+                    {currentTracking.title}
+                  </Text>
+                  {currentTrackingMeta && <Muted>{currentTrackingMeta}</Muted>}
+                </View>
+                <Button variant="destructive" onPress={handleRemoveTracking}>
+                  <Text>{t("media.removeTracking")}</Text>
+                </Button>
+              </View>
+            </View>
+          )}
+
+          <View className="mt-4 gap-2">
+            <Muted>{t("media.selectAnilistEntry")}</Muted>
+            {isAniListSearching ? (
+              <View className="py-4 items-center">
+                <ActivityIndicator size="small" />
+              </View>
+            ) : aniListSearchResults.length === 0 ? (
+              <Muted>{t("media.noAniListResults")}</Muted>
+            ) : (
+              <View className="gap-2">
+                {aniListSearchResults.map((entry) => {
+                  const entryTitle = getAniListDisplayTitle(entry);
+                  const entryMeta = [
+                    entry.format,
+                    entry.seasonYear ? String(entry.seasonYear) : null,
+                  ]
+                    .filter(Boolean)
+                    .join(" • ");
+
+                  return (
+                    <Pressable
+                      key={entry.id}
+                      onPress={() => handleSelectAniListEntry(entry)}
+                      className="flex-row items-center gap-3 rounded-xl bg-surface0/30 p-3"
+                    >
+                      <View className="flex-1">
+                        <Text className="text-base font-semibold text-text">
+                          {entryTitle}
+                        </Text>
+                        {entryMeta ? <Muted>{entryMeta}</Muted> : null}
+                      </View>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            )}
+          </View>
+
+          <DialogFooter>
+            <Button variant="outline" onPress={() => setIsTrackingDialogOpen(false)}>
+              <Text>{t("media.close")}</Text>
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Custom back button */}
       <Pressable
         onPress={() => router.back()}
@@ -484,6 +688,21 @@ export default function MediaDetailScreen() {
               <List size={20} className="text-text" />
             )}
           </Button>
+
+          {enableAnilistSync && (
+            <Button
+              variant="outline"
+              size="icon"
+              className="w-12 h-12"
+              onPress={handleOpenTracking}
+            >
+              {currentTracking ? (
+                <CheckCircle size={20} className="text-lavender" />
+              ) : (
+                <Plus size={20} className="text-text" />
+              )}
+            </Button>
+          )}
 
           <Button
             variant="outline"
