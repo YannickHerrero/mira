@@ -14,6 +14,8 @@
  * - Future features like manual link unrestriction
  */
 
+import { Platform } from "react-native";
+
 const RD_API_URL = "https://api.real-debrid.com/rest/1.0";
 const RD_PROXY_URL = "/api/rd";
 const DEFAULT_CACHE_TIMEOUT_MS = 2 * 60 * 1000;
@@ -27,10 +29,11 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
  * Local development and native platforms call the API directly.
  */
 function shouldUseProxy(): boolean {
-  // Not in browser (native or SSR) - no proxy needed
-  if (typeof window === "undefined") return false;
+  if (Platform.OS !== "web") return false;
 
   // Local development - no proxy needed (no CORS issues)
+  if (typeof window === "undefined") return false;
+
   const hostname = window.location.hostname;
   if (hostname === "localhost" || hostname === "127.0.0.1") return false;
 
@@ -133,7 +136,16 @@ export class RealDebridClient {
       throw new Error(`Real-Debrid API error: ${error.error} (${error.error_code})`);
     }
 
-    return response.json();
+    if (response.status === 204) {
+      return undefined as T;
+    }
+
+    const text = await response.text();
+    if (!text) {
+      return undefined as T;
+    }
+
+    return JSON.parse(text) as T;
   }
 
   /**

@@ -82,4 +82,4 @@ Add Nyaa as an anime-only torrent index alongside Torrentio. Nyaa results are re
 - 2026-01-12: Added Nyaa RSS fetch + Real-Debrid cache resolution for anime sources.
 - 2026-01-12: Enabled uncached playback/download flows with Real-Debrid caching.
 - 2026-01-12: Added retry-safe polling for Real-Debrid cache readiness.
-- 2026-01-12: Added web proxy for Nyaa RSS to avoid CORS.
+- 2026-01-12: Handle empty/204 Real-Debrid responses during caching.
