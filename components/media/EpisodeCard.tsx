@@ -20,6 +20,19 @@ export function EpisodeCard({ episode, onPress, onLongPress, watchProgress, isCo
   const stillUrl = episode.stillPath
     ? `${TMDB_IMAGE_BASE}/w300${episode.stillPath}`
     : null;
+  const releaseDate = episode.airDate ? new Date(`${episode.airDate}T00:00:00`) : null;
+  const releaseTimestamp = releaseDate?.getTime();
+  const isReleaseDateValid = releaseTimestamp !== undefined && !Number.isNaN(releaseTimestamp);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const isUnreleased = isReleaseDateValid && releaseTimestamp > today.getTime();
+  const releaseLabel = isReleaseDateValid && releaseDate
+    ? releaseDate.toLocaleDateString(undefined, {
+        month: "short",
+        day: "numeric",
+      })
+    : null;
+  const showMeta = Boolean(isUnreleased && releaseLabel) || Boolean(episode.runtime);
 
   const Container = asView ? View : Pressable;
   const containerProps = asView ? {} : { onPress, onLongPress, delayLongPress: 400 };
@@ -78,10 +91,21 @@ export function EpisodeCard({ episode, onPress, onLongPress, watchProgress, isCo
         <Text className="text-sm font-medium text-text" numberOfLines={1}>
           {episode.title}
         </Text>
-        {episode.runtime && (
-          <Text className="text-xs text-subtext0 mt-1">
-            {episode.runtime} min
-          </Text>
+        {showMeta && (
+          <View className="mt-1 flex-row flex-wrap items-center gap-2">
+            {isUnreleased && releaseLabel && (
+              <View className="rounded bg-mauve/10 px-1.5 py-0.5">
+                <Text variant="tag" className="text-mauve">
+                  Airs {releaseLabel}
+                </Text>
+              </View>
+            )}
+            {episode.runtime && (
+              <Text className="text-xs text-subtext0">
+                {episode.runtime} min
+              </Text>
+            )}
+          </View>
         )}
       </View>
     </Container>
