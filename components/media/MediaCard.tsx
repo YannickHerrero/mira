@@ -1,8 +1,8 @@
 import * as React from "react";
 import { View, Pressable, Image } from "react-native";
 import { useRouter } from "expo-router";
+import { BlurView } from "expo-blur";
 import { Text } from "@/components/ui/text";
-import { Badge } from "@/components/ui/badge";
 import { Star, Film, Tv } from "@/lib/icons";
 import { lightImpact } from "@/lib/haptics";
 import type { Media } from "@/lib/types";
@@ -89,31 +89,39 @@ export function MediaCard({
 
         {/* Media type badge */}
         {showBadge && (
-          <View className="absolute top-1.5 left-1.5">
-            <Badge variant="secondary" className="px-1.5 py-0.5 bg-black/70">
+          <View className="absolute top-1.5 left-1.5 overflow-hidden rounded">
+            <BlurView intensity={45} tint="dark" className="px-1.5 py-0.5 bg-base/70">
               <Text variant="sectionTitle" className="text-white font-medium">
                 {media.mediaType === "movie" ? "Movie" : "TV"}
               </Text>
-            </Badge>
+            </BlurView>
           </View>
         )}
 
         {/* Rating badge */}
         {media.score !== undefined && media.score > 0 && (
-          <View className="absolute top-1.5 right-1.5 flex-row items-center bg-black/70 rounded px-1.5 py-0.5">
-            <Star size={10} className="text-yellow-400 mr-0.5" fill="#facc15" />
-            <Text variant="caption" className="text-white">
-              {media.score.toFixed(1)}
-            </Text>
+          <View className="absolute top-1.5 right-1.5 overflow-hidden rounded">
+            <BlurView
+              intensity={45}
+              tint="dark"
+              className="flex-row items-center px-1.5 py-0.5 bg-base/70"
+            >
+              <Star size={10} className="text-yellow-400 mr-0.5" fill="#facc15" stroke="none" />
+              <Text variant="caption" className="text-white">
+                {media.score.toFixed(1)}
+              </Text>
+            </BlurView>
           </View>
         )}
 
         {/* Episode info badge for continue watching */}
         {episodeInfo && (
-          <View className="absolute bottom-0 left-0 right-0 bg-black/80 px-2 py-1.5">
-            <Text variant="body" className="text-white font-medium">
-              S{episodeInfo.seasonNumber} E{episodeInfo.episodeNumber}
-            </Text>
+          <View className="absolute bottom-0 left-0 right-0 overflow-hidden">
+            <BlurView intensity={45} tint="dark" className="px-2 py-1.5 bg-base/70">
+              <Text variant="body" className="text-white font-medium">
+                S{episodeInfo.seasonNumber} E{episodeInfo.episodeNumber}
+              </Text>
+            </BlurView>
           </View>
         )}
       </View>
