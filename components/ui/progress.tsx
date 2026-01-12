@@ -20,7 +20,7 @@ const Progress = React.forwardRef<
     <ProgressPrimitive.Root
       ref={ref}
       className={cn(
-        "relative h-4 w-full overflow-hidden rounded-full bg-secondary",
+        "relative h-4 w-full overflow-hidden rounded-full bg-surface1",
         className,
       )}
       {...props}
@@ -57,7 +57,7 @@ function Indicator({
     return (
       <ProgressPrimitive.Indicator
         className={cn(
-          "h-full w-full flex-1 bg-primary web:transition-all",
+          "h-full w-full flex-1 bg-lavender web:transition-all",
           className,
         )}
         style={{transform: `translateX(-${ 100 - (value ?? 0) }%)`}}
@@ -69,7 +69,7 @@ function Indicator({
     <ProgressPrimitive.Indicator asChild>
       <Animated.View
         style={indicator}
-        className={cn("h-full bg-foreground", className)}
+        className={cn("h-full bg-text", className)}
       />
     </ProgressPrimitive.Indicator>
   );

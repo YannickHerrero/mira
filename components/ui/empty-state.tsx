@@ -31,12 +31,12 @@ export function EmptyState({
     >
       <View className="mb-4">{icon}</View>
 
-      <Text className="text-xl font-semibold text-foreground text-center">
+      <Text className="text-xl font-semibold text-text text-center">
         {title}
       </Text>
 
       {description && (
-        <Text className="text-muted-foreground mt-2 text-center max-w-[280px]">
+        <Text className="text-subtext0 mt-2 text-center max-w-[280px]">
           {description}
         </Text>
       )}

@@ -212,7 +212,7 @@ function BottomSheetView({
   return (
     <View
       style={style}
-      className={cn("px-4 pt-5 pb-6 bg-background", className)}
+      className={cn("px-4 pt-5 pb-6 bg-base", className)}
       {...props}
     >
       {children}
@@ -232,10 +232,10 @@ const BottomSheetTextInput = React.forwardRef<
     <GBottomSheetTextInput
       ref={ref}
       className={cn(
-        "rounded-md border border-input bg-background px-3 text-xl h-14 leading-[1.25] text-foreground items-center  placeholder:text-muted-foreground disabled:opacity-50",
+        "rounded-md border border-surface1 bg-base px-3 text-xl h-14 leading-[1.25] text-text items-center  placeholder:text-subtext0 disabled:opacity-50",
         className,
       )}
-      placeholderClassName={cn("text-muted-foreground", placeholderClassName)}
+      placeholderClassName={cn("text-subtext0", placeholderClassName)}
       {...props}
     />
   );
@@ -271,7 +271,7 @@ const BottomSheetHeader = React.forwardRef<
     <View
       ref={ref}
       className={cn(
-        "border-b border-border/40 flex-row items-center justify-between px-4 py-4 bg-background",
+        "border-b border-surface1/40 flex-row items-center justify-between px-4 py-4 bg-base",
         className,
       )}
       {...props}

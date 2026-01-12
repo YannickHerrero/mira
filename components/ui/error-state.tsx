@@ -51,12 +51,12 @@ export function ErrorState({
     return (
       <View
         className={cn(
-          "flex-row items-center bg-destructive/10 rounded-lg px-4 py-3",
+          "flex-row items-center bg-red/10 rounded-lg px-4 py-3",
           className
         )}
       >
-        <AlertCircle size={18} className="text-destructive mr-3" />
-        <Text className="flex-1 text-sm text-destructive">{displayMessage}</Text>
+        <AlertCircle size={18} className="text-red mr-3" />
+        <Text className="flex-1 text-sm text-red">{displayMessage}</Text>
         {onRetry && (
           <Button
             variant="ghost"
@@ -67,7 +67,7 @@ export function ErrorState({
             <RefreshCw
               size={16}
               className={cn(
-                "text-destructive",
+                "text-red",
                 isRetrying && "animate-spin"
               )}
             />
@@ -84,15 +84,15 @@ export function ErrorState({
         className
       )}
     >
-      <View className="bg-destructive/10 rounded-full p-4 mb-4">
-        <Icon size={32} className="text-destructive" />
+      <View className="bg-red/10 rounded-full p-4 mb-4">
+        <Icon size={32} className="text-red" />
       </View>
 
-      <Text className="text-xl font-semibold text-foreground text-center">
+      <Text className="text-xl font-semibold text-text text-center">
         {displayTitle}
       </Text>
 
-      <Text className="text-muted-foreground mt-2 text-center max-w-[280px]">
+      <Text className="text-subtext0 mt-2 text-center max-w-[280px]">
         {displayMessage}
       </Text>
 
@@ -107,7 +107,7 @@ export function ErrorState({
             <RefreshCw
               size={16}
               className={cn(
-                "mr-2 text-foreground",
+                "mr-2 text-text",
                 isRetrying && "animate-spin"
               )}
             />

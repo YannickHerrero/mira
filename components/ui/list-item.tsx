@@ -1,25 +1,24 @@
-import {cva, type VariantProps} from "class-variance-authority";
-import {Link} from "expo-router";
-import type {LinkProps} from "expo-router/build/link/Link";
-import type {ExpoRouter} from "expo-router/types/expo-router";
+import { Link } from "expo-router";
+import type { Href } from "expo-router";
 import type React from "react";
-import type {ElementType} from "react";
-import {Pressable, type PressableProps, Text, View, type ViewProps} from "react-native";
+import type { ElementType } from "react";
+import { Pressable, type PressableProps, Text, View, type ViewProps } from "react-native";
+import { cva, type VariantProps } from "class-variance-authority";
 
-import {Muted} from "./typography";
+import { Muted } from "./typography";
 
-import {ChevronRight} from "@/components/Icons";
-import {cn} from "@/lib/utils";
+import { ChevronRight } from "@/components/Icons";
+import { cn } from "@/lib/utils";
 
 const listItemTextVariants = cva(
 	"text-base font-normal", // base styles
 	{
 		variants: {
 			variant: {
-				default: "text-foreground",
-				primary: "text-primary",
+				default: "text-text",
+				primary: "text-lavender",
 				link: "text-blue-500",
-				destructive: "text-destructive",
+				destructive: "text-red",
 			},
 		},
 		defaultVariants: {
@@ -36,8 +35,8 @@ interface ItemProps {
 type ListItemProps = VariantProps<typeof listItemTextVariants> & {
 	label: string;
 	description?: string;
-	itemLeft?: (itemProps: ItemProps) => JSX.Element;
-	itemRight?: (itemProps: ItemProps) => JSX.Element;
+	itemLeft?: (itemProps: ItemProps) => React.ReactElement;
+	itemRight?: (itemProps: ItemProps) => React.ReactElement;
 	onPress?: () => void;
 	/**
 	 * If true, a detail arrow will appear on the item.
@@ -46,9 +45,9 @@ type ListItemProps = VariantProps<typeof listItemTextVariants> & {
 	/**
 	 * Convert the default Pressable with a Link component.
 	 */
-	href?: ExpoRouter.Href;
+	href?: Href;
 	className?: string;
-} & (ViewProps | PressableProps | LinkProps);
+} & (ViewProps | PressableProps);
 
 // ListItem component
 const ListItem: React.FC<ListItemProps> = ({
@@ -66,12 +65,12 @@ const ListItem: React.FC<ListItemProps> = ({
 	const ItemRight = () => {
 		if (itemRight) {
 			return itemRight({
-				className: cn("size-5 opacity-70", listItemTextVariants({variant})),
+				className: cn("size-5 opacity-70", listItemTextVariants({ variant })),
 			});
 		} else if ((props?.onPress && detail) || (href && detail)) {
 			return (
 				<ChevronRight
-					className={cn("size-5 opacity-70", listItemTextVariants({variant}))}
+					className={cn("size-5 opacity-70", listItemTextVariants({ variant }))}
 				/>
 			);
 		}
@@ -79,33 +78,33 @@ const ListItem: React.FC<ListItemProps> = ({
 	};
 	const pressable = props?.onPress || href;
 	const Component = (pressable ? Pressable : View) as ElementType<
-		ViewProps | PressableProps | LinkProps
+		ViewProps | PressableProps
 	>;
 
 	const body = (
 		<Component
 			className={cn(
-				"flex-row items-center justify-between w-full px-4 py-3 border-b border-border bg-card",
+				"flex-row items-center justify-between w-full px-4 py-3 border-b border-surface1 bg-surface0",
 				pressable ? "web:hover:opacity-90 active:opacity-90" : "",
-				listItemTextVariants({variant}),
+				listItemTextVariants({ variant }),
 				className,
 			)}
 			accessibilityRole={pressable ? "button" : "none"}
-			accessibilityLabel={`${ label }${ description ? `, ${ description }` : "" }`}
+			accessibilityLabel={`${label}${description ? `, ${description}` : ""}`}
 			{...props}
 		>
 			{itemLeft && (
 				<View className="mr-3">
 					{itemLeft({
 						className: cn(
-							"text-foreground",
-							listItemTextVariants({variant}),
+							"text-text",
+							listItemTextVariants({ variant }),
 						),
 					})}
 				</View>
 			)}
 			<View className="flex-1">
-				<Text className={cn(listItemTextVariants({variant}))}>{label}</Text>
+				<Text className={cn(listItemTextVariants({ variant }))}>{label}</Text>
 				{description && <Muted>{description}</Muted>}
 			</View>
 			<ItemRight />

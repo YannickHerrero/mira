@@ -17,8 +17,8 @@ const SwitchWeb = React.forwardRef<
 >(({className, ...props}, ref) => (
   <SwitchPrimitives.Root
     className={cn(
-      "peer flex-row h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed",
-      props.checked ? "bg-primary" : "bg-input",
+      "peer flex-row h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lavender focus-visible:ring-offset-2 focus-visible:ring-offset-base disabled:cursor-not-allowed",
+      props.checked ? "bg-lavender" : "bg-surface1",
       props.disabled && "opacity-50",
       className,
     )}
@@ -27,7 +27,7 @@ const SwitchWeb = React.forwardRef<
   >
     <SwitchPrimitives.Thumb
       className={cn(
-        "pointer-events-none block h-5 w-5 rounded-full bg-background shadow-md shadow-foreground/5 ring-0 transition-transform",
+        "pointer-events-none block h-5 w-5 rounded-full bg-base shadow-md shadow-text/5 ring-0 transition-transform",
         props.checked ? "translate-x-5" : "translate-x-0",
       )}
     />
@@ -86,7 +86,7 @@ const SwitchNative = React.forwardRef<
         <Animated.View style={animatedThumbStyle}>
           <SwitchPrimitives.Thumb
             className={
-              "h-7 w-7 rounded-full bg-background shadow-md shadow-foreground/25 ring-0"
+              "h-7 w-7 rounded-full bg-base shadow-md shadow-text/25 ring-0"
             }
           />
         </Animated.View>

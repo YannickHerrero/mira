@@ -34,6 +34,7 @@ const Combobox = React.forwardRef<
     defaultSelectedItem?: ComboboxOption | null;
     selectedItem?: ComboboxOption | null;
     onSelectedItemChange?: (option: ComboboxOption | null) => void;
+    textClass?: string;
   }
 >(
   (
@@ -100,12 +101,12 @@ const Combobox = React.forwardRef<
             }}
           >
             <View className="flex-row flex-1">
-              <Text className={"text-foreground text-xl"}>
+              <Text className={"text-text text-xl"}>
                 {listItem.label}
               </Text>
             </View>
             {isSelected && (
-              <Check size={24} className={"text-foreground px-6 mt-1.5"} />
+              <Check size={24} className={"text-text px-6 mt-1.5"} />
             )}
           </Button>
         );
@@ -157,7 +158,7 @@ const Combobox = React.forwardRef<
             >
               {itemSelected ? itemSelected.label : placeholder ?? ""}
             </Text>
-            <ChevronsUpDown className="text-foreground ml-2 opacity-50" />
+            <ChevronsUpDown className="text-text ml-2 opacity-50" />
           </View>
         </BottomSheetOpenTrigger>
         <BottomSheetContent
@@ -167,11 +168,11 @@ const Combobox = React.forwardRef<
           }}
         >
           <BottomSheetHeader className="border-b-0">
-            <Text className="text-foreground text-xl font-bold text-center px-0.5">
+            <Text className="text-text text-xl font-bold text-center px-0.5">
               {placeholder}
             </Text>
           </BottomSheetHeader>
-          <View className="relative px-4 border-b border-border pb-4">
+          <View className="relative px-4 border-b border-surface1 pb-4">
             <BottomSheetTextInput
               role="searchbox"
               ref={inputRef}
@@ -190,7 +191,7 @@ const Combobox = React.forwardRef<
               className="absolute left-4 top-2.5"
               onPress={onSearchIconPress}
             >
-              <Search size={18} className="text-foreground opacity-50" />
+              <Search size={18} className="text-text opacity-50" />
             </Button>
           </View>
           <BottomSheetFlatList
@@ -199,8 +200,8 @@ const Combobox = React.forwardRef<
               paddingBottom: insets.bottom + HEADER_HEIGHT,
             }}
             renderItem={renderItem}
-            keyExtractor={(item, index) =>
-              (item as ComboboxOption)?.value ?? index.toString()
+            keyExtractor={(item: ComboboxOption, index: number) =>
+              item?.value ?? index.toString()
             }
             className={"px-4"}
             keyboardShouldPersistTaps="handled"
@@ -210,7 +211,7 @@ const Combobox = React.forwardRef<
                   className="items-center flex-row justify-center flex-1  px-3 py-5"
                   style={{minHeight: 70}}
                 >
-                  <Text className={"text-muted-foreground text-xl text-center"}>
+                  <Text className={"text-subtext0 text-xl text-center"}>
                     {emptyText}
                   </Text>
                 </View>

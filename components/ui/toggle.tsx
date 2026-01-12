@@ -6,13 +6,13 @@ import {TextClassContext} from "@/components/ui/text";
 import {cn} from "@/lib/utils";
 
 const toggleVariants = cva(
-  "web:group web:inline-flex items-center justify-center rounded-md web:ring-offset-background web:transition-colors web:hover:bg-muted active:bg-muted web:focus-visible:outline-none web:focus-visible:ring-2 web:focus-visible:ring-ring web:focus-visible:ring-offset-2",
+  "web:group web:inline-flex items-center justify-center rounded-md web:ring-offset-base web:transition-colors web:hover:bg-surface0 active:bg-surface0 web:focus-visible:outline-none web:focus-visible:ring-2 web:focus-visible:ring-lavender web:focus-visible:ring-offset-2",
   {
     variants: {
       variant: {
         default: "bg-transparent",
         outline:
-          "border border-input bg-transparent web:hover:bg-accent active:bg-accent active:bg-accent",
+          "border border-surface1 bg-transparent web:hover:bg-mauve active:bg-mauve active:bg-mauve",
       },
       size: {
         default: "h-10 px-3 native:h-12 native:px-[12]",
@@ -28,13 +28,13 @@ const toggleVariants = cva(
 );
 
 const toggleTextVariants = cva(
-  "text-sm native:text-base text-foreground font-medium",
+  "text-sm native:text-base text-text font-medium",
   {
     variants: {
       variant: {
         default: "",
         outline:
-          "web:group-hover:text-accent-foreground web:group-active:text-accent-foreground",
+          "web:group-hover:text-crust web:group-active:text-crust",
       },
       size: {
         default: "",
@@ -58,8 +58,8 @@ const Toggle = React.forwardRef<
     value={cn(
       toggleTextVariants({variant, size}),
       props.pressed
-        ? "text-accent-foreground"
-        : "web:group-hover:text-muted-foreground",
+        ? "text-crust"
+        : "web:group-hover:text-subtext0",
       className,
     )}
   >
@@ -68,7 +68,7 @@ const Toggle = React.forwardRef<
       className={cn(
         toggleVariants({variant, size}),
         props.disabled && "web:pointer-events-none opacity-50",
-        props.pressed && "bg-accent",
+        props.pressed && "bg-mauve",
         className,
       )}
       {...props}

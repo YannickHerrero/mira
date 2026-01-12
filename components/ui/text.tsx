@@ -21,7 +21,7 @@ const TextClassContext = React.createContext<string | undefined>(undefined);
  * - subtitle:      11px → 10px
  * - tag:           9px  → 9px
  */
-const textVariants = cva("text-foreground web:select-text", {
+const textVariants = cva("text-text web:select-text", {
   variants: {
     variant: {
       default: "text-base",
