@@ -4,6 +4,7 @@ import {
   ScrollView,
   ActivityIndicator,
   Pressable,
+  Image,
 } from "react-native";
 import { useLocalSearchParams, Stack, useRouter } from "expo-router";
 import { useBottomSheetModal } from "@gorhom/bottom-sheet";
@@ -382,8 +383,7 @@ export default function MediaDetailScreen() {
       const client = createAniListClient(null);
       const results = await client.searchMedia({
         search: searchValue.trim(),
-        year: media?.year ?? null,
-        format: mediaType === "movie" ? "MOVIE" : null,
+        format: mediaType === "movie" ? "MOVIE" : undefined,
       });
       setAniListSearchResults(results);
     } catch (error) {
@@ -780,6 +780,15 @@ export default function MediaDetailScreen() {
                           onPress={() => handleSelectAniListEntry(entry)}
                           className="flex-row items-center gap-3 rounded-xl bg-surface0/30 p-3"
                         >
+                          {entry.coverImage?.medium ? (
+                            <Image
+                              source={{ uri: entry.coverImage.medium }}
+                              className="h-16 w-12 rounded-md bg-surface1"
+                              resizeMode="cover"
+                            />
+                          ) : (
+                            <View className="h-16 w-12 rounded-md bg-surface1/40" />
+                          )}
                           <View className="flex-1">
                             <Text className="text-base font-semibold text-text">
                               {entryTitle}

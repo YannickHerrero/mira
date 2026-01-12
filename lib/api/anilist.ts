@@ -66,34 +66,44 @@ export class AniListClient {
 
   async searchMedia({
     search,
-    year,
     format,
   }: {
     search: string;
-    year?: number | null;
     format?: "MOVIE" | "TV" | "TV_SHORT" | "OVA" | "ONA" | "SPECIAL" | null;
   }): Promise<AniListSearchResult[]> {
-    const query = `
-      query ($search: String, $type: MediaType, $format: MediaFormat, $year: Int) {
+    const baseFields = `
+      id
+      title { romaji english native }
+      format
+      seasonYear
+      episodes
+      coverImage { medium }
+    `;
+
+    const queryWithFormat = `
+      query ($search: String!, $format: MediaFormat) {
         Page(page: 1, perPage: 10) {
-          media(search: $search, type: $type, format: $format, seasonYear: $year, sort: SEARCH_MATCH) {
-            id
-            title { romaji english native }
-            format
-            seasonYear
-            episodes
-            coverImage { medium }
+          media(search: $search, type: ANIME, format: $format, sort: SEARCH_MATCH) {
+            ${baseFields}
           }
         }
       }
     `;
 
-    const data = await this.request<AniListSearchResponse>(query, {
-      search,
-      type: "ANIME",
-      format: format ?? null,
-      year: year ?? null,
-    });
+    const queryWithoutFormat = `
+      query ($search: String!) {
+        Page(page: 1, perPage: 10) {
+          media(search: $search, type: ANIME, sort: SEARCH_MATCH) {
+            ${baseFields}
+          }
+        }
+      }
+    `;
+
+    const data = await this.request<AniListSearchResponse>(
+      format ? queryWithFormat : queryWithoutFormat,
+      format ? { search, format } : { search }
+    );
 
     return data.Page.media ?? [];
   }
