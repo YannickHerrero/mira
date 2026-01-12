@@ -4,7 +4,6 @@ import type { RealDebridClient } from "@/lib/api/realdebrid";
 import type { Stream } from "@/lib/types";
 
 const NYAA_URL = "https://nyaa.si";
-const NYAA_PROXY_URL = "/api/nyaa";
 const NYAA_CATEGORIES = ["1_2", "1_4"];
 
 interface NyaaItem {
@@ -24,21 +23,6 @@ const parser = new XMLParser({
   attributeNamePrefix: "",
   removeNSPrefix: false,
 });
-
-function shouldUseProxy(): boolean {
-  if (typeof window === "undefined") return false;
-  return true;
-}
-
-function buildNyaaUrl(query: string, category: string): string {
-  const baseUrl = shouldUseProxy() ? NYAA_PROXY_URL : `${NYAA_URL}/`;
-  const url = new URL(baseUrl, typeof window === "undefined" ? NYAA_URL : window.location.origin);
-  url.searchParams.set("page", "rss");
-  url.searchParams.set("c", category);
-  url.searchParams.set("f", "0");
-  url.searchParams.set("q", query);
-  return url.toString();
-}
 
 function ensureArray<T>(value: T | T[] | undefined): T[] {
   if (!value) return [];
@@ -160,7 +144,7 @@ export class NyaaClient {
     const responses = await Promise.all(
       queries.flatMap((query) =>
         NYAA_CATEGORIES.map(async (category) => {
-          const url = buildNyaaUrl(query, category);
+          const url = `${NYAA_URL}/?page=rss&c=${category}&f=0&q=${encodeURIComponent(query)}`;
           const response = await fetch(url);
           if (!response.ok) {
             throw new Error(`Nyaa RSS error: ${response.status} ${response.statusText}`);

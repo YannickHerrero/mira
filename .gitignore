@@ -46,3 +46,4 @@ todo.md
 *.tsbuildinfo
 
 app-example
+.vercel
