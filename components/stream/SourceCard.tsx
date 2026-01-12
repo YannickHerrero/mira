@@ -19,6 +19,7 @@ interface SourceCardProps {
   downloadProgress?: number;
   isDownloadedSource?: boolean;
   isRecommended?: boolean;
+  isCaching?: boolean;
   rawStreamName?: string; // To detect RD+ prefix
   preferredLanguages?: string[];
 }
@@ -33,6 +34,7 @@ export function SourceCard({
   downloadProgress,
   isDownloadedSource,
   isRecommended,
+  isCaching,
   rawStreamName,
   preferredLanguages,
 }: SourceCardProps) {
@@ -101,17 +103,24 @@ export function SourceCard({
                </Badge>
              )}
 
-             {hasRdPlus && (
-               <Badge variant="outline" className="px-2 py-0.5">
-                 <Text className="text-xs text-subtext0">RD+</Text>
-               </Badge>
-             )}
+              {isCaching && (
+                <Badge variant="outline" className="px-2 py-0.5 border-amber-500/60">
+                  <Text className="text-xs text-amber-500">Caching</Text>
+                </Badge>
+              )}
 
-             {isDownloadedSource && (
-               <Badge variant="default" className="px-2 py-0.5 bg-green-600">
-                 <Text className="text-xs font-medium text-white">Downloaded</Text>
-               </Badge>
-             )}
+              {!isCaching && hasRdPlus && (
+                <Badge variant="outline" className="px-2 py-0.5">
+                  <Text className="text-xs text-subtext0">RD+</Text>
+                </Badge>
+              )}
+
+              {isDownloadedSource && (
+                <Badge variant="default" className="px-2 py-0.5 bg-green-600">
+                  <Text className="text-xs font-medium text-white">Downloaded</Text>
+                </Badge>
+              )}
+
 
              {isRecommended && (
                <Badge variant="default" className="px-2 py-0.5 bg-amber-500">

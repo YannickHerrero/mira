@@ -90,6 +90,13 @@ interface RDTorrentInfo {
   files?: RDTorrentInfoFile[];
 }
 
+interface RDTorrentListItem {
+  id: string;
+  filename?: string;
+  hash: string;
+  status: string;
+}
+
 interface RDAddMagnetResponse {
   id: string;
 }
@@ -209,6 +216,13 @@ export class RealDebridClient {
       acc[hash] = Array.isArray(data?.rd) && data.rd.length > 0;
       return acc;
     }, {});
+  }
+
+  /**
+   * List torrents in the user account
+   */
+  async getTorrents(): Promise<RDTorrentListItem[]> {
+    return this.fetch<RDTorrentListItem[]>("/torrents");
   }
 
   /**

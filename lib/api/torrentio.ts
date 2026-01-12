@@ -167,13 +167,20 @@ export class TorrentioClient {
    private parseStream(stream: TorrentioStream): Stream {
      const combinedText = `${stream.name}\n${stream.title}`;
 
-     // Check if cached (instant playback via Real-Debrid)
-     const isCached = stream.name.includes("[RD+]") || stream.name.includes("[⚡]");
+    // Check if cached (instant playback via Real-Debrid)
+    const isCached = stream.name.includes("[RD+]") || stream.name.includes("[⚡]");
 
-     // Extract provider from name (e.g., "[RD+] The Pirate Bay" -> "The Pirate Bay")
-     // Handles both single-word (nyaasi) and multi-word (The Pirate Bay) providers
-     const providerMatch = stream.name.match(/\]\s*(.+?)(?:\s*$|\n)/);
-     const provider = providerMatch?.[1]?.trim() ?? "unknown";
+    const hintedHash = stream.behaviorHints?.bingeGroup;
+    const extractedHash = hintedHash?.split("|").pop();
+    const normalizedHash =
+      stream.infoHash ??
+      (extractedHash && /^[a-f0-9]{40}$/i.test(extractedHash) ? extractedHash : undefined);
+
+    // Extract provider from name (e.g., "[RD+] The Pirate Bay" -> "The Pirate Bay")
+    // Handles both single-word (nyaasi) and multi-word (The Pirate Bay) providers
+    const providerMatch = stream.name.match(/\]\s*(.+?)(?:\s*$|\n)/);
+    const provider = providerMatch?.[1]?.trim() ?? "unknown";
+
 
     // Parse seeders
     const seedersMatch = stream.title.match(PATTERNS.seeders);
@@ -241,7 +248,7 @@ export class TorrentioClient {
       sizeBytes,
       seeders,
       url: stream.url,
-      infoHash: stream.infoHash,
+      infoHash: normalizedHash,
       videoCodec,
       audio,
       hdr,

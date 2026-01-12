@@ -16,6 +16,7 @@ import { Check, Play, Eye } from "@/lib/icons";
 import type { Stream, MediaType } from "@/lib/types";
 import { useSourceFilters } from "@/hooks/useSourceFilters";
 import { useStreamingPreferences } from "@/hooks/useStreamingPreferences";
+import { useRealDebridTorrents } from "@/hooks/useRealDebridTorrents";
 import { filterStreams, hasActiveFilters } from "@/lib/filter-streams";
 
 const INVALID_FILENAME_CHARS = /[<>:"/\\|?*\u0000-\u001F]/g;
@@ -149,6 +150,7 @@ export function SourceList({
   );
   const { playMedia } = useMediaPlayer();
   const { preferredAudioLanguages, preferredSubtitleLanguages } = useStreamingPreferences();
+  const { cachingHashes } = useRealDebridTorrents({ enabled: !!realDebridApiKey });
 
   const preferredLanguages = React.useMemo(() => {
     const subtitleLanguages = preferredSubtitleLanguages.filter((language) => language !== "Off");
@@ -162,6 +164,7 @@ export function SourceList({
     [qualities, languages]
   );
   const filtersActive = hasActiveFilters(filters);
+
 
   const ensurePlaybackState = React.useCallback((stream: Stream) => {
     const streamKey = getStreamKey(stream);
@@ -395,6 +398,9 @@ export function SourceList({
         (stream) => getStreamKey(stream) === streamKey
       );
 
+      const normalizedHash = item.infoHash?.toLowerCase();
+      const isCaching = normalizedHash ? cachingHashes.has(normalizedHash) : false;
+
       // For download status indicator (downloading/pending/caching)
       const streamDownloadStatus = isThisStreamDownloaded
         ? "completed"
@@ -417,6 +423,7 @@ export function SourceList({
             downloadProgress={download?.progress}
             isDownloadedSource={isThisStreamDownloaded}
             isRecommended={isRecommended}
+            isCaching={isCaching}
             rawStreamName={item.rawStreamName}
             preferredLanguages={preferredLanguages}
           />
@@ -430,6 +437,7 @@ export function SourceList({
       download,
       recommendedStreams,
       preferredLanguages,
+      cachingHashes,
     ]
   );
 
