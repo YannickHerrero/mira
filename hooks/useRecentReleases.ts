@@ -6,6 +6,7 @@ import { listsTable, listItemsTable } from "@/db/schema";
 import { useApiKeyStore } from "@/stores/api-keys";
 import { useLanguageStore } from "@/stores/language";
 import { createTMDBClient } from "@/lib/api/tmdb";
+import { exportReleasesToWidget } from "@/lib/widget";
 import type { UpcomingRelease } from "@/lib/api/tmdb";
 
 interface UseRecentReleasesReturn {
@@ -107,8 +108,14 @@ export function useRecentReleases(): UseRecentReleasesReturn {
       );
 
       // Limit to 5 items
-      setReleases(pastReleases.slice(0, 5));
+      const limitedReleases = pastReleases.slice(0, 5);
+      setReleases(limitedReleases);
       hasFetchedRef.current = true;
+
+      // Export releases to widget (non-blocking)
+      exportReleasesToWidget(limitedReleases).catch(() => {
+        // Silently ignore widget export errors
+      });
     } catch (err) {
       console.error("Failed to fetch recent releases:", err);
       setError(err instanceof Error ? err.message : "Failed to fetch recent releases");
