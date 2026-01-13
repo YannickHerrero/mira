@@ -16,18 +16,22 @@ extension Color {
 struct SmallWidgetView: View {
     let entry: ReleaseEntry
     
+    private var headerTitle: String {
+        entry.isUpcoming ? "Upcoming" : "Recent"
+    }
+    
     var body: some View {
         if entry.isEmpty {
-            EmptyStateView(compact: true)
+            EmptyStateView(compact: true, isUpcoming: entry.isUpcoming)
         } else if let release = entry.releases.first {
             Link(destination: release.deepLinkUrl) {
                 VStack(alignment: .leading, spacing: 4) {
                     // Header
                     HStack {
-                        Image(systemName: "play.circle.fill")
+                        Image(systemName: entry.isUpcoming ? "calendar" : "play.circle.fill")
                             .font(.caption)
                             .foregroundColor(.widgetAccent)
-                        Text("Recent")
+                        Text(headerTitle)
                             .font(.caption)
                             .fontWeight(.semibold)
                             .foregroundColor(.widgetSubtext)
@@ -59,7 +63,7 @@ struct SmallWidgetView: View {
                             .background(Color.widgetAccent.opacity(0.15))
                             .cornerRadius(4)
                         
-                        Text(formatDate(release.releaseDate))
+                        Text(formatDate(release.releaseDate, isUpcoming: entry.isUpcoming))
                             .font(.caption2)
                             .foregroundColor(.widgetSubtext)
                     }
@@ -77,17 +81,21 @@ struct SmallWidgetView: View {
 struct MediumWidgetView: View {
     let entry: ReleaseEntry
     
+    private var headerTitle: String {
+        entry.isUpcoming ? "Upcoming Releases" : "Recent Releases"
+    }
+    
     var body: some View {
         if entry.isEmpty {
-            EmptyStateView(compact: false)
+            EmptyStateView(compact: false, isUpcoming: entry.isUpcoming)
         } else {
             VStack(alignment: .leading, spacing: 8) {
                 // Header
                 HStack {
-                    Image(systemName: "play.circle.fill")
+                    Image(systemName: entry.isUpcoming ? "calendar" : "play.circle.fill")
                         .font(.caption)
                         .foregroundColor(.widgetAccent)
-                    Text("Recent Releases")
+                    Text(headerTitle)
                         .font(.caption)
                         .fontWeight(.semibold)
                         .foregroundColor(.widgetSubtext)
@@ -98,7 +106,7 @@ struct MediumWidgetView: View {
                 // Release items (up to 3)
                 ForEach(entry.releases.prefix(3)) { release in
                     Link(destination: release.deepLinkUrl) {
-                        MediumReleaseRow(release: release)
+                        MediumReleaseRow(release: release, isUpcoming: entry.isUpcoming)
                     }
                 }
                 
@@ -113,6 +121,7 @@ struct MediumWidgetView: View {
 
 struct MediumReleaseRow: View {
     let release: ReleaseItem
+    let isUpcoming: Bool
     
     var body: some View {
         HStack(spacing: 10) {
@@ -171,17 +180,21 @@ struct MediumReleaseRow: View {
 struct LargeWidgetView: View {
     let entry: ReleaseEntry
     
+    private var headerTitle: String {
+        entry.isUpcoming ? "Upcoming Releases" : "Recent Releases"
+    }
+    
     var body: some View {
         if entry.isEmpty {
-            EmptyStateView(compact: false)
+            EmptyStateView(compact: false, isUpcoming: entry.isUpcoming)
         } else {
             VStack(alignment: .leading, spacing: 8) {
                 // Header
                 HStack {
-                    Image(systemName: "play.circle.fill")
+                    Image(systemName: entry.isUpcoming ? "calendar" : "play.circle.fill")
                         .font(.subheadline)
                         .foregroundColor(.widgetAccent)
-                    Text("Recent Releases")
+                    Text(headerTitle)
                         .font(.subheadline)
                         .fontWeight(.semibold)
                         .foregroundColor(.widgetSubtext)
@@ -198,7 +211,7 @@ struct LargeWidgetView: View {
                 // Release items (up to 5)
                 ForEach(entry.releases.prefix(5)) { release in
                     Link(destination: release.deepLinkUrl) {
-                        LargeReleaseRow(release: release)
+                        LargeReleaseRow(release: release, isUpcoming: entry.isUpcoming)
                     }
                     
                     if release.id != entry.releases.prefix(5).last?.id {
@@ -218,6 +231,7 @@ struct LargeWidgetView: View {
 
 struct LargeReleaseRow: View {
     let release: ReleaseItem
+    let isUpcoming: Bool
     
     var body: some View {
         HStack(spacing: 12) {
@@ -265,7 +279,7 @@ struct LargeReleaseRow: View {
                         .background(Color.widgetAccent.opacity(0.15))
                         .cornerRadius(4)
                     
-                    Text(formatDate(release.releaseDate))
+                    Text(formatDate(release.releaseDate, isUpcoming: isUpcoming))
                         .font(.caption2)
                         .foregroundColor(.widgetSubtext)
                 }
@@ -281,21 +295,34 @@ struct LargeReleaseRow: View {
 
 struct EmptyStateView: View {
     let compact: Bool
+    let isUpcoming: Bool
+    
+    private var icon: String {
+        isUpcoming ? "calendar.badge.clock" : "checkmark.circle"
+    }
+    
+    private var title: String {
+        isUpcoming ? "No upcoming releases" : "All caught up!"
+    }
+    
+    private var subtitle: String {
+        isUpcoming ? "No upcoming releases from your watchlist" : "No recent releases from your watchlist"
+    }
     
     var body: some View {
         Link(destination: URL(string: "mira://")!) {
             VStack(spacing: compact ? 4 : 8) {
-                Image(systemName: "checkmark.circle")
+                Image(systemName: icon)
                     .font(compact ? .title3 : .title2)
                     .foregroundColor(.widgetSubtext)
                 
-                Text("All caught up!")
+                Text(title)
                     .font(compact ? .caption : .subheadline)
                     .fontWeight(.medium)
                     .foregroundColor(.widgetText)
                 
                 if !compact {
-                    Text("No recent releases from your watchlist")
+                    Text(subtitle)
                         .font(.caption2)
                         .foregroundColor(.widgetSubtext)
                         .multilineTextAlignment(.center)
@@ -309,7 +336,7 @@ struct EmptyStateView: View {
 
 // MARK: - Helper Functions
 
-private func formatDate(_ dateString: String) -> String {
+private func formatDate(_ dateString: String, isUpcoming: Bool = false) -> String {
     let formatter = ISO8601DateFormatter()
     formatter.formatOptions = [.withFullDate]
     
@@ -320,20 +347,21 @@ private func formatDate(_ dateString: String) -> String {
         guard let date = simpleFormatter.date(from: dateString) else {
             return dateString
         }
-        return formatRelativeDate(date)
+        return formatRelativeDate(date, isUpcoming: isUpcoming)
     }
     
-    return formatRelativeDate(date)
+    return formatRelativeDate(date, isUpcoming: isUpcoming)
 }
 
-private func formatRelativeDate(_ date: Date) -> String {
+private func formatRelativeDate(_ date: Date, isUpcoming: Bool = false) -> String {
     let calendar = Calendar.current
-    let now = Date()
     
     if calendar.isDateInToday(date) {
         return "Today"
     } else if calendar.isDateInYesterday(date) {
         return "Yesterday"
+    } else if calendar.isDateInTomorrow(date) {
+        return "Tomorrow"
     } else {
         let formatter = DateFormatter()
         formatter.dateFormat = "MMM d"

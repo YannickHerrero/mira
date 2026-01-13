@@ -2,6 +2,7 @@
  * Widget Data Export Module
  *
  * Exports release data to App Group shared storage for iOS widget access.
+ * Supports both recent and upcoming releases modes.
  * On non-iOS platforms, this module is a no-op.
  */
 
@@ -13,8 +14,9 @@ import type { WidgetRelease } from "./types";
 // App Group identifier - must match the one in the config plugin
 const APP_GROUP_IDENTIFIER = "group.com.yherrero.mira";
 
-// Key used to store releases in UserDefaults
-const RELEASES_KEY = "widget_releases";
+// Storage keys for recent and upcoming releases (must match Swift TimelineProvider)
+const RECENT_RELEASES_KEY = "widget_releases_recent";
+const UPCOMING_RELEASES_KEY = "widget_releases_upcoming";
 
 /**
  * Convert an UpcomingRelease to the simplified WidgetRelease format
@@ -37,15 +39,15 @@ function toWidgetRelease(release: UpcomingRelease): WidgetRelease {
 }
 
 /**
- * Export releases to the widget's shared storage
+ * Export recent releases to the widget's shared storage
  *
- * This writes the release data to App Group UserDefaults,
- * which can be read by the iOS widget extension.
+ * This writes past release data (already aired) to App Group UserDefaults,
+ * which can be read by the iOS widget extension when configured for "Recent Releases".
  *
- * @param releases - Array of recent releases to export
+ * @param releases - Array of recent releases to export (should be past releases)
  * @param maxItems - Maximum number of items to export (default: 5)
  */
-export async function exportReleasesToWidget(
+export async function exportRecentReleasesToWidget(
   releases: UpcomingRelease[],
   maxItems = 5
 ): Promise<void> {
@@ -56,36 +58,99 @@ export async function exportReleasesToWidget(
 
   try {
     // Convert and limit releases
-    const widgetReleases = releases
+    const widgetReleases = releases.slice(0, maxItems).map(toWidgetRelease);
+
+    // Write to App Group UserDefaults using native module
+    await writeToAppGroup(RECENT_RELEASES_KEY, widgetReleases);
+
+    console.log(
+      `[Widget] Exported ${widgetReleases.length} recent releases to widget`
+    );
+  } catch (error) {
+    // Log but don't throw - widget export is non-critical
+    console.warn("[Widget] Failed to export recent releases:", error);
+  }
+}
+
+/**
+ * Export upcoming releases to the widget's shared storage
+ *
+ * This writes future release data (today + not yet aired) to App Group UserDefaults,
+ * which can be read by the iOS widget extension when configured for "Upcoming Releases".
+ *
+ * @param releases - Array of releases (will be filtered to today + future only)
+ * @param maxItems - Maximum number of items to export (default: 5)
+ */
+export async function exportUpcomingReleasesToWidget(
+  releases: UpcomingRelease[],
+  maxItems = 5
+): Promise<void> {
+  // Only run on iOS
+  if (Platform.OS !== "ios") {
+    return;
+  }
+
+  try {
+    // Filter to only include today and future releases
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const upcomingReleases = releases.filter((release) => {
+      const releaseDate = new Date(release.releaseDate);
+      releaseDate.setHours(0, 0, 0, 0);
+      return releaseDate >= today;
+    });
+
+    // Sort by release date ascending (soonest first)
+    upcomingReleases.sort(
+      (a, b) =>
+        new Date(a.releaseDate).getTime() - new Date(b.releaseDate).getTime()
+    );
+
+    // Convert and limit releases
+    const widgetReleases = upcomingReleases
       .slice(0, maxItems)
       .map(toWidgetRelease);
 
     // Write to App Group UserDefaults using native module
-    await writeToAppGroup(widgetReleases);
+    await writeToAppGroup(UPCOMING_RELEASES_KEY, widgetReleases);
 
-    console.log(`[Widget] Exported ${widgetReleases.length} releases to widget`);
+    console.log(
+      `[Widget] Exported ${widgetReleases.length} upcoming releases to widget`
+    );
   } catch (error) {
     // Log but don't throw - widget export is non-critical
-    console.warn("[Widget] Failed to export releases:", error);
+    console.warn("[Widget] Failed to export upcoming releases:", error);
   }
+}
+
+/**
+ * Legacy function for backward compatibility
+ * @deprecated Use exportRecentReleasesToWidget instead
+ */
+export async function exportReleasesToWidget(
+  releases: UpcomingRelease[],
+  maxItems = 5
+): Promise<void> {
+  return exportRecentReleasesToWidget(releases, maxItems);
 }
 
 /**
  * Write data to App Group UserDefaults
  *
- * This uses the SharedGroupPreferences native module if available,
- * otherwise falls back to a no-op with a warning.
+ * This uses the MiraWidgetBridge native module to write data
+ * that can be read by the iOS widget extension.
  */
-async function writeToAppGroup(releases: WidgetRelease[]): Promise<void> {
-  // Try to use expo-shared-preferences or similar if available
-  // For now, we'll implement this via a config plugin that injects the capability
-
+async function writeToAppGroup(
+  key: string,
+  releases: WidgetRelease[]
+): Promise<void> {
   // Check if the native module is available
-  const SharedPreferences = NativeModules.MiraWidgetBridge;
+  const WidgetBridge = NativeModules.MiraWidgetBridge;
 
-  if (SharedPreferences?.setWidgetData) {
+  if (WidgetBridge?.setWidgetData) {
     const jsonData = JSON.stringify(releases);
-    await SharedPreferences.setWidgetData(jsonData);
+    await WidgetBridge.setWidgetData(key, jsonData);
     return;
   }
 
@@ -94,14 +159,16 @@ async function writeToAppGroup(releases: WidgetRelease[]): Promise<void> {
     // Dynamic import to avoid crash if not installed
     const SharedGroupPreferences = require("react-native-shared-group-preferences");
     await SharedGroupPreferences.default.setItem(
-      RELEASES_KEY,
+      key,
       JSON.stringify(releases),
       { appGroup: APP_GROUP_IDENTIFIER }
     );
   } catch {
     // If no native bridge is available, we need to set one up
     // This will work after we add the native module via config plugin
-    console.log("[Widget] Native bridge not available - will work after prebuild");
+    console.log(
+      "[Widget] Native bridge not available - will work after prebuild"
+    );
   }
 }
 
@@ -117,9 +184,9 @@ export async function reloadWidgetTimeline(): Promise<void> {
   }
 
   try {
-    const SharedPreferences = NativeModules.MiraWidgetBridge;
-    if (SharedPreferences?.reloadTimeline) {
-      await SharedPreferences.reloadTimeline();
+    const WidgetBridge = NativeModules.MiraWidgetBridge;
+    if (WidgetBridge?.reloadTimeline) {
+      await WidgetBridge.reloadTimeline();
     }
   } catch (error) {
     console.warn("[Widget] Failed to reload timeline:", error);

@@ -2,18 +2,23 @@ import WidgetKit
 import SwiftUI
 
 /// Main widget configuration for Mira
-/// Displays recent releases from the user's watchlist
+/// Displays recent or upcoming releases from the user's watchlist
+/// User can configure the display mode through widget settings
 @main
 struct MiraWidget: Widget {
     let kind: String = "MiraWidget"
     
     var body: some WidgetConfiguration {
-        StaticConfiguration(kind: kind, provider: MiraTimelineProvider()) { entry in
+        AppIntentConfiguration(
+            kind: kind,
+            intent: ConfigurationAppIntent.self,
+            provider: MiraTimelineProvider()
+        ) { entry in
             MiraWidgetEntryView(entry: entry)
                 .containerBackground(.fill.tertiary, for: .widget)
         }
-        .configurationDisplayName("Recent Releases")
-        .description("See the latest releases from your watchlist.")
+        .configurationDisplayName("Mira Releases")
+        .description("See releases from your watchlist.")
         .supportedFamilies([.systemSmall, .systemMedium, .systemLarge])
         .contentMarginsDisabled()
     }
@@ -40,21 +45,28 @@ struct MiraWidgetEntryView: View {
 
 // MARK: - Preview Provider
 
-#Preview("Small", as: .systemSmall) {
+#Preview("Small - Recent", as: .systemSmall) {
     MiraWidget()
 } timeline: {
-    ReleaseEntry.placeholder
-    ReleaseEntry(date: Date(), releases: [])
+    ReleaseEntry.placeholder(for: .recent)
+    ReleaseEntry(date: Date(), releases: [], displayMode: .recent)
+}
+
+#Preview("Small - Upcoming", as: .systemSmall) {
+    MiraWidget()
+} timeline: {
+    ReleaseEntry.placeholder(for: .upcoming)
+    ReleaseEntry(date: Date(), releases: [], displayMode: .upcoming)
 }
 
 #Preview("Medium", as: .systemMedium) {
     MiraWidget()
 } timeline: {
-    ReleaseEntry.placeholder
+    ReleaseEntry.placeholder(for: .recent)
 }
 
 #Preview("Large", as: .systemLarge) {
     MiraWidget()
 } timeline: {
-    ReleaseEntry.placeholder
+    ReleaseEntry.placeholder(for: .upcoming)
 }

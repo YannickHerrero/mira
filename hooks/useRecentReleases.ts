@@ -6,7 +6,7 @@ import { listsTable, listItemsTable } from "@/db/schema";
 import { useApiKeyStore } from "@/stores/api-keys";
 import { useLanguageStore } from "@/stores/language";
 import { createTMDBClient } from "@/lib/api/tmdb";
-import { exportReleasesToWidget } from "@/lib/widget";
+import { exportRecentReleasesToWidget } from "@/lib/widget";
 import type { UpcomingRelease } from "@/lib/api/tmdb";
 
 interface UseRecentReleasesReturn {
@@ -112,8 +112,8 @@ export function useRecentReleases(): UseRecentReleasesReturn {
       setReleases(limitedReleases);
       hasFetchedRef.current = true;
 
-      // Export releases to widget (non-blocking)
-      exportReleasesToWidget(limitedReleases).catch(() => {
+      // Export recent releases to widget (non-blocking)
+      exportRecentReleasesToWidget(limitedReleases).catch(() => {
         // Silently ignore widget export errors
       });
     } catch (err) {

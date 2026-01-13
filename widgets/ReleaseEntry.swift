@@ -40,11 +40,13 @@ struct ReleaseItem: Codable, Identifiable {
 struct ReleaseEntry: TimelineEntry {
     let date: Date
     let releases: [ReleaseItem]
+    let displayMode: ReleaseDisplayMode
     let isPlaceholder: Bool
     
-    init(date: Date, releases: [ReleaseItem], isPlaceholder: Bool = false) {
+    init(date: Date, releases: [ReleaseItem], displayMode: ReleaseDisplayMode = .recent, isPlaceholder: Bool = false) {
         self.date = date
         self.releases = releases
+        self.displayMode = displayMode
         self.isPlaceholder = isPlaceholder
     }
     
@@ -53,8 +55,13 @@ struct ReleaseEntry: TimelineEntry {
         releases.isEmpty && !isPlaceholder
     }
     
+    /// Whether this entry is showing upcoming releases
+    var isUpcoming: Bool {
+        displayMode == .upcoming
+    }
+    
     /// Static placeholder for preview/loading states
-    static var placeholder: ReleaseEntry {
+    static func placeholder(for mode: ReleaseDisplayMode) -> ReleaseEntry {
         ReleaseEntry(
             date: Date(),
             releases: [
@@ -91,6 +98,7 @@ struct ReleaseEntry: TimelineEntry {
                     )
                 )
             ],
+            displayMode: mode,
             isPlaceholder: true
         )
     }

@@ -29,6 +29,11 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       UIFileSharingEnabled: true,
       LSSupportsOpeningDocumentsInPlace: true,
       AppGroupIdentifier: "group.com.yherrero.mira",
+      ITSAppUsesNonExemptEncryption: false,
+    },
+    // Explicitly declare App Groups entitlement for main app
+    entitlements: {
+      "com.apple.security.application-groups": ["group.com.yherrero.mira"],
     },
   },
   android: {
@@ -52,12 +57,20 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     "expo-secure-store",
     "expo-screen-orientation",
     "react-native-vlc-media-player",
-    // iOS Widget for displaying recent releases
+    // iOS Widget extension (handles Xcode project setup)
+    [
+      "react-native-widget-extension",
+      {
+        widgetsFolder: "widgets",
+        deploymentTarget: "17.0", // Required for AppIntents
+        groupIdentifier: "group.com.yherrero.mira",
+      },
+    ],
+    // Widget bridge (handles App Groups and native module for data sharing)
     [
       "./plugins/widget/app.plugin.js",
       {
-        widgetName: "Recent Releases",
-        devTeamId: "KY6RHJR4LZ",
+        appGroupIdentifier: "group.com.yherrero.mira",
       },
     ],
   ],
@@ -67,6 +80,25 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   extra: {
     eas: {
       projectId: "73c87940-8013-4e8b-b8c0-fbf35a56e3da",
+      build: {
+        experimental: {
+          ios: {
+            // Explicitly tell EAS about the widget extension and its entitlements
+            // This ensures the provisioning profile includes App Groups capability
+            appExtensions: [
+              {
+                targetName: "MiraWidgets",
+                bundleIdentifier: "com.yherrero.mira.MiraWidgets",
+                entitlements: {
+                  "com.apple.security.application-groups": [
+                    "group.com.yherrero.mira",
+                  ],
+                },
+              },
+            ],
+          },
+        },
+      },
     },
   },
   owner: "yherrero",
