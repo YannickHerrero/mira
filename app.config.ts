@@ -28,6 +28,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         "Mira uses the local network to stream media from local sources.",
       UIFileSharingEnabled: true,
       LSSupportsOpeningDocumentsInPlace: true,
+      AppGroupIdentifier: "group.com.yherrero.mira",
     },
   },
   android: {
@@ -51,6 +52,14 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     "expo-secure-store",
     "expo-screen-orientation",
     "react-native-vlc-media-player",
+    // iOS Widget for displaying recent releases
+    [
+      "./plugins/widget/app.plugin.js",
+      {
+        widgetName: "Recent Releases",
+        devTeamId: "KY6RHJR4LZ",
+      },
+    ],
   ],
   experiments: {
     typedRoutes: true,
