@@ -92,6 +92,10 @@ struct WidgetReleaseItem: Codable, Identifiable {
         if isTomorrow { return "Tomorrow" }
         return releaseDateFormatted
     }
+
+    var deepLinkURL: URL {
+        URL(string: "mira://media/\(id)?type=\(mediaType)")!
+    }
 }
 
 struct WidgetData: Codable {
@@ -320,6 +324,7 @@ struct SmallWidgetView: View {
         }
         .padding(12)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .widgetURL(entry.releases.first?.deepLinkURL)
     }
 }
 
@@ -362,7 +367,9 @@ struct MediumWidgetView: View {
             } else {
                 VStack(spacing: 4) {
                     ForEach(entry.releases.prefix(3)) { release in
-                        ReleaseRowView(release: release, showDate: true, compact: true)
+                        Link(destination: release.deepLinkURL) {
+                            ReleaseRowView(release: release, showDate: true, compact: true)
+                        }
                     }
                 }
             }
@@ -416,7 +423,9 @@ struct LargeWidgetView: View {
             } else {
                 VStack(spacing: 6) {
                     ForEach(Array(entry.releases.prefix(6).enumerated()), id: \.element.id) { index, release in
-                        ReleaseRowView(release: release, showDate: true)
+                        Link(destination: release.deepLinkURL) {
+                            ReleaseRowView(release: release, showDate: true)
+                        }
 
                         if index < min(entry.releases.count - 1, 5) {
                             Divider()
