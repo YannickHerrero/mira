@@ -11,6 +11,7 @@ import {
 import { listItemKey } from "@/lib/manual-sync-keys";
 import { clearManualSyncDeletion, markManualSyncDeletion } from "@/lib/manual-sync-metadata";
 import type { Media, MediaType } from "@/lib/types";
+import { cachePosterImage, deleteCachedPoster } from "@/lib/widget/poster-cache";
 
 export const DEFAULT_WATCHLIST_NAME = "Watchlist";
 
@@ -361,6 +362,26 @@ export function useListActions() {
   );
 
   /**
+   * Check if a list is the default watchlist
+   */
+  const isDefaultWatchlist = useCallback(
+    async (listId: string): Promise<boolean> => {
+      if (!db) return false;
+      try {
+        const result = await db
+          .select()
+          .from(listsTable)
+          .where(eq(listsTable.id, listId))
+          .limit(1);
+        return result[0]?.isDefault === true;
+      } catch (err) {
+        return false;
+      }
+    },
+    [db]
+  );
+
+  /**
    * Add media to a list
    */
   const addToList = useCallback(
@@ -385,13 +406,21 @@ export function useListActions() {
           "listItems",
           listItemKey(listId, media.id, media.mediaType)
         );
+
+        // Cache poster if adding to the default watchlist (for widget)
+        const isWatchlist = await isDefaultWatchlist(listId);
+        if (isWatchlist && media.posterPath) {
+          // Cache asynchronously, don't block the add operation
+          cachePosterImage(media.id, media.mediaType, media.posterPath).catch(() => {});
+        }
+
         return true;
       } catch (err) {
         console.error("Failed to add to list:", err);
         return false;
       }
     },
-    [db, saveMedia]
+    [db, saveMedia, isDefaultWatchlist]
   );
 
   /**
@@ -419,13 +448,20 @@ export function useListActions() {
           "listItems",
           listItemKey(listId, tmdbId, mediaType)
         );
+
+        // Delete cached poster if removing from the default watchlist
+        const isWatchlist = await isDefaultWatchlist(listId);
+        if (isWatchlist) {
+          deleteCachedPoster(tmdbId, mediaType);
+        }
+
         return true;
       } catch (err) {
         console.error("Failed to remove from list:", err);
         return false;
       }
     },
-    [db]
+    [db, isDefaultWatchlist]
   );
 
   /**
@@ -478,6 +514,12 @@ export function useListActions() {
             "listItems",
             listItemKey(listId, media.id, media.mediaType)
           );
+
+          // Cache poster if adding to the default watchlist
+          const isWatchlist = await isDefaultWatchlist(listId);
+          if (isWatchlist && media.posterPath) {
+            cachePosterImage(media.id, media.mediaType, media.posterPath).catch(() => {});
+          }
         }
 
         // Remove from deselected lists
@@ -495,6 +537,12 @@ export function useListActions() {
             "listItems",
             listItemKey(listId, media.id, media.mediaType)
           );
+
+          // Delete cached poster if removing from the default watchlist
+          const isWatchlist = await isDefaultWatchlist(listId);
+          if (isWatchlist) {
+            deleteCachedPoster(media.id, media.mediaType);
+          }
         }
 
         return true;
@@ -503,7 +551,7 @@ export function useListActions() {
         return false;
       }
     },
-    [db, saveMedia]
+    [db, saveMedia, isDefaultWatchlist]
   );
 
   /**

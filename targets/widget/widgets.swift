@@ -50,7 +50,7 @@ struct WidgetReleaseItem: Codable, Identifiable {
     let id: Int
     let mediaType: String
     let title: String
-    let posterUrl: String?
+    let posterFilename: String?
     let releaseDate: String
     let releaseType: String
     let episodeInfo: EpisodeInfo?
@@ -114,6 +114,7 @@ struct ReleaseEntry: TimelineEntry {
     let date: Date
     let data: WidgetData?
     let configuration: ConfigurationAppIntent
+    let posterImages: [Int: UIImage]  // tmdbId -> UIImage
 
     var releases: [WidgetReleaseItem] {
         data?.releases ?? []
@@ -131,6 +132,10 @@ struct ReleaseEntry: TimelineEntry {
         isUpcoming ? "Upcoming" : "Recent"
     }
 
+    func posterImage(for release: WidgetReleaseItem) -> UIImage? {
+        posterImages[release.id]
+    }
+
     static var placeholder: ReleaseEntry {
         ReleaseEntry(
             date: Date(),
@@ -140,7 +145,7 @@ struct ReleaseEntry: TimelineEntry {
                         id: 1,
                         mediaType: "tv",
                         title: "Sample Show",
-                        posterUrl: nil,
+                        posterFilename: nil,
                         releaseDate: ISO8601DateFormatter().string(from: Date()),
                         releaseType: "episode",
                         episodeInfo: EpisodeInfo(seasonNumber: 1, episodeNumber: 5, episodeName: "Sample Episode"),
@@ -150,7 +155,8 @@ struct ReleaseEntry: TimelineEntry {
                 mode: "recent",
                 lastUpdated: ISO8601DateFormatter().string(from: Date())
             ),
-            configuration: ConfigurationAppIntent()
+            configuration: ConfigurationAppIntent(),
+            posterImages: [:]
         )
     }
 }
@@ -161,6 +167,7 @@ struct Provider: AppIntentTimelineProvider {
     private let appGroupId = "group.com.yherrero.mira"
     private let recentDataKey = "widget_releases_recent"
     private let upcomingDataKey = "widget_releases_upcoming"
+    private let postersDirectory = "posters"
 
     func placeholder(in context: Context) -> ReleaseEntry {
         ReleaseEntry.placeholder
@@ -168,12 +175,14 @@ struct Provider: AppIntentTimelineProvider {
 
     func snapshot(for configuration: ConfigurationAppIntent, in context: Context) async -> ReleaseEntry {
         let data = loadWidgetData(for: configuration.displayMode)
-        return ReleaseEntry(date: Date(), data: data, configuration: configuration)
+        let posterImages = loadPosterImages(for: data?.releases ?? [])
+        return ReleaseEntry(date: Date(), data: data, configuration: configuration, posterImages: posterImages)
     }
 
     func timeline(for configuration: ConfigurationAppIntent, in context: Context) async -> Timeline<ReleaseEntry> {
         let data = loadWidgetData(for: configuration.displayMode)
-        let entry = ReleaseEntry(date: Date(), data: data, configuration: configuration)
+        let posterImages = loadPosterImages(for: data?.releases ?? [])
+        let entry = ReleaseEntry(date: Date(), data: data, configuration: configuration, posterImages: posterImages)
 
         // Refresh every 30 minutes
         let nextUpdate = Calendar.current.date(byAdding: .minute, value: 30, to: Date())!
@@ -198,17 +207,45 @@ struct Provider: AppIntentTimelineProvider {
             return nil
         }
     }
+
+    /// Load poster images from the App Group's posters directory
+    private func loadPosterImages(for releases: [WidgetReleaseItem]) -> [Int: UIImage] {
+        var images: [Int: UIImage] = [:]
+
+        guard let containerURL = FileManager.default.containerURL(
+            forSecurityApplicationGroupIdentifier: appGroupId
+        ) else {
+            return images
+        }
+
+        let postersURL = containerURL.appendingPathComponent(postersDirectory)
+
+        for release in releases {
+            guard let filename = release.posterFilename else { continue }
+
+            let imageURL = postersURL.appendingPathComponent(filename)
+
+            if let data = try? Data(contentsOf: imageURL),
+               let image = UIImage(data: data) {
+                images[release.id] = image
+            }
+        }
+
+        return images
+    }
 }
 
 // MARK: - Release Row View
 
 struct ReleaseRowView: View {
     let release: WidgetReleaseItem
+    let posterImage: UIImage?
     let showDate: Bool
     let compact: Bool
 
-    init(release: WidgetReleaseItem, showDate: Bool = true, compact: Bool = false) {
+    init(release: WidgetReleaseItem, posterImage: UIImage? = nil, showDate: Bool = true, compact: Bool = false) {
         self.release = release
+        self.posterImage = posterImage
         self.showDate = showDate
         self.compact = compact
     }
@@ -230,24 +267,14 @@ struct ReleaseRowView: View {
 
     var body: some View {
         HStack(spacing: compact ? 6 : 8) {
-            // Poster image with fallback placeholder
-            if let urlString = release.posterUrl, let url = URL(string: urlString) {
-                AsyncImage(url: url) { phase in
-                    switch phase {
-                    case .success(let image):
-                        image
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                            .frame(width: posterWidth, height: posterHeight)
-                            .clipped()
-                            .cornerRadius(4)
-                    case .failure(_), .empty:
-                        posterPlaceholder
-                    @unknown default:
-                        posterPlaceholder
-                    }
-                }
-                .frame(width: posterWidth, height: posterHeight)
+            // Poster image from cache with fallback placeholder
+            if let image = posterImage {
+                Image(uiImage: image)
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(width: posterWidth, height: posterHeight)
+                    .clipped()
+                    .cornerRadius(4)
             } else {
                 posterPlaceholder
             }
@@ -394,7 +421,12 @@ struct MediumWidgetView: View {
                 VStack(spacing: 4) {
                     ForEach(entry.releases.prefix(3)) { release in
                         Link(destination: release.deepLinkURL) {
-                            ReleaseRowView(release: release, showDate: true, compact: true)
+                            ReleaseRowView(
+                                release: release,
+                                posterImage: entry.posterImage(for: release),
+                                showDate: true,
+                                compact: true
+                            )
                         }
                     }
                 }
@@ -450,7 +482,11 @@ struct LargeWidgetView: View {
                 VStack(spacing: 6) {
                     ForEach(Array(entry.releases.prefix(6).enumerated()), id: \.element.id) { index, release in
                         Link(destination: release.deepLinkURL) {
-                            ReleaseRowView(release: release, showDate: true)
+                            ReleaseRowView(
+                                release: release,
+                                posterImage: entry.posterImage(for: release),
+                                showDate: true
+                            )
                         }
 
                         if index < min(entry.releases.count - 1, 5) {

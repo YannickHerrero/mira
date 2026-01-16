@@ -9,9 +9,10 @@
 import { Platform } from "react-native";
 import type { UpcomingRelease } from "@/lib/api/tmdb";
 import type { WidgetData, WidgetReleaseItem } from "./types";
-import { getPosterUrl } from "@/lib/types";
+import { getPosterFilename } from "./poster-cache";
 
 export * from "./types";
+export * from "./poster-cache";
 
 // App Group identifier - must match the one in expo-target.config.js
 const APP_GROUP_ID = "group.com.yherrero.mira";
@@ -52,14 +53,16 @@ export function isWidgetStorageAvailable(): boolean {
  * Convert an UpcomingRelease to the simplified WidgetReleaseItem format
  */
 function toWidgetRelease(release: UpcomingRelease): WidgetReleaseItem {
-  // Convert posterPath to full URL for widget to load directly
-  const posterUrl = getPosterUrl(release.media.posterPath, "small") ?? null;
-  
+  // Use the local poster filename (cached in App Group by useLists hook)
+  const posterFilename = release.media.posterPath
+    ? getPosterFilename(release.media.id, release.media.mediaType)
+    : null;
+
   return {
     id: release.media.id,
     mediaType: release.media.mediaType,
     title: release.media.title,
-    posterUrl,
+    posterFilename,
     releaseDate: release.releaseDate.split("T")[0], // Ensure YYYY-MM-DD format
     releaseType: release.releaseType,
     episodeInfo: release.episodeInfo
