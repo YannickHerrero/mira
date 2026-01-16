@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import { Text } from "@/components/ui/text";
 import { Play } from "@/lib/icons";
 import { lightImpact } from "@/lib/haptics";
+import { useHeroMaxHeight } from "@/hooks/useDeviceLayout";
 import type { Media } from "@/lib/types";
 import { getBackdropUrl } from "@/lib/types";
 
@@ -24,7 +25,9 @@ export function HeroSection({ media, episodeInfo }: HeroSectionProps) {
   const backdropUrl = getBackdropUrl(media.backdropPath, "large");
 
   // Hero height - taller to match Figma (roughly 435px on standard 393px wide phone)
-  const heroHeight = screenWidth * 1.1;
+  // On tablet landscape, cap height to leave room for at least one content row
+  const baseHeroHeight = screenWidth * 1.1;
+  const heroHeight = useHeroMaxHeight(baseHeroHeight);
 
   const handleContinueWatch = () => {
     lightImpact();
