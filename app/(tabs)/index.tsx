@@ -11,6 +11,7 @@ import {
 } from "@/components/home";
 import { useMigrationHelper } from "@/db/drizzle";
 import { useApiKeys } from "@/hooks/useApiKeys";
+import { useDeviceLayout } from "@/hooks/useDeviceLayout";
 import { useTrending } from "@/hooks/useTrending";
 import { useContinueWatching } from "@/hooks/useLibrary";
 import { useRecommendations } from "@/hooks/useRecommendations";
@@ -24,6 +25,7 @@ export default function HomeScreen() {
   const { t } = useTranslation();
   const { success, error: migrationError } = useMigrationHelper();
   const { isConfigured, isLoading: loadingKeys } = useApiKeys();
+  const { isTabletLandscape } = useDeviceLayout();
 
   const {
     trendingMovies,
@@ -167,6 +169,19 @@ export default function HomeScreen() {
 
         {/* Sections container with gap */}
         <View className="gap-8 pb-32 mt-8">
+          {/* Personalized Recommendations - shown first on iPad landscape */}
+          {isTabletLandscape &&
+            hasPersonalization &&
+            recommendationSections.map((section) => (
+              <MediaSection
+                key={section.id}
+                title={section.title}
+                items={section.items}
+                headerStyle="muted"
+                uppercase={false}
+              />
+            ))}
+
           {/* Continue Watching (list style) */}
           {continueItems.length > 0 && (
             <ContinueWatchingList items={continueItems} maxItems={2} />
@@ -177,8 +192,9 @@ export default function HomeScreen() {
             <NewReleasesCarousel releases={recentReleases} />
           )}
 
-          {/* Personalized Recommendations */}
-          {hasPersonalization &&
+          {/* Personalized Recommendations - shown here on non-iPad landscape */}
+          {!isTabletLandscape &&
+            hasPersonalization &&
             recommendationSections.map((section) => (
               <MediaSection
                 key={section.id}
