@@ -27,6 +27,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       "com.apple.security.application-groups": ["group.com.yherrero.mira"],
     },
     infoPlist: {
+      ITSAppUsesNonExemptEncryption: false,
       UIBackgroundModes: ["audio"],
       LSApplicationQueriesSchemes: ["vlc-x-callback"],
       NSLocalNetworkUsageDescription:
@@ -55,6 +56,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     "expo-web-browser",
     "expo-secure-store",
     "expo-screen-orientation",
+    "expo-updates",
     "react-native-vlc-media-player",
     "@bacons/apple-targets",
   ],

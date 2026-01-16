@@ -140,7 +140,7 @@ struct ReleaseEntry: TimelineEntry {
                         id: 1,
                         mediaType: "tv",
                         title: "Sample Show",
-                        posterPath: nil,
+                        posterUrl: nil,
                         releaseDate: ISO8601DateFormatter().string(from: Date()),
                         releaseType: "episode",
                         episodeInfo: EpisodeInfo(seasonNumber: 1, episodeNumber: 5, episodeName: "Sample Episode"),
