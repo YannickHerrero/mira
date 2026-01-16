@@ -6,6 +6,7 @@ import { listsTable, listItemsTable } from "@/db/schema";
 import { useApiKeyStore } from "@/stores/api-keys";
 import { useLanguageStore } from "@/stores/language";
 import { createTMDBClient } from "@/lib/api/tmdb";
+import { exportUpcomingReleasesToWidget } from "@/lib/widget";
 import type { UpcomingRelease } from "@/lib/api/tmdb";
 
 interface UseUpcomingReleasesReturn {
@@ -139,6 +140,9 @@ export function useUpcomingReleases(): UseUpcomingReleasesReturn {
 
       setReleasesByDate(groupedByDate);
       hasFetchedRef.current = true;
+
+      // Export to widget
+      exportUpcomingReleasesToWidget(groupedByDate);
     } catch (err) {
       console.error("Failed to fetch upcoming releases:", err);
       setError(err instanceof Error ? err.message : "Failed to fetch upcoming releases");

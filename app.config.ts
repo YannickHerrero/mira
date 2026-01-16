@@ -21,6 +21,11 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     newArchEnabled: true,
     supportsTablet: true,
     bundleIdentifier: "com.yherrero.mira",
+    // TODO: Replace with your Apple Developer Team ID (found in Apple Developer Portal)
+    appleTeamId: "YOUR_TEAM_ID",
+    entitlements: {
+      "com.apple.security.application-groups": ["group.com.yherrero.mira"],
+    },
     infoPlist: {
       UIBackgroundModes: ["audio"],
       LSApplicationQueriesSchemes: ["vlc-x-callback"],
@@ -51,6 +56,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     "expo-secure-store",
     "expo-screen-orientation",
     "react-native-vlc-media-player",
+    "@bacons/apple-targets",
   ],
   experiments: {
     typedRoutes: true,
