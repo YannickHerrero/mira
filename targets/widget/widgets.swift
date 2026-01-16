@@ -320,7 +320,6 @@ struct SmallWidgetView: View {
         }
         .padding(12)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Catppuccin.base)
     }
 }
 
@@ -372,7 +371,6 @@ struct MediumWidgetView: View {
         }
         .padding(12)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Catppuccin.base)
     }
 }
 
@@ -432,7 +430,6 @@ struct LargeWidgetView: View {
         }
         .padding(16)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Catppuccin.base)
     }
 }
 
