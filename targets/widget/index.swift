@@ -5,5 +5,6 @@ import SwiftUI
 struct MiraWidgetBundle: WidgetBundle {
     var body: some Widget {
         MiraWidget()
+        MiraLibraryWidget()
     }
 }

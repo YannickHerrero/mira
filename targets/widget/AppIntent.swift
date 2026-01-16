@@ -22,3 +22,34 @@ enum DisplayMode: String, AppEnum {
         ]
     }
 }
+
+// MARK: - Large Widget Layout Styles
+
+enum LargeWidgetStyle: String, AppEnum {
+    case list = "list"
+    case grid = "grid"
+    case featured = "featured"
+    case cards = "cards"
+
+    static var typeDisplayRepresentation: TypeDisplayRepresentation { "Layout Style" }
+
+    static var caseDisplayRepresentations: [LargeWidgetStyle: DisplayRepresentation] {
+        [
+            .list: DisplayRepresentation(title: "List", subtitle: "Classic list view"),
+            .grid: DisplayRepresentation(title: "Poster Grid", subtitle: "Netflix-style grid"),
+            .featured: DisplayRepresentation(title: "Featured", subtitle: "Hero card with grid"),
+            .cards: DisplayRepresentation(title: "Cards", subtitle: "Horizontal cards"),
+        ]
+    }
+}
+
+struct LargeWidgetConfigurationIntent: WidgetConfigurationIntent {
+    static var title: LocalizedStringResource { "Mira Library" }
+    static var description: IntentDescription { "Shows your watchlist in different layouts" }
+
+    @Parameter(title: "Display Mode", default: .recent)
+    var displayMode: DisplayMode
+
+    @Parameter(title: "Layout Style", default: .grid)
+    var layoutStyle: LargeWidgetStyle
+}

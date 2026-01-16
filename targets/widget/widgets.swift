@@ -504,6 +504,422 @@ struct LargeWidgetView: View {
     }
 }
 
+// MARK: - Large Widget Grid View (Netflix-style)
+
+struct LargeWidgetGridView: View {
+    let entry: ReleaseEntry
+
+    private let columns = [
+        GridItem(.flexible(), spacing: 8),
+        GridItem(.flexible(), spacing: 8),
+        GridItem(.flexible(), spacing: 8),
+        GridItem(.flexible(), spacing: 8)
+    ]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            // Header
+            HStack {
+                Image(systemName: entry.isUpcoming ? "calendar" : "play.circle.fill")
+                    .font(.system(size: 12))
+                    .foregroundColor(Catppuccin.lavender)
+                Text(entry.headerTitle)
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(Catppuccin.text)
+                Spacer()
+                Text("Mira")
+                    .font(.system(size: 10))
+                    .foregroundColor(Catppuccin.subtext0)
+            }
+
+            if entry.isEmpty {
+                emptyState
+            } else {
+                LazyVGrid(columns: columns, spacing: 10) {
+                    ForEach(entry.releases.prefix(8)) { release in
+                        Link(destination: release.deepLinkURL) {
+                            PosterGridItem(
+                                release: release,
+                                posterImage: entry.posterImage(for: release)
+                            )
+                        }
+                    }
+                }
+                Spacer(minLength: 0)
+            }
+        }
+        .padding(14)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    private var emptyState: some View {
+        VStack(spacing: 8) {
+            Spacer()
+            Image(systemName: entry.isUpcoming ? "calendar.badge.exclamationmark" : "checkmark.circle")
+                .font(.system(size: 32))
+                .foregroundColor(Catppuccin.subtext0)
+            Text(entry.isUpcoming ? "No upcoming releases" : "All caught up!")
+                .font(.system(size: 14))
+                .foregroundColor(Catppuccin.subtext0)
+            Text("Add shows to your watchlist")
+                .font(.system(size: 12))
+                .foregroundColor(Catppuccin.overlay0)
+            Spacer()
+        }
+        .frame(maxWidth: .infinity)
+    }
+}
+
+/// Grid item for poster display
+struct PosterGridItem: View {
+    let release: WidgetReleaseItem
+    let posterImage: UIImage?
+
+    var body: some View {
+        VStack(spacing: 4) {
+            // Poster
+            ZStack {
+                RoundedRectangle(cornerRadius: 6)
+                    .fill(Catppuccin.surface0)
+
+                if let image = posterImage {
+                    Image(uiImage: image)
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                } else {
+                    Image(systemName: release.mediaType == "movie" ? "film" : "tv")
+                        .font(.system(size: 20))
+                        .foregroundColor(Catppuccin.subtext0)
+                }
+            }
+            .frame(height: 90)
+            .clipShape(RoundedRectangle(cornerRadius: 6))
+
+            // Date label
+            Text(release.relativeDateLabel)
+                .font(.system(size: 9, weight: .medium))
+                .foregroundColor(release.isToday ? Catppuccin.lavender : Catppuccin.subtext0)
+                .lineLimit(1)
+        }
+    }
+}
+
+// MARK: - Large Widget Featured View
+
+struct LargeWidgetFeaturedView: View {
+    let entry: ReleaseEntry
+
+    private let smallColumns = [
+        GridItem(.flexible(), spacing: 8),
+        GridItem(.flexible(), spacing: 8),
+        GridItem(.flexible(), spacing: 8),
+        GridItem(.flexible(), spacing: 8)
+    ]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            // Header
+            HStack {
+                Image(systemName: entry.isUpcoming ? "calendar" : "play.circle.fill")
+                    .font(.system(size: 12))
+                    .foregroundColor(Catppuccin.lavender)
+                Text(entry.headerTitle)
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(Catppuccin.text)
+                Spacer()
+                Text("Mira")
+                    .font(.system(size: 10))
+                    .foregroundColor(Catppuccin.subtext0)
+            }
+
+            if entry.isEmpty {
+                emptyState
+            } else {
+                // Featured item (first release)
+                if let featured = entry.releases.first {
+                    Link(destination: featured.deepLinkURL) {
+                        FeaturedCard(
+                            release: featured,
+                            posterImage: entry.posterImage(for: featured)
+                        )
+                    }
+                }
+
+                // Remaining items in grid
+                if entry.releases.count > 1 {
+                    LazyVGrid(columns: smallColumns, spacing: 8) {
+                        ForEach(entry.releases.dropFirst().prefix(4)) { release in
+                            Link(destination: release.deepLinkURL) {
+                                SmallPosterItem(
+                                    release: release,
+                                    posterImage: entry.posterImage(for: release)
+                                )
+                            }
+                        }
+                    }
+                }
+
+                Spacer(minLength: 0)
+            }
+        }
+        .padding(14)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    private var emptyState: some View {
+        VStack(spacing: 8) {
+            Spacer()
+            Image(systemName: entry.isUpcoming ? "calendar.badge.exclamationmark" : "checkmark.circle")
+                .font(.system(size: 32))
+                .foregroundColor(Catppuccin.subtext0)
+            Text(entry.isUpcoming ? "No upcoming releases" : "All caught up!")
+                .font(.system(size: 14))
+                .foregroundColor(Catppuccin.subtext0)
+            Text("Add shows to your watchlist")
+                .font(.system(size: 12))
+                .foregroundColor(Catppuccin.overlay0)
+            Spacer()
+        }
+        .frame(maxWidth: .infinity)
+    }
+}
+
+/// Featured card for hero display
+struct FeaturedCard: View {
+    let release: WidgetReleaseItem
+    let posterImage: UIImage?
+
+    var body: some View {
+        HStack(spacing: 12) {
+            // Large poster
+            ZStack {
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(Catppuccin.surface0)
+
+                if let image = posterImage {
+                    Image(uiImage: image)
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                } else {
+                    Image(systemName: release.mediaType == "movie" ? "film" : "tv")
+                        .font(.system(size: 28))
+                        .foregroundColor(Catppuccin.subtext0)
+                }
+            }
+            .frame(width: 80, height: 120)
+            .clipShape(RoundedRectangle(cornerRadius: 8))
+
+            // Info
+            VStack(alignment: .leading, spacing: 4) {
+                Text(release.title)
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(Catppuccin.text)
+                    .lineLimit(2)
+
+                if let episode = release.formattedEpisode {
+                    Text(episode)
+                        .font(.system(size: 12))
+                        .foregroundColor(Catppuccin.subtext0)
+                }
+
+                if let episodeInfo = release.episodeInfo {
+                    Text(episodeInfo.episodeName)
+                        .font(.system(size: 11))
+                        .foregroundColor(Catppuccin.overlay0)
+                        .lineLimit(1)
+                }
+
+                Spacer()
+
+                HStack(spacing: 6) {
+                    Text(release.relativeDateLabel)
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundColor(release.isToday ? Catppuccin.lavender : Catppuccin.subtext0)
+
+                    Text("•")
+                        .foregroundColor(Catppuccin.overlay0)
+
+                    Text(release.mediaType == "movie" ? "Movie" : "TV")
+                        .font(.system(size: 10, weight: .medium))
+                        .foregroundColor(Catppuccin.lavender)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(Catppuccin.lavender.opacity(0.15))
+                        .cornerRadius(4)
+                }
+            }
+
+            Spacer()
+        }
+        .padding(10)
+        .background(Catppuccin.surface0.opacity(0.5))
+        .cornerRadius(12)
+    }
+}
+
+/// Small poster item for featured view grid
+struct SmallPosterItem: View {
+    let release: WidgetReleaseItem
+    let posterImage: UIImage?
+
+    var body: some View {
+        VStack(spacing: 3) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 5)
+                    .fill(Catppuccin.surface0)
+
+                if let image = posterImage {
+                    Image(uiImage: image)
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                } else {
+                    Image(systemName: release.mediaType == "movie" ? "film" : "tv")
+                        .font(.system(size: 16))
+                        .foregroundColor(Catppuccin.subtext0)
+                }
+            }
+            .frame(height: 70)
+            .clipShape(RoundedRectangle(cornerRadius: 5))
+
+            Text(release.relativeDateLabel)
+                .font(.system(size: 8, weight: .medium))
+                .foregroundColor(release.isToday ? Catppuccin.lavender : Catppuccin.subtext0)
+                .lineLimit(1)
+        }
+    }
+}
+
+// MARK: - Large Widget Cards View
+
+struct LargeWidgetCardsView: View {
+    let entry: ReleaseEntry
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            // Header
+            HStack {
+                Image(systemName: entry.isUpcoming ? "calendar" : "play.circle.fill")
+                    .font(.system(size: 12))
+                    .foregroundColor(Catppuccin.lavender)
+                Text(entry.headerTitle)
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(Catppuccin.text)
+                Spacer()
+                Text("Mira")
+                    .font(.system(size: 10))
+                    .foregroundColor(Catppuccin.subtext0)
+            }
+
+            if entry.isEmpty {
+                emptyState
+            } else {
+                VStack(spacing: 8) {
+                    ForEach(entry.releases.prefix(4)) { release in
+                        Link(destination: release.deepLinkURL) {
+                            HorizontalCard(
+                                release: release,
+                                posterImage: entry.posterImage(for: release)
+                            )
+                        }
+                    }
+                }
+                Spacer(minLength: 0)
+            }
+        }
+        .padding(14)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    private var emptyState: some View {
+        VStack(spacing: 8) {
+            Spacer()
+            Image(systemName: entry.isUpcoming ? "calendar.badge.exclamationmark" : "checkmark.circle")
+                .font(.system(size: 32))
+                .foregroundColor(Catppuccin.subtext0)
+            Text(entry.isUpcoming ? "No upcoming releases" : "All caught up!")
+                .font(.system(size: 14))
+                .foregroundColor(Catppuccin.subtext0)
+            Text("Add shows to your watchlist")
+                .font(.system(size: 12))
+                .foregroundColor(Catppuccin.overlay0)
+            Spacer()
+        }
+        .frame(maxWidth: .infinity)
+    }
+}
+
+/// Horizontal card for cards layout
+struct HorizontalCard: View {
+    let release: WidgetReleaseItem
+    let posterImage: UIImage?
+
+    var body: some View {
+        HStack(spacing: 10) {
+            // Poster
+            ZStack {
+                RoundedRectangle(cornerRadius: 6)
+                    .fill(Catppuccin.surface0)
+
+                if let image = posterImage {
+                    Image(uiImage: image)
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                } else {
+                    Image(systemName: release.mediaType == "movie" ? "film" : "tv")
+                        .font(.system(size: 18))
+                        .foregroundColor(Catppuccin.subtext0)
+                }
+            }
+            .frame(width: 45, height: 65)
+            .clipShape(RoundedRectangle(cornerRadius: 6))
+
+            // Info
+            VStack(alignment: .leading, spacing: 2) {
+                Text(release.title)
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundColor(Catppuccin.text)
+                    .lineLimit(1)
+
+                if let episode = release.formattedEpisode {
+                    HStack(spacing: 4) {
+                        Text(episode)
+                            .font(.system(size: 10))
+                            .foregroundColor(Catppuccin.subtext0)
+
+                        if let episodeInfo = release.episodeInfo {
+                            Text("• \(episodeInfo.episodeName)")
+                                .font(.system(size: 10))
+                                .foregroundColor(Catppuccin.overlay0)
+                                .lineLimit(1)
+                        }
+                    }
+                }
+
+                Spacer()
+
+                HStack(spacing: 6) {
+                    Text(release.relativeDateLabel)
+                        .font(.system(size: 10, weight: .medium))
+                        .foregroundColor(release.isToday ? Catppuccin.lavender : Catppuccin.subtext0)
+
+                    Spacer()
+
+                    Text(release.mediaType == "movie" ? "Movie" : "TV")
+                        .font(.system(size: 9, weight: .medium))
+                        .foregroundColor(Catppuccin.lavender)
+                        .padding(.horizontal, 5)
+                        .padding(.vertical, 2)
+                        .background(Catppuccin.lavender.opacity(0.15))
+                        .cornerRadius(4)
+                }
+            }
+        }
+        .padding(8)
+        .background(Catppuccin.surface0.opacity(0.4))
+        .cornerRadius(10)
+    }
+}
+
 // MARK: - Main Widget Entry View
 
 struct MiraWidgetEntryView: View {
@@ -547,6 +963,424 @@ struct MiraWidget: Widget {
 // Keep the old name for compatibility with index.swift
 typealias widget = MiraWidget
 
+// MARK: - Library Widget (Large only with layout selection)
+
+struct LibraryEntry: TimelineEntry {
+    let date: Date
+    let data: WidgetData?
+    let configuration: LargeWidgetConfigurationIntent
+    let posterImages: [Int: UIImage]
+
+    var releases: [WidgetReleaseItem] {
+        data?.releases ?? []
+    }
+
+    var isEmpty: Bool {
+        releases.isEmpty
+    }
+
+    var isUpcoming: Bool {
+        configuration.displayMode == .upcoming
+    }
+
+    var headerTitle: String {
+        isUpcoming ? "Upcoming" : "Recent"
+    }
+
+    var layoutStyle: LargeWidgetStyle {
+        configuration.layoutStyle
+    }
+
+    func posterImage(for release: WidgetReleaseItem) -> UIImage? {
+        posterImages[release.id]
+    }
+
+    static var placeholder: LibraryEntry {
+        LibraryEntry(
+            date: Date(),
+            data: WidgetData(
+                releases: [
+                    WidgetReleaseItem(
+                        id: 1,
+                        mediaType: "tv",
+                        title: "Sample Show",
+                        posterFilename: nil,
+                        releaseDate: ISO8601DateFormatter().string(from: Date()),
+                        releaseType: "episode",
+                        episodeInfo: EpisodeInfo(seasonNumber: 1, episodeNumber: 5, episodeName: "Sample Episode"),
+                        score: 8.5
+                    ),
+                    WidgetReleaseItem(
+                        id: 2,
+                        mediaType: "movie",
+                        title: "Sample Movie",
+                        posterFilename: nil,
+                        releaseDate: ISO8601DateFormatter().string(from: Date()),
+                        releaseType: "movie",
+                        episodeInfo: nil,
+                        score: 7.5
+                    )
+                ],
+                mode: "recent",
+                lastUpdated: ISO8601DateFormatter().string(from: Date())
+            ),
+            configuration: LargeWidgetConfigurationIntent(),
+            posterImages: [:]
+        )
+    }
+}
+
+struct LibraryProvider: AppIntentTimelineProvider {
+    private let appGroupId = "group.com.yherrero.mira"
+    private let recentDataKey = "widget_releases_recent"
+    private let upcomingDataKey = "widget_releases_upcoming"
+    private let postersDirectory = "posters"
+
+    func placeholder(in context: Context) -> LibraryEntry {
+        LibraryEntry.placeholder
+    }
+
+    func snapshot(for configuration: LargeWidgetConfigurationIntent, in context: Context) async -> LibraryEntry {
+        let data = loadWidgetData(for: configuration.displayMode)
+        let posterImages = loadPosterImages(for: data?.releases ?? [])
+        return LibraryEntry(date: Date(), data: data, configuration: configuration, posterImages: posterImages)
+    }
+
+    func timeline(for configuration: LargeWidgetConfigurationIntent, in context: Context) async -> Timeline<LibraryEntry> {
+        let data = loadWidgetData(for: configuration.displayMode)
+        let posterImages = loadPosterImages(for: data?.releases ?? [])
+        let entry = LibraryEntry(date: Date(), data: data, configuration: configuration, posterImages: posterImages)
+
+        let nextUpdate = Calendar.current.date(byAdding: .minute, value: 30, to: Date())!
+        return Timeline(entries: [entry], policy: .after(nextUpdate))
+    }
+
+    private func loadWidgetData(for mode: DisplayMode) -> WidgetData? {
+        let key = mode == .upcoming ? upcomingDataKey : recentDataKey
+
+        guard let userDefaults = UserDefaults(suiteName: appGroupId),
+              let jsonString = userDefaults.string(forKey: key),
+              let jsonData = jsonString.data(using: .utf8)
+        else {
+            return nil
+        }
+
+        do {
+            return try JSONDecoder().decode(WidgetData.self, from: jsonData)
+        } catch {
+            return nil
+        }
+    }
+
+    private func loadPosterImages(for releases: [WidgetReleaseItem]) -> [Int: UIImage] {
+        var images: [Int: UIImage] = [:]
+
+        guard let containerURL = FileManager.default.containerURL(
+            forSecurityApplicationGroupIdentifier: appGroupId
+        ) else {
+            return images
+        }
+
+        let postersURL = containerURL.appendingPathComponent(postersDirectory)
+
+        for release in releases {
+            guard let filename = release.posterFilename else { continue }
+            let imageURL = postersURL.appendingPathComponent(filename)
+
+            if let data = try? Data(contentsOf: imageURL),
+               let image = UIImage(data: data) {
+                images[release.id] = image
+            }
+        }
+
+        return images
+    }
+}
+
+struct MiraLibraryWidgetEntryView: View {
+    var entry: LibraryEntry
+
+    var body: some View {
+        switch entry.layoutStyle {
+        case .list:
+            LargeWidgetListView(entry: entry)
+        case .grid:
+            LargeWidgetGridViewAlt(entry: entry)
+        case .featured:
+            LargeWidgetFeaturedViewAlt(entry: entry)
+        case .cards:
+            LargeWidgetCardsViewAlt(entry: entry)
+        }
+    }
+}
+
+// Alternate versions that use LibraryEntry instead of ReleaseEntry
+
+struct LargeWidgetListView: View {
+    let entry: LibraryEntry
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Image(systemName: entry.isUpcoming ? "calendar" : "play.circle.fill")
+                    .font(.system(size: 14))
+                    .foregroundColor(Catppuccin.lavender)
+                Text(entry.headerTitle)
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(Catppuccin.text)
+                Spacer()
+                Text("Mira")
+                    .font(.system(size: 12))
+                    .foregroundColor(Catppuccin.subtext0)
+            }
+
+            Divider()
+                .background(Catppuccin.surface1)
+
+            if entry.isEmpty {
+                emptyState
+            } else {
+                VStack(spacing: 6) {
+                    ForEach(Array(entry.releases.prefix(6).enumerated()), id: \.element.id) { index, release in
+                        Link(destination: release.deepLinkURL) {
+                            ReleaseRowView(
+                                release: release,
+                                posterImage: entry.posterImage(for: release),
+                                showDate: true
+                            )
+                        }
+
+                        if index < min(entry.releases.count - 1, 5) {
+                            Divider()
+                                .background(Catppuccin.surface0)
+                        }
+                    }
+                }
+                Spacer(minLength: 0)
+            }
+        }
+        .padding(16)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    private var emptyState: some View {
+        VStack(spacing: 8) {
+            Spacer()
+            Image(systemName: entry.isUpcoming ? "calendar.badge.exclamationmark" : "checkmark.circle")
+                .font(.system(size: 32))
+                .foregroundColor(Catppuccin.subtext0)
+            Text(entry.isUpcoming ? "No upcoming releases" : "All caught up!")
+                .font(.system(size: 14))
+                .foregroundColor(Catppuccin.subtext0)
+            Spacer()
+        }
+        .frame(maxWidth: .infinity)
+    }
+}
+
+struct LargeWidgetGridViewAlt: View {
+    let entry: LibraryEntry
+
+    private let columns = [
+        GridItem(.flexible(), spacing: 8),
+        GridItem(.flexible(), spacing: 8),
+        GridItem(.flexible(), spacing: 8),
+        GridItem(.flexible(), spacing: 8)
+    ]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                Image(systemName: entry.isUpcoming ? "calendar" : "play.circle.fill")
+                    .font(.system(size: 12))
+                    .foregroundColor(Catppuccin.lavender)
+                Text(entry.headerTitle)
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(Catppuccin.text)
+                Spacer()
+                Text("Mira")
+                    .font(.system(size: 10))
+                    .foregroundColor(Catppuccin.subtext0)
+            }
+
+            if entry.isEmpty {
+                emptyState
+            } else {
+                LazyVGrid(columns: columns, spacing: 10) {
+                    ForEach(entry.releases.prefix(8)) { release in
+                        Link(destination: release.deepLinkURL) {
+                            PosterGridItem(
+                                release: release,
+                                posterImage: entry.posterImage(for: release)
+                            )
+                        }
+                    }
+                }
+                Spacer(minLength: 0)
+            }
+        }
+        .padding(14)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    private var emptyState: some View {
+        VStack(spacing: 8) {
+            Spacer()
+            Image(systemName: entry.isUpcoming ? "calendar.badge.exclamationmark" : "checkmark.circle")
+                .font(.system(size: 32))
+                .foregroundColor(Catppuccin.subtext0)
+            Text(entry.isUpcoming ? "No upcoming releases" : "All caught up!")
+                .font(.system(size: 14))
+                .foregroundColor(Catppuccin.subtext0)
+            Spacer()
+        }
+        .frame(maxWidth: .infinity)
+    }
+}
+
+struct LargeWidgetFeaturedViewAlt: View {
+    let entry: LibraryEntry
+
+    private let smallColumns = [
+        GridItem(.flexible(), spacing: 8),
+        GridItem(.flexible(), spacing: 8),
+        GridItem(.flexible(), spacing: 8),
+        GridItem(.flexible(), spacing: 8)
+    ]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                Image(systemName: entry.isUpcoming ? "calendar" : "play.circle.fill")
+                    .font(.system(size: 12))
+                    .foregroundColor(Catppuccin.lavender)
+                Text(entry.headerTitle)
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(Catppuccin.text)
+                Spacer()
+                Text("Mira")
+                    .font(.system(size: 10))
+                    .foregroundColor(Catppuccin.subtext0)
+            }
+
+            if entry.isEmpty {
+                emptyState
+            } else {
+                if let featured = entry.releases.first {
+                    Link(destination: featured.deepLinkURL) {
+                        FeaturedCard(
+                            release: featured,
+                            posterImage: entry.posterImage(for: featured)
+                        )
+                    }
+                }
+
+                if entry.releases.count > 1 {
+                    LazyVGrid(columns: smallColumns, spacing: 8) {
+                        ForEach(entry.releases.dropFirst().prefix(4)) { release in
+                            Link(destination: release.deepLinkURL) {
+                                SmallPosterItem(
+                                    release: release,
+                                    posterImage: entry.posterImage(for: release)
+                                )
+                            }
+                        }
+                    }
+                }
+
+                Spacer(minLength: 0)
+            }
+        }
+        .padding(14)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    private var emptyState: some View {
+        VStack(spacing: 8) {
+            Spacer()
+            Image(systemName: entry.isUpcoming ? "calendar.badge.exclamationmark" : "checkmark.circle")
+                .font(.system(size: 32))
+                .foregroundColor(Catppuccin.subtext0)
+            Text(entry.isUpcoming ? "No upcoming releases" : "All caught up!")
+                .font(.system(size: 14))
+                .foregroundColor(Catppuccin.subtext0)
+            Spacer()
+        }
+        .frame(maxWidth: .infinity)
+    }
+}
+
+struct LargeWidgetCardsViewAlt: View {
+    let entry: LibraryEntry
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Image(systemName: entry.isUpcoming ? "calendar" : "play.circle.fill")
+                    .font(.system(size: 12))
+                    .foregroundColor(Catppuccin.lavender)
+                Text(entry.headerTitle)
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(Catppuccin.text)
+                Spacer()
+                Text("Mira")
+                    .font(.system(size: 10))
+                    .foregroundColor(Catppuccin.subtext0)
+            }
+
+            if entry.isEmpty {
+                emptyState
+            } else {
+                VStack(spacing: 8) {
+                    ForEach(entry.releases.prefix(4)) { release in
+                        Link(destination: release.deepLinkURL) {
+                            HorizontalCard(
+                                release: release,
+                                posterImage: entry.posterImage(for: release)
+                            )
+                        }
+                    }
+                }
+                Spacer(minLength: 0)
+            }
+        }
+        .padding(14)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    private var emptyState: some View {
+        VStack(spacing: 8) {
+            Spacer()
+            Image(systemName: entry.isUpcoming ? "calendar.badge.exclamationmark" : "checkmark.circle")
+                .font(.system(size: 32))
+                .foregroundColor(Catppuccin.subtext0)
+            Text(entry.isUpcoming ? "No upcoming releases" : "All caught up!")
+                .font(.system(size: 14))
+                .foregroundColor(Catppuccin.subtext0)
+            Spacer()
+        }
+        .frame(maxWidth: .infinity)
+    }
+}
+
+struct MiraLibraryWidget: Widget {
+    let kind: String = "MiraLibraryWidget"
+
+    var body: some WidgetConfiguration {
+        AppIntentConfiguration(
+            kind: kind,
+            intent: LargeWidgetConfigurationIntent.self,
+            provider: LibraryProvider()
+        ) { entry in
+            MiraLibraryWidgetEntryView(entry: entry)
+                .containerBackground(Catppuccin.base, for: .widget)
+        }
+        .configurationDisplayName("Mira Library")
+        .description("Your watchlist with customizable layouts")
+        .supportedFamilies([.systemLarge])
+    }
+}
+
 // MARK: - Previews
 
 #Preview(as: .systemSmall) {
@@ -565,4 +1399,23 @@ typealias widget = MiraWidget
     MiraWidget()
 } timeline: {
     ReleaseEntry.placeholder
+}
+
+#Preview("Library - Grid", as: .systemLarge) {
+    MiraLibraryWidget()
+} timeline: {
+    LibraryEntry.placeholder
+}
+
+#Preview("Library - Featured", as: .systemLarge) {
+    var entry = LibraryEntry.placeholder
+    MiraLibraryWidget()
+} timeline: {
+    LibraryEntry.placeholder
+}
+
+#Preview("Library - Cards", as: .systemLarge) {
+    MiraLibraryWidget()
+} timeline: {
+    LibraryEntry.placeholder
 }
