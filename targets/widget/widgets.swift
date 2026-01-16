@@ -1408,7 +1408,6 @@ struct MiraLibraryWidget: Widget {
 }
 
 #Preview("Library - Featured", as: .systemLarge) {
-    var entry = LibraryEntry.placeholder
     MiraLibraryWidget()
 } timeline: {
     LibraryEntry.placeholder
