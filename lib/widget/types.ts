@@ -15,7 +15,7 @@ export interface WidgetReleaseItem {
   id: number;
   mediaType: "movie" | "tv";
   title: string;
-  posterPath: string | null;
+  posterUrl: string | null; // Full TMDB image URL for widget to load
   releaseDate: string; // YYYY-MM-DD or ISO 8601
   releaseType: "episode" | "movie";
   episodeInfo: WidgetEpisodeInfo | null;

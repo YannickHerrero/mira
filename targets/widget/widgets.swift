@@ -50,7 +50,7 @@ struct WidgetReleaseItem: Codable, Identifiable {
     let id: Int
     let mediaType: String
     let title: String
-    let posterPath: String?
+    let posterUrl: String?
     let releaseDate: String
     let releaseType: String
     let episodeInfo: EpisodeInfo?
@@ -213,17 +213,43 @@ struct ReleaseRowView: View {
         self.compact = compact
     }
 
+    private var posterWidth: CGFloat { compact ? 24 : 32 }
+    private var posterHeight: CGFloat { compact ? 36 : 48 }
+
+    private var posterPlaceholder: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 4)
+                .fill(Catppuccin.surface1)
+                .frame(width: posterWidth, height: posterHeight)
+
+            Image(systemName: release.mediaType == "movie" ? "film" : "tv")
+                .font(.system(size: compact ? 10 : 14))
+                .foregroundColor(Catppuccin.subtext0)
+        }
+    }
+
     var body: some View {
         HStack(spacing: compact ? 6 : 8) {
-            // Poster placeholder
-            ZStack {
-                RoundedRectangle(cornerRadius: 4)
-                    .fill(Catppuccin.surface1)
-                    .frame(width: compact ? 24 : 32, height: compact ? 36 : 48)
-
-                Image(systemName: release.mediaType == "movie" ? "film" : "tv")
-                    .font(.system(size: compact ? 10 : 14))
-                    .foregroundColor(Catppuccin.subtext0)
+            // Poster image with fallback placeholder
+            if let urlString = release.posterUrl, let url = URL(string: urlString) {
+                AsyncImage(url: url) { phase in
+                    switch phase {
+                    case .success(let image):
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .frame(width: posterWidth, height: posterHeight)
+                            .clipped()
+                            .cornerRadius(4)
+                    case .failure(_), .empty:
+                        posterPlaceholder
+                    @unknown default:
+                        posterPlaceholder
+                    }
+                }
+                .frame(width: posterWidth, height: posterHeight)
+            } else {
+                posterPlaceholder
             }
 
             VStack(alignment: .leading, spacing: 2) {

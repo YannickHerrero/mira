@@ -9,6 +9,7 @@
 import { Platform } from "react-native";
 import type { UpcomingRelease } from "@/lib/api/tmdb";
 import type { WidgetData, WidgetReleaseItem } from "./types";
+import { getPosterUrl } from "@/lib/types";
 
 export * from "./types";
 
@@ -51,11 +52,14 @@ export function isWidgetStorageAvailable(): boolean {
  * Convert an UpcomingRelease to the simplified WidgetReleaseItem format
  */
 function toWidgetRelease(release: UpcomingRelease): WidgetReleaseItem {
+  // Convert posterPath to full URL for widget to load directly
+  const posterUrl = getPosterUrl(release.media.posterPath, "small") ?? null;
+  
   return {
     id: release.media.id,
     mediaType: release.media.mediaType,
     title: release.media.title,
-    posterPath: release.media.posterPath ?? null,
+    posterUrl,
     releaseDate: release.releaseDate.split("T")[0], // Ensure YYYY-MM-DD format
     releaseType: release.releaseType,
     episodeInfo: release.episodeInfo
