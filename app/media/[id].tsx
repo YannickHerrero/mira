@@ -47,6 +47,7 @@ import {
 
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { BlurView } from "expo-blur";
+import { useDeviceLayout } from "@/hooks/useDeviceLayout";
 import { useLibraryActions } from "@/hooks/useLibrary";
 import { useListActions, useLists, useMediaLists } from "@/hooks/useLists";
 import { useWatchProgress } from "@/hooks/useWatchProgress";
@@ -133,6 +134,7 @@ export default function MediaDetailScreen() {
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
   const { id, type } = useLocalSearchParams<{ id: string; type: MediaType }>();
+  const { isTabletLandscape, screenWidth } = useDeviceLayout();
 
   const [media, setMedia] = React.useState<Media | null>(null);
   const [imdbId, setImdbId] = React.useState<string | null>(null);
@@ -546,10 +548,350 @@ export default function MediaDetailScreen() {
     );
   }
 
+  // Shared content components
+  const renderActionButtons = () => (
+    <View className="flex-row px-4 gap-3">
+      {mediaType === "movie" ? (
+        <TextButton
+          className="flex-1"
+          onPress={handleWatchMovie}
+          disabled={!imdbId}
+          label={t("media.watchNow")}
+          leftIcon={<Play size={18} className="text-crust" fill="currentColor" />}
+          textVariant="strong"
+        />
+      ) : (
+        <View className="flex-1">
+          <Text className="text-sm text-subtext0 mb-2">
+            {t("media.selectEpisode")}
+          </Text>
+        </View>
+      )}
+
+      {mediaType === "movie" && (
+        <Button
+          variant="outline"
+          size="icon"
+          className="w-12 h-12"
+          onPress={handleToggleMovieWatched}
+        >
+          {isMovieWatched ? (
+            <Eye size={20} className="text-lavender" />
+          ) : (
+            <EyeOff size={20} className="text-text" />
+          )}
+        </Button>
+      )}
+
+      <Button
+        variant="outline"
+        size="icon"
+        className="w-12 h-12"
+        onPress={handleOpenListSelector}
+      >
+        {isInAnyList ? (
+          <Check size={20} className="text-lavender" />
+        ) : (
+          <List size={20} className="text-text" />
+        )}
+      </Button>
+
+      {enableAnilistSync && (
+        <Button
+          variant="outline"
+          size="icon"
+          className="w-12 h-12"
+          onPress={handleOpenTracking}
+        >
+          {currentTracking ? (
+            <CheckCircle size={20} className="text-lavender" />
+          ) : (
+            <Plus size={20} className="text-text" />
+          )}
+        </Button>
+      )}
+
+      <Button
+        variant="outline"
+        size="icon"
+        className="w-12 h-12"
+        onPress={handleToggleFavorite}
+      >
+        <Heart
+          size={20}
+          className={isFavorite ? "text-red-500" : "text-text"}
+          fill={isFavorite ? "#ef4444" : "none"}
+        />
+      </Button>
+    </View>
+  );
+
+  const renderEpisodesSection = () => (
+    mediaType === "tv" && seasons.length > 0 ? (
+      <View className="mt-6">
+        <SeasonPicker
+          seasons={seasons}
+          selectedSeason={selectedSeason}
+          onSelectSeason={setSelectedSeason}
+        />
+
+        <View className="px-4 mt-2">
+          {isLoadingEpisodes ? (
+            <View className="py-8 items-center">
+              <ActivityIndicator size="small" />
+            </View>
+          ) : (
+            episodes.map((episode) => {
+              const progressKey = `${episode.seasonNumber}-${episode.episodeNumber}`;
+              const progress = episodeProgress.get(progressKey);
+              const watchPercent = progress && progress.duration > 0
+                ? Math.round((progress.position / progress.duration) * 100)
+                : undefined;
+
+              return (
+                <EpisodeCard
+                  key={progressKey}
+                  episode={episode}
+                  onPress={() => handleWatchEpisode(episode)}
+                  onLongPress={() => handleEpisodeLongPress(episode)}
+                  watchProgress={watchPercent}
+                  isCompleted={progress?.completed}
+                />
+              );
+            })
+          )}
+        </View>
+      </View>
+    ) : null
+  );
+
+  const renderSimilarSection = () => (
+    similarMovies.length > 0 ? (
+      <View className="mt-6">
+        {isLoadingSimilar ? (
+          <MediaSectionSkeleton />
+        ) : (
+          <MediaSection
+            title={t("home.youMightAlsoLike")}
+            items={similarMovies}
+          />
+        )}
+      </View>
+    ) : null
+  );
+
+  // Calculate left panel width for tablet landscape (40% of screen, min 350px, max 500px)
+  const leftPanelWidth = isTabletLandscape
+    ? Math.min(Math.max(screenWidth * 0.4, 350), 500)
+    : 0;
+
+  // iPad Landscape: Two-column layout
+  if (isTabletLandscape) {
+    return (
+      <View className="flex-1 bg-base flex-row">
+        <Stack.Screen options={{ headerShown: false }} />
+
+        {/* Left Panel: Fixed hero */}
+        <View style={{ width: leftPanelWidth }} className="bg-base">
+          {/* Back button */}
+          <Pressable
+            onPress={() => router.back()}
+            className="absolute z-10 overflow-hidden rounded-full"
+            style={{ top: insets.top + 8, left: 16 }}
+          >
+            <BlurView intensity={50} tint="dark" className="p-2.5">
+              <ChevronLeft size={24} className="text-text" />
+            </BlurView>
+          </Pressable>
+
+          <MediaHeader media={media} variant="sidebar" />
+        </View>
+
+        {/* Right Panel: Scrollable content */}
+        <View className="flex-1 bg-base">
+          <ScrollView
+            className="flex-1"
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{ paddingTop: insets.top + 16, paddingBottom: 32 }}
+          >
+            {/* Action buttons */}
+            <View className="mt-2">
+              {renderActionButtons()}
+            </View>
+
+            {/* Episodes */}
+            {renderEpisodesSection()}
+
+            {/* Similar Content */}
+            {renderSimilarSection()}
+          </ScrollView>
+        </View>
+
+        {/* AniList Tracking Sheet */}
+        <BottomSheet>
+          <BottomSheetContent
+            ref={trackingSheetRef}
+            enableDynamicSizing={false}
+            snapPoints={["95%"]}
+            footerComponent={renderTrackingFooter}
+          >
+            <BottomSheetHeader>
+              <View className="flex-1 gap-1">
+                <Text className="text-lg font-semibold text-text">
+                  {t("media.track")}
+                </Text>
+                <Text className="text-sm text-subtext0">
+                  {mediaType === "tv"
+                    ? t("media.trackSeason", { season: trackingSeasonNumber })
+                    : t("media.trackMovie")}
+                </Text>
+              </View>
+            </BottomSheetHeader>
+            <BottomSheetView className="flex-1 px-4 pt-4">
+              <ScrollView
+                contentContainerStyle={{ paddingBottom: 32 }}
+                showsVerticalScrollIndicator={false}
+              >
+                <View className="gap-3">
+                  <BottomSheetTextInput
+                    value={aniListSearchQuery}
+                    onChangeText={setAniListSearchQuery}
+                    placeholder={t("media.anilistSearchPlaceholder")}
+                    onSubmitEditing={() => handleSearchAniList()}
+                    returnKeyType="search"
+                  />
+                  <TextButton
+                    onPress={() => handleSearchAniList()}
+                    disabled={isAniListSearching || !aniListSearchQuery.trim()}
+                    label={
+                      isAniListSearching ? t("media.searching") : t("media.search")
+                    }
+                  />
+                </View>
+
+                {currentTracking && (
+                  <View className="mt-6 gap-2">
+                    <Muted>{t("media.currentTracking")}</Muted>
+                    <View className="rounded-xl bg-surface0/30 p-3 gap-2">
+                      <View>
+                        <Text className="text-base font-semibold text-text">
+                          {currentTracking.title}
+                        </Text>
+                        {currentTrackingMeta && <Muted>{currentTrackingMeta}</Muted>}
+                      </View>
+                      <TextButton
+                        variant="destructive"
+                        onPress={handleRemoveTracking}
+                        label={t("media.removeTracking")}
+                      />
+                    </View>
+                  </View>
+                )}
+
+                <View className="mt-6 gap-2">
+                  <Muted>{t("media.selectAnilistEntry")}</Muted>
+                  {isAniListSearching ? (
+                    <View className="py-4 items-center">
+                      <ActivityIndicator size="small" />
+                    </View>
+                  ) : aniListSearchResults.length === 0 ? (
+                    <Muted>{t("media.noAniListResults")}</Muted>
+                  ) : (
+                    <View className="gap-2">
+                      {aniListSearchResults.map((entry) => {
+                        const entryTitle = getAniListDisplayTitle(entry);
+                        const entryMeta = [
+                          entry.format,
+                          entry.seasonYear ? String(entry.seasonYear) : null,
+                        ]
+                          .filter(Boolean)
+                          .join(" • ");
+
+                        return (
+                          <Pressable
+                            key={entry.id}
+                            onPress={() => handleSelectAniListEntry(entry)}
+                            className={`flex-row items-center gap-3 rounded-xl p-3 ${
+                              currentTracking?.anilistId === entry.id
+                                ? "border border-lavender bg-surface0/40"
+                                : "bg-surface0/30"
+                            }`}
+                          >
+                            {entry.coverImage?.medium ? (
+                              <Image
+                                source={{ uri: entry.coverImage.medium }}
+                                className="h-16 w-12 rounded-md bg-surface1"
+                                resizeMode="cover"
+                              />
+                            ) : (
+                              <View className="h-16 w-12 rounded-md bg-surface1/40" />
+                            )}
+                            <View className="flex-1">
+                              <Text className="text-base font-semibold text-text">
+                                {entryTitle}
+                              </Text>
+                              {entryMeta ? <Muted>{entryMeta}</Muted> : null}
+                            </View>
+                          </Pressable>
+                        );
+                      })}
+                    </View>
+                  )}
+                </View>
+
+              </ScrollView>
+            </BottomSheetView>
+          </BottomSheetContent>
+        </BottomSheet>
+
+        {/* Episode Action Sheet */}
+        <BottomSheet>
+          <EpisodeActionSheet
+            sheetRef={actionSheetRef}
+            episode={actionSheetEpisode}
+            isCompleted={
+              actionSheetEpisode
+                ? episodeProgress.get(
+                    `${actionSheetEpisode.seasonNumber}-${actionSheetEpisode.episodeNumber}`
+                  )?.completed ?? false
+                : false
+            }
+            onToggleWatched={() => {
+              if (actionSheetEpisode) {
+                handleToggleWatched(actionSheetEpisode);
+              }
+            }}
+            onMarkWatchedUpToHere={() => {
+              if (actionSheetEpisode) {
+                handleMarkWatchedUpToHere(actionSheetEpisode);
+              }
+            }}
+          />
+        </BottomSheet>
+
+        {/* List Selector Sheet */}
+        <BottomSheet>
+          <ListSelectorSheet
+            sheetRef={listSelectorSheetRef}
+            media={media}
+            lists={lists}
+            listIds={listIds}
+            isLoadingLists={isLoadingLists}
+            isLoadingMediaLists={isLoadingMediaLists}
+            refetchLists={refetchLists}
+            refetchMediaLists={refetchMediaLists}
+            imdbId={imdbId ?? undefined}
+            onComplete={handleListSelectorComplete}
+          />
+        </BottomSheet>
+      </View>
+    );
+  }
+
+  // Default layout: Portrait / Phone
   return (
     <View className="flex-1 bg-base">
       <Stack.Screen options={{ headerShown: false }} />
-
 
       {/* Custom back button */}
       <Pressable
@@ -567,132 +909,15 @@ export default function MediaDetailScreen() {
         <MediaHeader media={media} />
 
         {/* Action buttons */}
-        <View className="flex-row px-4 mt-6 gap-3">
-          {mediaType === "movie" ? (
-            <TextButton
-              className="flex-1"
-              onPress={handleWatchMovie}
-              disabled={!imdbId}
-              label={t("media.watchNow")}
-              leftIcon={<Play size={18} className="text-crust" fill="currentColor" />}
-              textVariant="strong"
-            />
-          ) : (
-            <View className="flex-1">
-              <Text className="text-sm text-subtext0 mb-2">
-                {t("media.selectEpisode")}
-              </Text>
-            </View>
-          )}
-
-          {mediaType === "movie" && (
-            <Button
-              variant="outline"
-              size="icon"
-              className="w-12 h-12"
-              onPress={handleToggleMovieWatched}
-            >
-              {isMovieWatched ? (
-                <Eye size={20} className="text-lavender" />
-              ) : (
-                <EyeOff size={20} className="text-text" />
-              )}
-            </Button>
-          )}
-
-          <Button
-            variant="outline"
-            size="icon"
-            className="w-12 h-12"
-            onPress={handleOpenListSelector}
-          >
-            {isInAnyList ? (
-              <Check size={20} className="text-lavender" />
-            ) : (
-              <List size={20} className="text-text" />
-            )}
-          </Button>
-
-          {enableAnilistSync && (
-            <Button
-              variant="outline"
-              size="icon"
-              className="w-12 h-12"
-              onPress={handleOpenTracking}
-            >
-              {currentTracking ? (
-                <CheckCircle size={20} className="text-lavender" />
-              ) : (
-                <Plus size={20} className="text-text" />
-              )}
-            </Button>
-          )}
-
-          <Button
-            variant="outline"
-            size="icon"
-            className="w-12 h-12"
-            onPress={handleToggleFavorite}
-          >
-            <Heart
-              size={20}
-              className={isFavorite ? "text-red-500" : "text-text"}
-              fill={isFavorite ? "#ef4444" : "none"}
-            />
-          </Button>
+        <View className="mt-6">
+          {renderActionButtons()}
         </View>
 
-        {/* TV Show: Season picker and episodes */}
-        {mediaType === "tv" && seasons.length > 0 && (
-          <View className="mt-6">
-            <SeasonPicker
-              seasons={seasons}
-              selectedSeason={selectedSeason}
-              onSelectSeason={setSelectedSeason}
-            />
-
-            <View className="px-4 mt-2">
-              {isLoadingEpisodes ? (
-                <View className="py-8 items-center">
-                  <ActivityIndicator size="small" />
-                </View>
-              ) : (
-                episodes.map((episode) => {
-                  const progressKey = `${episode.seasonNumber}-${episode.episodeNumber}`;
-                  const progress = episodeProgress.get(progressKey);
-                  const watchPercent = progress && progress.duration > 0
-                    ? Math.round((progress.position / progress.duration) * 100)
-                    : undefined;
-
-                  return (
-                    <EpisodeCard
-                      key={progressKey}
-                      episode={episode}
-                      onPress={() => handleWatchEpisode(episode)}
-                      onLongPress={() => handleEpisodeLongPress(episode)}
-                      watchProgress={watchPercent}
-                      isCompleted={progress?.completed}
-                    />
-                  );
-                })
-              )}
-            </View>
-          </View>
-        )}
+        {/* Episodes */}
+        {renderEpisodesSection()}
 
         {/* Similar Content */}
-        {similarMovies.length > 0 && (
-          <View className="mt-6">
-            {isLoadingSimilar ? (
-              <MediaSectionSkeleton />
-            ) : (
-              <MediaSection
-                title={t("home.youMightAlsoLike")}
-                items={similarMovies}
-              />
-            )}
-          </View>
-        )}
+        {renderSimilarSection()}
 
         {/* Bottom padding */}
         <View className="h-8" />
