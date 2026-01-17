@@ -11,7 +11,8 @@ import {
   MonitorPlay,
   Volume2,
   RefreshCw,
-  Info
+  Info,
+  Download
 } from "@/lib/icons";
 
 export default function SettingsIndex() {
@@ -74,6 +75,13 @@ export default function SettingsIndex() {
             itemLeft={(props) => <RefreshCw {...props} />}
             label={t("settings.synchronization")}
             href="/settings/synchronization"
+            className="bg-transparent border-0"
+          />
+
+          <ListItem
+            itemLeft={(props) => <Download {...props} />}
+            label={t("settings.downloads")}
+            href="/settings/downloads"
             className="bg-transparent border-0"
           />
 

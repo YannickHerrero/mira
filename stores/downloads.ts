@@ -9,7 +9,7 @@ import {
   type DownloadProgress,
   type DownloadStatus,
 } from "@/lib/download-manager";
-import { createRealDebridClient } from "@/lib/api/realdebrid";
+import { createRealDebridClient, UnplayableFileError } from "@/lib/api/realdebrid";
 import type { MediaType, Stream } from "@/lib/types";
 import { useApiKeyStore } from "@/stores/api-keys";
 
@@ -31,6 +31,8 @@ export interface DownloadItem {
   infoHash?: string;
   addedAt: string;
   completedAt?: string;
+  /** Reason for failure (e.g., "iso" for disc image, "archive" for archive files) */
+  failureReason?: string;
 }
 
 export interface StartDownloadParams {
@@ -273,8 +275,11 @@ export const useDownloadsStore = create<DownloadsState>((set, get) => ({
       } catch (error) {
         console.error("Download cache failed:", error);
 
-        const updates = {
-          status: "failed" as DownloadStatus,
+        // Check if this is an unplayable file error
+        const isUnplayable = error instanceof UnplayableFileError;
+        const updates: Partial<DownloadItem> = {
+          status: isUnplayable ? "unplayable" as DownloadStatus : "failed" as DownloadStatus,
+          failureReason: isUnplayable ? (error as UnplayableFileError).extension : undefined,
         };
 
         set((s) => ({

@@ -1,6 +1,7 @@
 import * as React from "react";
-import { Alert, View, FlatList, Platform } from "react-native";
+import { Alert, View, FlatList, Platform, ActivityIndicator } from "react-native";
 import type { BottomSheetModal } from "@gorhom/bottom-sheet";
+import { useTranslation } from "react-i18next";
 import { Text } from "@/components/ui/text";
 import { TextButton } from "@/components/ui/text-button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -10,7 +11,7 @@ import { SourceActionSheet } from "./SourceActionSheet";
 import { useDownloads, useDownloadStatus } from "@/hooks/useDownloads";
 import { useMediaPlayer } from "@/hooks/useSettings";
 import { useApiKeyStore } from "@/stores/api-keys";
-import { createRealDebridClient } from "@/lib/api/realdebrid";
+import { createRealDebridClient, UnplayableFileError } from "@/lib/api/realdebrid";
 import { mediumImpact } from "@/lib/haptics";
 import { Check, Play, Eye } from "@/lib/icons";
 import type { Stream, MediaType } from "@/lib/types";
@@ -31,6 +32,60 @@ function getUrlExtension(url?: string): string | null {
   const extension = cleanUrl.split(".").pop();
   if (!extension || extension.length > 5) return null;
   return extension.toLowerCase();
+}
+
+/**
+ * Extract filename from a URL (typically from Real-Debrid).
+ * Returns the decoded filename without query params.
+ */
+function getFilenameFromUrl(url?: string): string | null {
+  if (!url) return null;
+  try {
+    const cleanUrl = url.split(/[?#]/)[0];
+    const segments = cleanUrl.split("/");
+    const lastSegment = segments[segments.length - 1];
+    if (!lastSegment) return null;
+    return decodeURIComponent(lastSegment);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Resolve a URL by following redirects to get the final URL.
+ * This is used to resolve Torrentio URLs to Real-Debrid URLs.
+ * Uses GET with manual redirect handling to ensure we get the final URL.
+ */
+async function resolveRedirectUrl(url: string): Promise<string> {
+  try {
+    // Use GET with redirect: "manual" to capture redirect location
+    // Then follow redirects manually to get the final URL
+    const response = await fetch(url, {
+      method: "GET",
+      redirect: "manual",
+    });
+    
+    // If we got a redirect, follow it
+    if (response.status >= 300 && response.status < 400) {
+      const location = response.headers.get("location");
+      if (location) {
+        // Recursively resolve in case of multiple redirects
+        return resolveRedirectUrl(location);
+      }
+    }
+    
+    // If no redirect or at final destination, check response.url
+    // (some servers might redirect via JavaScript or meta refresh)
+    if (response.url && response.url !== url) {
+      return response.url;
+    }
+    
+    return url;
+  } catch (error) {
+    console.warn("[SourceList] Failed to resolve URL:", error);
+    // If resolution fails, return original URL
+    return url;
+  }
 }
 
 function getStreamKey(stream: Stream): string {
@@ -134,11 +189,13 @@ export function SourceList({
   year,
   ListHeaderComponent: CustomHeaderComponent,
 }: SourceListProps) {
+  const { t } = useTranslation();
   const [selectedStream, setSelectedStream] = React.useState<Stream | null>(null);
   const [playbackState, setPlaybackState] = React.useState<PlaybackCacheState>({
     status: "idle",
   });
   const [showAllSources, setShowAllSources] = React.useState(false);
+  const [isResolvingUrl, setIsResolvingUrl] = React.useState(false);
   const actionSheetRef = React.useRef<BottomSheetModal>(null);
   
   const realDebridApiKey = useApiKeyStore((s) => s.realDebridApiKey);
@@ -194,11 +251,25 @@ export function SourceList({
         const client = createRealDebridClient(realDebridApiKey);
         const url = await client.resolveInfoHashToStreamUrl(stream.infoHash, stream.title);
         setPlaybackState({ status: "ready", streamKey, url });
-      } catch {
+      } catch (error) {
         setPlaybackState({ status: "failed", streamKey });
+        
+        // Show user-friendly message for unplayable files
+        if (error instanceof UnplayableFileError) {
+          const messageKey = error.fileType === "disc_image" 
+            ? "sources.unplayableIsoMessage"
+            : error.fileType === "archive"
+            ? "sources.unplayableArchiveMessage"
+            : "sources.unplayableFileMessage";
+          
+          Alert.alert(
+            t("sources.unplayableFileTitle"),
+            t(messageKey, { extension: error.extension.toUpperCase() })
+          );
+        }
       }
     },
-    [realDebridApiKey]
+    [realDebridApiKey, t]
   );
 
   // Apply filters to streams (unless "Show All" is active)
@@ -269,18 +340,72 @@ export function SourceList({
     [openActionSheet]
   );
 
+  /**
+   * Show confirmation dialog with the resolved filename before playing.
+   * Resolves Torrentio URLs to get the actual Real-Debrid filename.
+   * Returns a promise that resolves to true if user confirms, false otherwise.
+   */
+  const confirmAndPlay = React.useCallback(
+    async (stream: Stream): Promise<boolean> => {
+      if (!stream.url) {
+        onSelectStream(stream);
+        return true;
+      }
+
+      // Show loading while resolving the URL
+      setIsResolvingUrl(true);
+      
+      try {
+        // Resolve redirects to get the actual Real-Debrid URL with filename
+        const resolvedUrl = await resolveRedirectUrl(stream.url);
+        const filename = getFilenameFromUrl(resolvedUrl);
+        
+        setIsResolvingUrl(false);
+        
+        return new Promise((resolve) => {
+          Alert.alert(
+            t("sources.confirmPlayTitle"),
+            filename || stream.title,
+            [
+              {
+                text: t("common.cancel"),
+                style: "cancel",
+                onPress: () => resolve(false),
+              },
+              {
+                text: t("sources.play"),
+                onPress: async () => {
+                  // Use the resolved URL for playback
+                  await onSelectStream({ ...stream, url: resolvedUrl });
+                  resolve(true);
+                },
+              },
+            ],
+            { cancelable: true, onDismiss: () => resolve(false) }
+          );
+        });
+      } catch {
+        setIsResolvingUrl(false);
+        // On error, just play without confirmation
+        onSelectStream(stream);
+        return true;
+      }
+    },
+    [onSelectStream, t]
+  );
+
   const handleCardPress = React.useCallback(
     (stream: Stream) => {
       if (stream.url && stream.isCached) {
-        onSelectStream(stream);
+        confirmAndPlay(stream);
         return;
       }
 
       if (!stream.isCached && stream.infoHash) {
         startPlaybackCache(stream);
         Alert.alert(
-          "Caching started",
-          "This source is being cached on Real-Debrid. Please come back later to watch it."
+          t("sources.cachingStartedTitle"),
+          t("sources.cachingStartedMessage")
         );
         return;
       }
@@ -291,20 +416,20 @@ export function SourceList({
 
       openActionSheet(stream);
     },
-    [onSelectStream, openActionSheet, startPlaybackCache]
+    [confirmAndPlay, openActionSheet, startPlaybackCache, t]
   );
 
   const handlePlay = React.useCallback(async () => {
     if (!selectedStream) return false;
 
     if (selectedStream.url && selectedStream.isCached) {
-      await onSelectStream(selectedStream);
+      await confirmAndPlay(selectedStream);
       return true;
     }
 
     const streamKey = getStreamKey(selectedStream);
     if (playbackState.status === "ready" && playbackState.streamKey === streamKey && playbackState.url) {
-      await onSelectStream({ ...selectedStream, url: playbackState.url });
+      await confirmAndPlay({ ...selectedStream, url: playbackState.url });
       return true;
     }
 
@@ -313,12 +438,12 @@ export function SourceList({
     }
 
     Alert.alert(
-      "Caching started",
-      "This source is being cached on Real-Debrid. Please come back later to watch it."
+      t("sources.cachingStartedTitle"),
+      t("sources.cachingStartedMessage")
     );
 
     return true;
-  }, [selectedStream, onSelectStream, playbackState, startPlaybackCache]);
+  }, [selectedStream, confirmAndPlay, playbackState, startPlaybackCache, t]);
 
   const handleDownload = React.useCallback(async () => {
     if (!selectedStream || !tmdbId || !mediaType || !title) return;
@@ -608,6 +733,16 @@ export function SourceList({
             playbackStatus={selectedPlaybackState.status}
           />
         </BottomSheet>
+      )}
+
+      {/* Loading overlay while resolving URL */}
+      {isResolvingUrl && (
+        <View className="absolute inset-0 bg-black/50 items-center justify-center">
+          <View className="bg-surface0 rounded-xl p-6 items-center">
+            <ActivityIndicator size="large" className="mb-3" />
+            <Text className="text-text">{t("common.loading")}</Text>
+          </View>
+        </View>
       )}
     </>
   );

@@ -13,8 +13,49 @@ import { findBestAudioTrack, findBestSubtitleTrack } from "@/lib/language-utils"
 const LOG_PREFIX = "[VLCPlayer]";
 
 // Re-export types from shared types file
-export type { PlayerState, VLCVideoPlayerProps } from "./VLCVideoPlayer.types";
-import type { VLCVideoPlayerProps, PlayerState } from "./VLCVideoPlayer.types";
+export type { PlayerState, VLCVideoPlayerProps, PlayerError, PlayerErrorType } from "./VLCVideoPlayer.types";
+import type { VLCVideoPlayerProps, PlayerState, PlayerError } from "./VLCVideoPlayer.types";
+
+/**
+ * Check if a URL points to an ISO file or other unplayable disc image format.
+ */
+function isUnplayableFormat(url: string): boolean {
+  return /\.iso(?:\?|$)/i.test(url);
+}
+
+/**
+ * Detect if an error indicates an unplayable format (ISO, etc.)
+ */
+function detectUnplayableFormatError(error: any, url: string): PlayerError | null {
+  const message = error?.message?.toLowerCase() || "";
+  
+  // Check URL for ISO extension
+  if (isUnplayableFormat(url)) {
+    return {
+      type: "unplayable_format",
+      message: "This file is a disc image (ISO) and cannot be played directly.",
+      isIso: true,
+    };
+  }
+  
+  // Check error message for format-related issues
+  if (
+    message.includes("unsupported format") ||
+    message.includes("no suitable decoder") ||
+    message.includes("unrecognized input") ||
+    message.includes("cannot open") ||
+    message.includes("iso9660") ||
+    message.includes("udf")
+  ) {
+    return {
+      type: "unplayable_format",
+      message: "This file format is not supported for streaming.",
+      isIso: message.includes("iso") || message.includes("udf"),
+    };
+  }
+  
+  return null;
+}
 
 export function VLCVideoPlayer({
   url,
@@ -23,6 +64,7 @@ export function VLCVideoPlayer({
   onProgress,
   onEnd,
   onBack,
+  onError,
 }: VLCVideoPlayerProps) {
   // Keep screen awake during video playback
   useKeepAwake();
@@ -282,9 +324,24 @@ export function VLCVideoPlayer({
     if (isCodecWarning) {
       // Log codec issues as warnings - video usually still plays with fallback audio
       console.warn(LOG_PREFIX, "Codec warning (non-fatal):", message);
-    } else {
-      console.error(LOG_PREFIX, "onError - Video playback error:", error);
+      return;
     }
+    
+    console.error(LOG_PREFIX, "onError - Video playback error:", error);
+    
+    // Check for unplayable format (ISO, etc.)
+    const formatError = detectUnplayableFormatError(error, url);
+    if (formatError) {
+      console.warn(LOG_PREFIX, "Unplayable format detected:", formatError);
+      onError?.(formatError);
+      return;
+    }
+    
+    // Generic error
+    onError?.({
+      type: "unknown",
+      message: message || "An error occurred during playback.",
+    });
   };
 
   // Control handlers

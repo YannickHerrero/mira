@@ -77,6 +77,7 @@
     "playbackSettings": "Playback",
     "streamingSettings": "Streaming Preferences",
     "synchronization": "Synchronization",
+    "downloads": "Downloads",
     "aboutMira": "About",
     "guest": "Guest",
     "apiConfiguration": "API CONFIGURATION",
@@ -233,10 +234,23 @@
     "recommendedForYou": "Recommended for you",
     "longPressToDownload": "Long press a source to download for offline viewing",
     "downloaded": "Downloaded - Ready to watch offline",
-    "playDownloaded": "Play Downloaded"
+    "playDownloaded": "Play Downloaded",
+    "confirmPlayTitle": "Play this file?",
+    "play": "Play",
+    "cachingStartedTitle": "Caching started",
+    "cachingStartedMessage": "This source is being cached on Real-Debrid. Please come back later to watch it.",
+    "unplayableFileTitle": "Unsupported Format",
+    "unplayableFileMessage": "This source contains a {{extension}} file which cannot be streamed. Please select a different source.",
+    "unplayableIsoMessage": "This source is a disc image (ISO) which cannot be streamed directly. Please select a different source.",
+    "unplayableArchiveMessage": "This source is an archive file which cannot be streamed. Please select a different source."
   },
   "player": {
-    "noUrl": "No video URL provided"
+    "noUrl": "No video URL provided",
+    "errorTitle": "Playback Error",
+    "isoErrorTitle": "Unsupported Format",
+    "isoErrorMessage": "This source is a disc image (ISO) file and cannot be played directly. Please try a different source.",
+    "formatErrorTitle": "Unsupported Format",
+    "formatErrorMessage": "This file format is not supported for streaming. Please try a different source."
   },
   "notFound": {
     "title": "Oops!",
@@ -278,6 +292,24 @@
     "loading": "Loading...",
     "seeMore": "See more",
     "done": "Done"
+  },
+  "downloads": {
+    "title": "Downloads",
+    "queue": "Queue",
+    "failed": "Failed",
+    "completed": "Completed",
+    "empty": "No downloads",
+    "emptyDesc": "Long press a source to download for offline viewing",
+    "deleteTitle": "Delete Download",
+    "deleteConfirm": "Are you sure you want to delete \"{{title}}\"?",
+    "statusPending": "Pending",
+    "statusCaching": "Caching",
+    "statusDownloading": "Downloading",
+    "statusCompleted": "Completed",
+    "statusFailed": "Failed",
+    "statusPaused": "Paused",
+    "statusUnplayable": "Unsupported format",
+    "statusUnplayableFormat": "Unsupported format ({{format}})"
   },
   "genres": {
     "Action": "Action",

@@ -1,9 +1,11 @@
 import * as React from "react";
-import { View, StatusBar, ActivityIndicator, Platform } from "react-native";
+import { View, StatusBar, ActivityIndicator, Platform, Alert } from "react-native";
 import { useLocalSearchParams, Stack, useRouter } from "expo-router";
 import { VLCVideoPlayer } from "@/components/player";
+import type { PlayerError } from "@/components/player/VLCVideoPlayer.types";
 import { Text } from "@/components/ui/text";
 import { useWatchProgress } from "@/hooks/useWatchProgress";
+import { useTranslation } from "react-i18next";
 import type { MediaType } from "@/lib/types";
 
 // Conditionally import screen orientation for native only
@@ -17,6 +19,7 @@ const PROGRESS_SAVE_INTERVAL = 15;
 
 export default function PlayerScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { url, title, tmdbId, mediaType, seasonNumber, episodeNumber } =
     useLocalSearchParams<{
       url: string;
@@ -169,6 +172,35 @@ export default function PlayerScreen() {
     }, 500);
   }, [parsedTmdbId, mediaType, parsedSeasonNumber, parsedEpisodeNumber, markAsCompleted, router]);
 
+  const handleError = React.useCallback((error: PlayerError) => {
+    console.error("[PlayerScreen] Playback error:", error);
+    
+    // Show appropriate alert based on error type
+    if (error.type === "unplayable_format") {
+      const alertTitle = error.isIso 
+        ? t("player.isoErrorTitle") 
+        : t("player.formatErrorTitle");
+      const alertMessage = error.isIso
+        ? t("player.isoErrorMessage")
+        : t("player.formatErrorMessage");
+      
+      Alert.alert(alertTitle, alertMessage, [
+        {
+          text: t("common.confirm"),
+          onPress: () => router.back(),
+        },
+      ]);
+    } else {
+      // Generic error
+      Alert.alert(t("player.errorTitle"), error.message, [
+        {
+          text: t("common.confirm"),
+          onPress: () => router.back(),
+        },
+      ]);
+    }
+  }, [t, router]);
+
   // Show loading while fetching saved progress
   if (isLoadingProgress) {
     return (
@@ -217,6 +249,7 @@ export default function PlayerScreen() {
         onProgress={handleProgress}
         onEnd={handleEnd}
         onBack={handleBack}
+        onError={handleError}
       />
     </View>
   );

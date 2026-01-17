@@ -82,6 +82,88 @@ interface RDTorrentInfoFile {
   selected: number;
 }
 
+/**
+ * Video file extensions that can be played directly.
+ * Based on common video formats supported by VLC and most players.
+ */
+const VIDEO_EXTENSIONS = [
+  "3g2", "3gp", "avi", "flv", "mkv", "mk3d", "mov", "mp2", "mp4", "m4v",
+  "mpe", "mpeg", "mpg", "mpv", "webm", "wmv", "ogm", "ts", "mts", "m2ts",
+  "vob", "divx", "xvid", "asf", "rm", "rmvb", "f4v", "ogv", "dv"
+];
+
+/**
+ * Unplayable file extensions - disc images and archives that cannot be streamed.
+ */
+const UNPLAYABLE_EXTENSIONS = [
+  // Disc images
+  "iso", "img", "bin", "nrg", "mdf", "mds", "cue", "ccd",
+  // Archives
+  "rar", "zip", "7z", "tar", "gz", "bz2", "xz", "cab", "ace",
+  // Other
+  "exe", "msi", "dmg"
+];
+
+/**
+ * Get file extension category for user-friendly error messages.
+ */
+export type UnplayableFileType = "disc_image" | "archive" | "other";
+
+function getUnplayableFileType(extension: string): UnplayableFileType {
+  const discImageExtensions = ["iso", "img", "bin", "nrg", "mdf", "mds", "cue", "ccd"];
+  const archiveExtensions = ["rar", "zip", "7z", "tar", "gz", "bz2", "xz", "cab", "ace"];
+  
+  if (discImageExtensions.includes(extension.toLowerCase())) {
+    return "disc_image";
+  }
+  if (archiveExtensions.includes(extension.toLowerCase())) {
+    return "archive";
+  }
+  return "other";
+}
+
+/**
+ * Custom error for unplayable files (ISO, archives, etc.)
+ */
+export class UnplayableFileError extends Error {
+  public readonly extension: string;
+  public readonly filename: string;
+  public readonly fileType: UnplayableFileType;
+  
+  constructor(filename: string, extension: string) {
+    const fileType = getUnplayableFileType(extension);
+    const typeLabel = fileType === "disc_image" ? "disc image" 
+      : fileType === "archive" ? "archive" 
+      : "file";
+    
+    super(`This source contains a ${typeLabel} (${extension.toUpperCase()}) that cannot be streamed`);
+    this.name = "UnplayableFileError";
+    this.extension = extension.toLowerCase();
+    this.filename = filename;
+    this.fileType = fileType;
+  }
+}
+
+/**
+ * Check if a file path has an unplayable extension.
+ * Returns the extension if unplayable, undefined otherwise.
+ */
+function getUnplayableExtension(path: string): string | undefined {
+  const match = path.toLowerCase().match(/\.(\w+)$/);
+  if (match && UNPLAYABLE_EXTENSIONS.includes(match[1])) {
+    return match[1];
+  }
+  return undefined;
+}
+
+/**
+ * Check if a file path is a playable video file.
+ */
+function isVideoFile(path: string): boolean {
+  const extensionMatch = path.toLowerCase().match(/\.(\w{2,4})$/);
+  return extensionMatch ? VIDEO_EXTENSIONS.includes(extensionMatch[1]) : false;
+}
+
 interface RDTorrentInfo {
   id: string;
   filename?: string;
@@ -226,7 +308,8 @@ export class RealDebridClient {
   }
 
   /**
-   * Resolve an info hash to a streaming URL, caching if needed
+   * Resolve an info hash to a streaming URL, caching if needed.
+   * @throws {UnplayableFileError} if the file is an ISO, archive, or other unplayable format
    */
   async resolveInfoHashToStreamUrl(
     infoHash: string,
@@ -243,14 +326,21 @@ export class RealDebridClient {
     const timeoutMs = options?.timeoutMs ?? DEFAULT_CACHE_TIMEOUT_MS;
     const pollIntervalMs = options?.pollIntervalMs ?? DEFAULT_CACHE_POLL_INTERVAL_MS;
     const readyInfo = await this.waitForTorrentReady(id, timeoutMs, pollIntervalMs);
+    
+    // This will throw UnplayableFileError if only unplayable files are found
     const link = this.pickLargestFileLink(readyInfo);
 
-    if (!link) {
-      throw new Error("No downloadable files available");
-    }
-
     const unrestricted = await this.unrestrictLink(link);
-    return unrestricted.download ?? unrestricted.link ?? link;
+    const finalUrl = unrestricted.download ?? unrestricted.link ?? link;
+    
+    // Double-check the final URL for unplayable extensions
+    // This catches cases where the torrent file list didn't reveal the extension
+    const unplayableExt = getUnplayableExtension(finalUrl);
+    if (unplayableExt) {
+      throw new UnplayableFileError(finalUrl, unplayableExt);
+    }
+    
+    return finalUrl;
   }
 
   /**
@@ -328,24 +418,60 @@ export class RealDebridClient {
     throw new Error("Real-Debrid cache timeout");
   }
 
-  private pickLargestFileLink(info: RDTorrentInfo): string | undefined {
+  private pickLargestFileLink(info: RDTorrentInfo): string {
     const files = info.files ?? [];
     const selectedFiles = files.filter((file) => file.selected === 1);
     const targetFiles = selectedFiles.length > 0 ? selectedFiles : files;
 
     if (targetFiles.length === 0) {
-      return info.links?.[0];
+      const firstLink = info.links?.[0];
+      if (!firstLink) {
+        throw new Error("No downloadable files available");
+      }
+      return firstLink;
     }
 
-    const largestIndex = targetFiles.reduce(
+    // Separate files into playable video files and unplayable files
+    const videoFiles: RDTorrentInfoFile[] = [];
+    const unplayableFiles: { file: RDTorrentInfoFile; extension: string }[] = [];
+
+    for (const file of targetFiles) {
+      const unplayableExt = getUnplayableExtension(file.path);
+      if (unplayableExt) {
+        unplayableFiles.push({ file, extension: unplayableExt });
+      } else if (isVideoFile(file.path)) {
+        videoFiles.push(file);
+      }
+    }
+
+    // If no video files found, check if we have unplayable files to report
+    if (videoFiles.length === 0) {
+      if (unplayableFiles.length > 0) {
+        // Find the largest unplayable file to report
+        const largest = unplayableFiles.reduce((max, curr) => 
+          curr.file.bytes > max.file.bytes ? curr : max
+        );
+        throw new UnplayableFileError(largest.file.path, largest.extension);
+      }
+      throw new Error("No downloadable files available");
+    }
+
+    // Find the largest video file
+    const largestIndex = videoFiles.reduce(
       (maxIndex, file, index) =>
-        file.bytes > (targetFiles[maxIndex]?.bytes ?? 0) ? index : maxIndex,
+        file.bytes > (videoFiles[maxIndex]?.bytes ?? 0) ? index : maxIndex,
       0
     );
 
-    const targetFile = targetFiles[largestIndex];
+    const targetFile = videoFiles[largestIndex];
     const fileIndex = files.findIndex((file) => file.id === targetFile.id);
-    return info.links?.[fileIndex] ?? info.links?.[0];
+    const link = info.links?.[fileIndex] ?? info.links?.[0];
+    
+    if (!link) {
+      throw new Error("No downloadable files available");
+    }
+    
+    return link;
   }
 
   /**

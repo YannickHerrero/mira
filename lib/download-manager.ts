@@ -8,7 +8,8 @@ export type DownloadStatus =
   | "downloading"
   | "completed"
   | "failed"
-  | "paused";
+  | "paused"
+  | "unplayable";
 
 export interface DownloadProgress {
   totalBytesWritten: number;
