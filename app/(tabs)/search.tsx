@@ -4,6 +4,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { Text } from "@/components/ui/text";
+import { TabContentWrapper } from "@/components/ui/tab-content-wrapper";
 import { Input } from "@/components/ui/input";
 import { MediaGrid } from "@/components/media";
 import { ErrorState } from "@/components/ui/error-state";
@@ -68,20 +69,23 @@ export default function SearchScreen() {
   // Not configured state
   if (!isLoadingKeys && !isConfigured) {
     return (
-      <View className="flex-1 bg-base items-center justify-center px-6">
-        <Search size={48} className="text-subtext0 mb-4" />
-        <Text className="text-xl font-semibold text-text text-center">
-          {t("search.apiRequired")}
-        </Text>
-        <Text className="text-subtext0 mt-2 text-center">
-          {t("search.apiRequiredDesc")}
-        </Text>
-      </View>
+      <TabContentWrapper className="bg-base">
+        <View className="flex-1 items-center justify-center px-6">
+          <Search size={48} className="text-subtext0 mb-4" />
+          <Text className="text-xl font-semibold text-text text-center">
+            {t("search.apiRequired")}
+          </Text>
+          <Text className="text-subtext0 mt-2 text-center">
+            {t("search.apiRequiredDesc")}
+          </Text>
+        </View>
+      </TabContentWrapper>
     );
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-base" edges={["top"]}>
+    <TabContentWrapper className="bg-base">
+      <SafeAreaView className="flex-1" edges={["top"]}>
       {/* Page Title */}
       <View className="px-4 pt-4">
         <Text variant="pageTitle">
@@ -179,7 +183,8 @@ export default function SearchScreen() {
           />
         )}
       </View>
-    </SafeAreaView>
+      </SafeAreaView>
+    </TabContentWrapper>
   );
 }
 

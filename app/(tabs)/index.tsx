@@ -3,6 +3,7 @@ import { View, ScrollView, RefreshControl, ActivityIndicator } from "react-nativ
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { Text } from "@/components/ui/text";
+import { TabContentWrapper } from "@/components/ui/tab-content-wrapper";
 import { MediaSection } from "@/components/library";
 import {
   HeroSection,
@@ -119,39 +120,45 @@ export default function HomeScreen() {
   // Migration error
   if (migrationError) {
     return (
-      <View className="flex-1 bg-base items-center justify-center px-6">
-        <Text className="text-red">{t("home.migrationError", { message: migrationError.message })}</Text>
-      </View>
+      <TabContentWrapper className="bg-base">
+        <View className="flex-1 items-center justify-center px-6">
+          <Text className="text-red">{t("home.migrationError", { message: migrationError.message })}</Text>
+        </View>
+      </TabContentWrapper>
     );
   }
 
   // Loading migration
   if (!success) {
     return (
-      <View className="flex-1 bg-base items-center justify-center px-6">
-        <ActivityIndicator size="large" />
-        <Text className="text-subtext0 mt-4">{t("home.loading")}</Text>
-      </View>
+      <TabContentWrapper className="bg-base">
+        <View className="flex-1 items-center justify-center px-6">
+          <ActivityIndicator size="large" />
+          <Text className="text-subtext0 mt-4">{t("home.loading")}</Text>
+        </View>
+      </TabContentWrapper>
     );
   }
 
   // Not configured - prompt to set up API keys
   if (!loadingKeys && !isConfigured) {
     return (
-      <View className="flex-1 bg-base items-center justify-center px-6">
-        <Settings size={48} className="text-subtext0 mb-4" />
-        <Text className="text-xl font-semibold text-text text-center">
-          {t("home.welcome")}
-        </Text>
-        <Text className="text-subtext0 mt-2 text-center">
-          {t("home.configureKeys")}
-        </Text>
-      </View>
+      <TabContentWrapper className="bg-base">
+        <View className="flex-1 items-center justify-center px-6">
+          <Settings size={48} className="text-subtext0 mb-4" />
+          <Text className="text-xl font-semibold text-text text-center">
+            {t("home.welcome")}
+          </Text>
+          <Text className="text-subtext0 mt-2 text-center">
+            {t("home.configureKeys")}
+          </Text>
+        </View>
+      </TabContentWrapper>
     );
   }
 
   return (
-    <View className="flex-1 bg-base">
+    <TabContentWrapper className="bg-base">
       <ScrollView
         className="flex-1"
         showsVerticalScrollIndicator={false}
@@ -227,6 +234,6 @@ export default function HomeScreen() {
           )}
         </View>
       </ScrollView>
-    </View>
+    </TabContentWrapper>
   );
 }

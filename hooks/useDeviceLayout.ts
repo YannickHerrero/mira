@@ -7,6 +7,9 @@ export const TABLET_BREAKPOINT = 768;
 /** Approximate height of one content row (section title + horizontal card list) */
 export const CONTENT_ROW_HEIGHT = 260;
 
+/** Width of the sidebar when in tablet landscape mode */
+export const SIDEBAR_WIDTH = 80;
+
 /**
  * Hook to detect if the device is a tablet in landscape mode.
  * Returns layout information useful for responsive design.

@@ -4,6 +4,7 @@ import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import type { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { Text } from "@/components/ui/text";
+import { TabContentWrapper } from "@/components/ui/tab-content-wrapper";
 import { MediaCard, MediaCardSkeleton, MediaGrid, useGridColumns, GRID_GAP, GRID_PADDING } from "@/components/media";
 import { EmptyState } from "@/components/ui/empty-state";
 import {
@@ -275,7 +276,7 @@ export default function LibraryScreen() {
   const showDownloadsTab = Platform.OS !== "web";
 
   return (
-    <View className="flex-1 bg-base">
+    <TabContentWrapper className="bg-base">
       {/* Tabs */}
       <ScrollView
         horizontal
@@ -337,7 +338,7 @@ export default function LibraryScreen() {
           />
         </BottomSheet>
       )}
-    </View>
+    </TabContentWrapper>
   );
 }
 

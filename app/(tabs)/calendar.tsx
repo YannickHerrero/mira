@@ -8,6 +8,7 @@ import {
 import { useFocusEffect } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { Text } from "@/components/ui/text";
+import { TabContentWrapper } from "@/components/ui/tab-content-wrapper";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ReleaseItem } from "@/components/calendar";
 import { CalendarDays } from "@/lib/icons/CalendarDays";
@@ -123,26 +124,30 @@ export default function CalendarScreen() {
 
   if (error) {
     return (
-      <View className="flex-1 bg-base items-center justify-center px-4">
-        <Text className="text-center text-subtext0">{error}</Text>
-      </View>
+      <TabContentWrapper className="bg-base">
+        <View className="flex-1 items-center justify-center px-4">
+          <Text className="text-center text-subtext0">{error}</Text>
+        </View>
+      </TabContentWrapper>
     );
   }
 
   if (isLoading && sections.length === 0) {
     return (
-      <View className="flex-1 bg-base items-center justify-center">
-        <ActivityIndicator size="large" color="hsl(0 0% 98%)" />
-        <Text className="text-subtext0 mt-4">
-          {t("calendar.loading")}
-        </Text>
-      </View>
+      <TabContentWrapper className="bg-base">
+        <View className="flex-1 items-center justify-center">
+          <ActivityIndicator size="large" color="hsl(0 0% 98%)" />
+          <Text className="text-subtext0 mt-4">
+            {t("calendar.loading")}
+          </Text>
+        </View>
+      </TabContentWrapper>
     );
   }
 
   if (sections.length === 0) {
     return (
-      <View className="flex-1 bg-base">
+      <TabContentWrapper className="bg-base">
         <SectionList
           sections={[]}
           renderItem={() => null}
@@ -159,12 +164,12 @@ export default function CalendarScreen() {
             />
           }
         />
-      </View>
+      </TabContentWrapper>
     );
   }
 
   return (
-    <View className="flex-1 bg-base">
+    <TabContentWrapper className="bg-base">
       <SectionList
         ref={sectionListRef}
         sections={sections}
@@ -188,6 +193,6 @@ export default function CalendarScreen() {
           ) : null
         }
       />
-    </View>
+    </TabContentWrapper>
   );
 }
