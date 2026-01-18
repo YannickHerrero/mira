@@ -237,6 +237,8 @@
     "playDownloaded": "Play Downloaded",
     "confirmPlayTitle": "Play this file?",
     "play": "Play",
+    "resolvingTitle": "Preparing stream",
+    "resolvingSubtitle": "Connecting to Real-Debrid...",
     "cachingStartedTitle": "Caching started",
     "cachingStartedMessage": "This source is being cached on Real-Debrid. Please come back later to watch it.",
     "unplayableFileTitle": "Unsupported Format",

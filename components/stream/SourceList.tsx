@@ -1,10 +1,11 @@
 import * as React from "react";
-import { Alert, View, FlatList, Platform, ActivityIndicator } from "react-native";
+import { Alert, View, FlatList, Platform } from "react-native";
 import type { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useTranslation } from "react-i18next";
 import { Text } from "@/components/ui/text";
 import { TextButton } from "@/components/ui/text-button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { LoadingOverlay } from "@/components/ui/loading-overlay";
 import { BottomSheet } from "@/components/primitives/bottomSheet/bottom-sheet.native";
 import { SourceCard } from "./SourceCard";
 import { SourceActionSheet } from "./SourceActionSheet";
@@ -736,14 +737,11 @@ export function SourceList({
       )}
 
       {/* Loading overlay while resolving URL */}
-      {isResolvingUrl && (
-        <View className="absolute inset-0 bg-black/50 items-center justify-center">
-          <View className="bg-surface0 rounded-xl p-6 items-center">
-            <ActivityIndicator size="large" className="mb-3" />
-            <Text className="text-text">{t("common.loading")}</Text>
-          </View>
-        </View>
-      )}
+      <LoadingOverlay
+        visible={isResolvingUrl}
+        title={t("sources.resolvingTitle")}
+        subtitle={t("sources.resolvingSubtitle")}
+      />
     </>
   );
 }
