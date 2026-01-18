@@ -45,6 +45,7 @@ export function useRealDebridTorrents(
       return;
     }
 
+    const fetchStart = Date.now();
     setIsLoading(true);
     setError(null);
 
@@ -61,7 +62,14 @@ export function useRealDebridTorrents(
         {}
       );
       setTorrents(nextTorrents);
+
+      // Log slow requests (> 2s)
+      const duration = Date.now() - fetchStart;
+      if (duration > 2000) {
+        console.warn(`[RealDebrid] Slow getTorrents: ${duration}ms`);
+      }
     } catch (err) {
+      console.error("[RealDebrid] getTorrents failed:", err);
       setError(err instanceof Error ? err.message : "Failed to load Real-Debrid torrents");
     } finally {
       setIsLoading(false);

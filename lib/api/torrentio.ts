@@ -142,6 +142,7 @@ export class TorrentioClient {
   ): Promise<Stream[]> {
     const config = this.buildConfigString(showUncached);
     const url = `${TORRENTIO_URL}/${config}/stream/${type}/${id}.json`;
+    const fetchStart = Date.now();
 
     const response = await fetch(url);
 
@@ -149,10 +150,18 @@ export class TorrentioClient {
       if (response.status === 404) {
         return []; // No streams found
       }
+      // Log all API errors
+      console.error(`[Torrentio] API error ${response.status} for ${type}/${id} (${Date.now() - fetchStart}ms)`);
       throw new Error(`Torrentio API error: ${response.status} ${response.statusText}`);
     }
 
     const data: TorrentioResponse = await response.json();
+
+    // Log slow requests (> 3s)
+    const duration = Date.now() - fetchStart;
+    if (duration > 3000) {
+      console.warn(`[Torrentio] Slow response: ${duration}ms for ${type}/${id} (${data.streams?.length ?? 0} streams)`);
+    }
 
     if (!data.streams || data.streams.length === 0) {
       return [];

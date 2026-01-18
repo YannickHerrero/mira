@@ -80,6 +80,7 @@ export function useSources({
       return;
     }
 
+    const fetchStart = Date.now();
     setIsLoading(true);
     setError(null);
 
@@ -98,7 +99,8 @@ export function useSources({
               if (queries.length === 0) return [];
               const nyaaClient = createNyaaClient(realDebridApiKey);
               return await nyaaClient.searchAnime({ queries });
-            } catch {
+            } catch (err) {
+              console.warn("[Sources] Nyaa search failed:", err);
               return [];
             }
           })()
@@ -151,7 +153,14 @@ export function useSources({
       });
 
       setStreams(mergedResults);
+
+      // Log slow requests (> 3s)
+      const duration = Date.now() - fetchStart;
+      if (duration > 3000) {
+        console.warn(`[Sources] Slow source fetch: ${duration}ms for ${imdbId} (${mergedResults.length} results)`);
+      }
     } catch (err) {
+      console.error(`[Sources] Source fetch failed for ${imdbId}:`, err);
       setError(err instanceof Error ? err.message : "Failed to load sources");
       setStreams([]);
       setRecommendedStreams([]);

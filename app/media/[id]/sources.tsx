@@ -56,6 +56,7 @@ export default function SourcesScreen() {
     }
 
     const fetchMediaInfo = async () => {
+      const fetchStart = Date.now();
       setIsLoadingMedia(true);
       setError(null);
 
@@ -104,7 +105,14 @@ export default function SourcesScreen() {
 
         // Check if it's anime (genre ID 16 is Animation)
         setIsAnime(fetchedGenres.includes("Animation"));
+
+        // Log slow requests (> 2s)
+        const duration = Date.now() - fetchStart;
+        if (duration > 2000) {
+          console.warn(`[Sources] Slow TMDB fetch: ${duration}ms for ${mediaType}/${tmdbId}`);
+        }
       } catch (err) {
+        console.error(`[Sources] TMDB fetch failed for ${mediaType}/${tmdbId}:`, err);
         setError(err instanceof Error ? err.message : "Failed to load media");
       } finally {
         setIsLoadingMedia(false);
