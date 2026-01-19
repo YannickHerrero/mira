@@ -49,6 +49,8 @@
     "dateFormat": "{{weekday}}, {{date}}",
     "noReleases": "Nessuna uscita",
     "noReleasesDesc": "Aggiungi serie e film alla tua lista per vedere le loro uscite qui",
+    "noReleasesMonth": "Nessuna uscita questo mese",
+    "noReleasesMonthDesc": "Nessuna uscita prevista per questo mese",
     "loading": "Caricamento uscite..."
   },
   "library": {
