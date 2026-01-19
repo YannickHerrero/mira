@@ -85,33 +85,31 @@ export function useUpcomingReleases(options: UseUpcomingReleasesOptions): UseUpc
       // Create TMDB client
       const tmdbClient = createTMDBClient(tmdbApiKey, resolvedLanguage);
 
+      // Calculate month date range
+      const monthStart = new Date(year, month, 1);
+      const monthEnd = new Date(year, month + 1, 0, 23, 59, 59, 999);
+
       // Fetch release info for each item
       const releases: UpcomingRelease[] = [];
 
       for (const item of listItems) {
         try {
           if (item.mediaType === "tv") {
-            // Fetch both upcoming and last aired episodes for TV shows
-            const [upcomingRelease, lastRelease] = await Promise.all([
-              tmdbClient.getTvUpcomingEpisode(item.tmdbId),
-              tmdbClient.getTvLastEpisode(item.tmdbId),
-            ]);
-            if (upcomingRelease) {
-              releases.push(upcomingRelease);
-            }
-            if (lastRelease) {
-              // Avoid duplicates if last and next episode are the same
-              const isDuplicate = upcomingRelease &&
-                upcomingRelease.episodeInfo?.seasonNumber === lastRelease.episodeInfo?.seasonNumber &&
-                upcomingRelease.episodeInfo?.episodeNumber === lastRelease.episodeInfo?.episodeNumber;
-              if (!isDuplicate) {
-                releases.push(lastRelease);
-              }
-            }
+            // Fetch all episodes that air within the selected month
+            const episodeReleases = await tmdbClient.getTvEpisodesInDateRange(
+              item.tmdbId,
+              monthStart,
+              monthEnd
+            );
+            releases.push(...episodeReleases);
           } else if (item.mediaType === "movie") {
             const release = await tmdbClient.getMovieReleaseInfo(item.tmdbId);
             if (release) {
-              releases.push(release);
+              // Filter movie to be within the selected month
+              const releaseDate = new Date(release.releaseDate);
+              if (releaseDate >= monthStart && releaseDate <= monthEnd) {
+                releases.push(release);
+              }
             }
           }
         } catch (err) {
@@ -119,14 +117,7 @@ export function useUpcomingReleases(options: UseUpcomingReleasesOptions): UseUpc
         }
       }
 
-      // Filter releases to be within the selected month
-      const monthStart = new Date(year, month, 1);
-      const monthEnd = new Date(year, month + 1, 0, 23, 59, 59, 999);
-
-      const filteredReleases = releases.filter((release) => {
-        const releaseDate = new Date(release.releaseDate);
-        return releaseDate >= monthStart && releaseDate <= monthEnd;
-      });
+      const filteredReleases = releases;
 
       // Sort by release date
       filteredReleases.sort(
