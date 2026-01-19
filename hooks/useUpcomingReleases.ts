@@ -7,6 +7,12 @@ import { useApiKeyStore } from "@/stores/api-keys";
 import { useLanguageStore } from "@/stores/language";
 import { createTMDBClient } from "@/lib/api/tmdb";
 import { exportUpcomingReleasesToWidget } from "@/lib/widget";
+import {
+  generateWatchlistHash,
+  isCacheValid,
+  getCachedReleases,
+  setCachedReleases,
+} from "@/lib/calendar-cache";
 import type { UpcomingRelease } from "@/lib/api/tmdb";
 
 interface UseUpcomingReleasesOptions {
@@ -36,7 +42,29 @@ export function useUpcomingReleases(options: UseUpcomingReleasesOptions): UseUpc
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const isFetchingRef = useRef(false);
-  const hasFetchedRef = useRef(false);
+
+  /**
+   * Group releases by date and return as a Map
+   */
+  const groupReleasesByDate = useCallback((releases: UpcomingRelease[]): Map<string, UpcomingRelease[]> => {
+    // Sort by release date
+    const sorted = [...releases].sort(
+      (a, b) => new Date(a.releaseDate).getTime() - new Date(b.releaseDate).getTime()
+    );
+
+    // Group by date (YYYY-MM-DD)
+    const groupedByDate = new Map<string, UpcomingRelease[]>();
+
+    for (const release of sorted) {
+      const date = release.releaseDate.split("T")[0];
+      if (!groupedByDate.has(date)) {
+        groupedByDate.set(date, []);
+      }
+      groupedByDate.get(date)!.push(release);
+    }
+
+    return groupedByDate;
+  }, []);
 
   const fetchData = useCallback(async (force = false) => {
     if (!db || !tmdbApiKey) {
@@ -45,12 +73,10 @@ export function useUpcomingReleases(options: UseUpcomingReleasesOptions): UseUpc
       return;
     }
 
-    // Prevent concurrent fetches and re-fetches unless forced
-    if (isFetchingRef.current || (hasFetchedRef.current && !force)) {
+    // Prevent concurrent fetches
+    if (isFetchingRef.current) {
       return;
     }
-
-    isFetchingRef.current = true;
 
     try {
       setError(null);
@@ -81,6 +107,24 @@ export function useUpcomingReleases(options: UseUpcomingReleasesOptions): UseUpc
         setIsLoading(false);
         return;
       }
+
+      // Generate watchlist hash for cache validation
+      const watchlistHash = generateWatchlistHash(listItems);
+
+      // Check cache (unless force refresh)
+      if (!force && isCacheValid(month, year, watchlistHash)) {
+        const cachedReleases = getCachedReleases(month, year);
+        if (cachedReleases) {
+          const groupedByDate = groupReleasesByDate(cachedReleases);
+          setReleasesByDate(groupedByDate);
+          setIsLoading(false);
+          return;
+        }
+      }
+
+      // Cache miss or force refresh - fetch from API
+      isFetchingRef.current = true;
+      setIsLoading(true);
 
       // Create TMDB client
       const tmdbClient = createTMDBClient(tmdbApiKey, resolvedLanguage);
@@ -117,29 +161,18 @@ export function useUpcomingReleases(options: UseUpcomingReleasesOptions): UseUpc
         }
       }
 
-      const filteredReleases = releases;
+      // Store in cache
+      setCachedReleases(month, year, releases, watchlistHash);
 
-      // Sort by release date
-      filteredReleases.sort(
-        (a, b) => new Date(a.releaseDate).getTime() - new Date(b.releaseDate).getTime()
-      );
-
-      // Group by date (YYYY-MM-DD)
-      const groupedByDate = new Map<string, UpcomingRelease[]>();
-
-      for (const release of filteredReleases) {
-        const date = release.releaseDate.split("T")[0]; // Get YYYY-MM-DD
-        if (!groupedByDate.has(date)) {
-          groupedByDate.set(date, []);
-        }
-        groupedByDate.get(date)!.push(release);
-      }
-
+      // Group and set state
+      const groupedByDate = groupReleasesByDate(releases);
       setReleasesByDate(groupedByDate);
-      hasFetchedRef.current = true;
 
-      // Export to widget
-      exportUpcomingReleasesToWidget(groupedByDate);
+      // Export to widget (only for current month to avoid unnecessary updates)
+      const now = new Date();
+      if (month === now.getMonth() && year === now.getFullYear()) {
+        exportUpcomingReleasesToWidget(groupedByDate);
+      }
     } catch (err) {
       console.error("Failed to fetch upcoming releases:", err);
       setError(err instanceof Error ? err.message : "Failed to fetch upcoming releases");
@@ -148,7 +181,7 @@ export function useUpcomingReleases(options: UseUpcomingReleasesOptions): UseUpc
       setIsLoading(false);
       isFetchingRef.current = false;
     }
-  }, [db, tmdbApiKey, resolvedLanguage, month, year]);
+  }, [db, tmdbApiKey, resolvedLanguage, month, year, groupReleasesByDate]);
 
   useFocusEffect(
     useCallback(() => {
@@ -159,8 +192,6 @@ export function useUpcomingReleases(options: UseUpcomingReleasesOptions): UseUpc
   );
 
   const refetch = useCallback(async () => {
-    setIsLoading(true);
-    hasFetchedRef.current = false;
     await fetchData(true);
   }, [fetchData]);
 
