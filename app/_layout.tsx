@@ -1,7 +1,7 @@
 import "./global.css";
 import "@/lib/i18n"; // Initialize i18n before app renders
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
-import { type Theme, ThemeProvider } from "@react-navigation/native";
+import { ThemeProvider } from "@react-navigation/native";
 import { SplashScreen, Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import * as React from "react";
@@ -12,9 +12,7 @@ import { PortalHost } from "@/components/primitives/portal";
 import { DownloadProgressIndicator } from "@/components/downloads";
 import { DatabaseProvider } from "@/db/provider";
 import { setAndroidNavigationBar } from "@/lib/android-navigation-bar";
-import { DARK_THEME, LIGHT_THEME } from "@/lib/constants";
-import { useColorScheme } from "@/lib/useColorScheme";
-import { getItem, setItem } from "@/lib/storage";
+import { DARK_THEME } from "@/lib/constants";
 import { useFrameworkReady } from "@/hooks/useFrameworkReady";
 import { useLanguage } from "@/hooks/useLanguage";
 import {
@@ -46,8 +44,6 @@ export const unstable_settings = {
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const { colorScheme, setColorScheme } = useColorScheme();
-
   // Initialize language on app start
   useLanguage();
 
@@ -61,17 +57,7 @@ export default function RootLayout() {
   useFrameworkReady();
 
   useEffect(() => {
-    const theme = getItem("theme");
-    if (!theme) {
-      setAndroidNavigationBar(colorScheme);
-      setItem("theme", colorScheme);
-      return;
-    }
-    const colorTheme = theme === "dark" ? "dark" : "light";
-    setAndroidNavigationBar(colorTheme);
-    if (colorTheme !== colorScheme) {
-      setColorScheme(colorTheme);
-    }
+    setAndroidNavigationBar();
   }, []);
 
   useEffect(() => {
@@ -83,16 +69,16 @@ export default function RootLayout() {
 
   return (
     <DatabaseProvider>
-      <ThemeProvider value={colorScheme === "dark" ? DARK_THEME : LIGHT_THEME}>
-        <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
+      <ThemeProvider value={DARK_THEME}>
+        <StatusBar style="light" />
         <GestureHandlerRootView style={{ flex: 1 }}>
           <BottomSheetModalProvider>
             <Stack
               screenOptions={{
                 headerStyle: {
-                  backgroundColor: colorScheme === "dark" ? "#24273A" : "hsl(0, 0%, 100%)",
+                  backgroundColor: "#24273A",
                 },
-                headerTintColor: colorScheme === "dark" ? "#CAD3F5" : "hsl(240, 10%, 3.9%)",
+                headerTintColor: "#CAD3F5",
                 headerShadowVisible: false,
               }}
             >
