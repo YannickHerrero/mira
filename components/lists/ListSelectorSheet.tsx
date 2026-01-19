@@ -55,6 +55,29 @@ export function ListSelectorSheet({
   const [newListName, setNewListName] = React.useState("");
   const [isSaving, setIsSaving] = React.useState(false);
 
+  // Calculate snap points based on content:
+  // - Base height: ~280px for header + action buttons + create button
+  // - Per list item: ~72px
+  // - Create form adds ~140px extra
+  // Using percentages for better responsiveness across devices
+  const snapPoints = React.useMemo(() => {
+    const basePercent = 35; // Minimum for header + buttons + create button
+    const perListPercent = 8; // Each list item adds roughly this much
+    const createFormPercent = 12; // Extra space when create form is visible
+    
+    const listCount = Math.min(lists.length, 5); // Cap at 5 to avoid too tall sheets
+    let percent = basePercent + listCount * perListPercent;
+    
+    if (isCreatingList) {
+      percent += createFormPercent;
+    }
+    
+    // Clamp between 35% and 70%
+    percent = Math.min(Math.max(percent, 35), 70);
+    
+    return [`${percent}%`];
+  }, [lists.length, isCreatingList]);
+
   // Sync selected lists when media lists load
   React.useEffect(() => {
     setSelectedListIds(new Set(listIds));
@@ -121,7 +144,11 @@ export function ListSelectorSheet({
   const isLoading = isLoadingLists || isLoadingMediaLists;
 
   return (
-    <BottomSheetContent ref={sheetRef} enableDynamicSizing>
+    <BottomSheetContent
+      ref={sheetRef}
+      enableDynamicSizing={false}
+      snapPoints={snapPoints}
+    >
       <BottomSheetHeader>
         <View className="flex-1 gap-1">
           <Text className="text-lg font-semibold text-text">
