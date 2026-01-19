@@ -602,6 +602,82 @@ export class TMDBClient {
    }
 
    /**
+    * Get all episodes for a TV show that air within a date range
+    */
+   async getTvEpisodesInDateRange(
+     tmdbId: number,
+     startDate: Date,
+     endDate: Date
+   ): Promise<UpcomingRelease[]> {
+     try {
+       const details = await this.fetch<TMDBTvDetails>(`/tv/${tmdbId}`);
+       const releases: UpcomingRelease[] = [];
+
+       const media: Media = {
+         id: details.id,
+         mediaType: "tv",
+         title: details.name,
+         titleOriginal: details.original_name,
+         year: details.first_air_date
+           ? parseInt(details.first_air_date.slice(0, 4), 10)
+           : undefined,
+         score: details.vote_average,
+         posterPath: details.poster_path ?? undefined,
+         backdropPath: details.backdrop_path ?? undefined,
+         description: details.overview ?? undefined,
+         genres: details.genres.map((g) => g.name),
+         seasonCount: details.number_of_seasons,
+         episodeCount: details.number_of_episodes,
+       };
+
+       // Find seasons that might have episodes in the date range
+       // We check seasons whose air_date year is within range or recent
+       const startYear = startDate.getFullYear();
+       const endYear = endDate.getFullYear();
+
+       const relevantSeasons = details.seasons.filter((s) => {
+         if (s.season_number === 0) return false; // Skip specials
+         if (!s.air_date) return true; // Include if no air date (might be upcoming)
+         const seasonYear = parseInt(s.air_date.slice(0, 4), 10);
+         // Include seasons from the past 2 years to current + 1 year
+         return seasonYear >= startYear - 2 && seasonYear <= endYear + 1;
+       });
+
+       // Fetch episodes for each relevant season
+       for (const season of relevantSeasons) {
+         try {
+           const episodes = await this.getSeasonEpisodes(tmdbId, season.season_number);
+
+           for (const episode of episodes) {
+             if (!episode.airDate) continue;
+
+             const airDate = new Date(episode.airDate);
+             if (airDate >= startDate && airDate <= endDate) {
+               releases.push({
+                 media,
+                 releaseDate: episode.airDate,
+                 releaseType: "episode",
+                 episodeInfo: {
+                   seasonNumber: episode.seasonNumber,
+                   episodeNumber: episode.episodeNumber,
+                   episodeName: episode.title,
+                 },
+               });
+             }
+           }
+         } catch (err) {
+           console.error(`Failed to fetch season ${season.season_number} for ${tmdbId}:`, err);
+         }
+       }
+
+       return releases;
+     } catch (err) {
+       console.error(`Failed to get TV episodes in date range for ${tmdbId}:`, err);
+       return [];
+     }
+   }
+
+   /**
     * Validate API key by making a simple request
     */
    async validateApiKey(): Promise<boolean> {
