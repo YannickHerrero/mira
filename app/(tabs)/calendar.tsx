@@ -10,7 +10,7 @@ import { useTranslation } from "react-i18next";
 import { Text } from "@/components/ui/text";
 import { TabContentWrapper } from "@/components/ui/tab-content-wrapper";
 import { EmptyState } from "@/components/ui/empty-state";
-import { ReleaseItem, MonthSelector } from "@/components/calendar";
+import { ReleaseItem, MonthSelector, CalendarSkeleton } from "@/components/calendar";
 import { CalendarDays } from "@/lib/icons/CalendarDays";
 import { useUpcomingReleases } from "@/hooks/useUpcomingReleases";
 import type { UpcomingRelease } from "@/lib/api/tmdb";
@@ -33,11 +33,29 @@ export default function CalendarScreen() {
     year: selectedYear,
   });
   const [refreshing, setRefreshing] = React.useState(false);
+  const [isMonthChanging, setIsMonthChanging] = React.useState(false);
   const sectionListRef = React.useRef<SectionList<UpcomingRelease, Section>>(null);
   const shouldScrollToTodayRef = React.useRef(false);
+  const previousMonthRef = React.useRef({ month: selectedMonth, year: selectedYear });
 
   // Check if viewing current month
   const isCurrentMonth = selectedMonth === now.getMonth() && selectedYear === now.getFullYear();
+
+  // Detect month changes and show skeleton
+  React.useEffect(() => {
+    const prev = previousMonthRef.current;
+    if (prev.month !== selectedMonth || prev.year !== selectedYear) {
+      setIsMonthChanging(true);
+      previousMonthRef.current = { month: selectedMonth, year: selectedYear };
+    }
+  }, [selectedMonth, selectedYear]);
+
+  // Clear month changing state when loading completes
+  React.useEffect(() => {
+    if (!isLoading && isMonthChanging) {
+      setIsMonthChanging(false);
+    }
+  }, [isLoading, isMonthChanging]);
 
   // Convert Map to sorted array of sections
   const sortedDates = Array.from(releasesByDate.keys()).sort();
@@ -228,16 +246,12 @@ export default function CalendarScreen() {
     );
   }
 
-  if (isLoading && sections.length === 0) {
+  // Show skeleton when loading initially or when switching months
+  if (isLoading || isMonthChanging) {
     return (
       <TabContentWrapper className="bg-base">
         {monthSelectorComponent}
-        <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" color="hsl(0 0% 98%)" />
-          <Text className="text-subtext0 mt-4">
-            {t("calendar.loading")}
-          </Text>
-        </View>
+        <CalendarSkeleton />
       </TabContentWrapper>
     );
   }
