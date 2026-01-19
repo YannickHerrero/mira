@@ -9,6 +9,13 @@ import { createTMDBClient } from "@/lib/api/tmdb";
 import { exportUpcomingReleasesToWidget } from "@/lib/widget";
 import type { UpcomingRelease } from "@/lib/api/tmdb";
 
+interface UseUpcomingReleasesOptions {
+  /** The month to filter releases for (0-11) */
+  month: number;
+  /** The year to filter releases for */
+  year: number;
+}
+
 interface UseUpcomingReleasesReturn {
   releasesByDate: Map<string, UpcomingRelease[]>;
   isLoading: boolean;
@@ -17,10 +24,10 @@ interface UseUpcomingReleasesReturn {
 }
 
 /**
- * Hook to fetch upcoming releases (15 days in future) and past releases (15 days in past)
- * from the default watchlist
+ * Hook to fetch releases from the default watchlist for a specific month
  */
-export function useUpcomingReleases(): UseUpcomingReleasesReturn {
+export function useUpcomingReleases(options: UseUpcomingReleasesOptions): UseUpcomingReleasesReturn {
+  const { month, year } = options;
   const { db } = useDatabase();
   const { tmdbApiKey } = useApiKeyStore();
   const resolvedLanguage = useLanguageStore((s) => s.resolvedLanguage);
@@ -112,14 +119,13 @@ export function useUpcomingReleases(): UseUpcomingReleasesReturn {
         }
       }
 
-      // Filter releases to be within 15 days past and 15 days future
-      const now = new Date();
-      const fifteenDaysAgo = new Date(now.getTime() - 15 * 24 * 60 * 60 * 1000);
-      const fifteenDaysFromNow = new Date(now.getTime() + 15 * 24 * 60 * 60 * 1000);
+      // Filter releases to be within the selected month
+      const monthStart = new Date(year, month, 1);
+      const monthEnd = new Date(year, month + 1, 0, 23, 59, 59, 999);
 
       const filteredReleases = releases.filter((release) => {
         const releaseDate = new Date(release.releaseDate);
-        return releaseDate >= fifteenDaysAgo && releaseDate <= fifteenDaysFromNow;
+        return releaseDate >= monthStart && releaseDate <= monthEnd;
       });
 
       // Sort by release date
@@ -151,7 +157,7 @@ export function useUpcomingReleases(): UseUpcomingReleasesReturn {
       setIsLoading(false);
       isFetchingRef.current = false;
     }
-  }, [db, tmdbApiKey, resolvedLanguage]);
+  }, [db, tmdbApiKey, resolvedLanguage, month, year]);
 
   useFocusEffect(
     useCallback(() => {
