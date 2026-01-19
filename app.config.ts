@@ -13,9 +13,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   runtimeVersion: {
     policy: "appVersion",
   },
-  splash: {
-    backgroundColor: "#08080a",
-  },
+
   assetBundlePatterns: ["**/*"],
   ios: {
     newArchEnabled: true,
@@ -59,6 +57,22 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     "expo-updates",
     "react-native-vlc-media-player",
     "@bacons/apple-targets",
+    [
+      "expo-build-properties",
+      {
+        android: {
+          minSdkVersion: 26,
+        },
+      },
+    ],
+    [
+      "expo-splash-screen",
+      {
+        backgroundColor: "#08080a",
+        image: "./assets/images/icon.png",
+        imageWidth: 200,
+      },
+    ],
   ],
   experiments: {
     typedRoutes: true,
