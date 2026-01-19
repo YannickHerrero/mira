@@ -55,23 +55,33 @@ function getFilenameFromUrl(url?: string): string | null {
 /**
  * Resolve a URL by following redirects to get the final URL.
  * This is used to resolve Torrentio URLs to Real-Debrid URLs.
- * Uses GET with manual redirect handling to ensure we get the final URL.
+ * Uses HEAD request to avoid downloading the file content.
  */
-async function resolveRedirectUrl(url: string): Promise<string> {
+async function resolveRedirectUrl(url: string, depth = 0): Promise<string> {
+  if (depth > 10) {
+    return url;
+  }
+  
+  // Create abort controller with 30 second timeout (generous for HEAD requests)
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 30000);
+  
   try {
-    // Use GET with redirect: "manual" to capture redirect location
-    // Then follow redirects manually to get the final URL
+    // Use HEAD with redirect: "manual" to get redirect location without downloading content
+    // This is critical for large files - GET would buffer the entire response!
     const response = await fetch(url, {
-      method: "GET",
+      method: "HEAD",
       redirect: "manual",
+      signal: controller.signal,
     });
+    clearTimeout(timeoutId);
     
     // If we got a redirect, follow it
     if (response.status >= 300 && response.status < 400) {
       const location = response.headers.get("location");
       if (location) {
         // Recursively resolve in case of multiple redirects
-        return resolveRedirectUrl(location);
+        return resolveRedirectUrl(location, depth + 1);
       }
     }
     
@@ -83,6 +93,7 @@ async function resolveRedirectUrl(url: string): Promise<string> {
     
     return url;
   } catch (error) {
+    clearTimeout(timeoutId);
     console.warn("[SourceList] Failed to resolve URL:", error);
     // If resolution fails, return original URL
     return url;
