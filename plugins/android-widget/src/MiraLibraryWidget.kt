@@ -9,7 +9,6 @@ import androidx.compose.ui.unit.dp
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
-import androidx.glance.LocalContext
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.SizeMode
@@ -17,15 +16,10 @@ import androidx.glance.appwidget.action.actionStartActivity
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.appwidget.provideContent
 import androidx.glance.background
-import androidx.glance.currentState
 import androidx.glance.layout.*
-import androidx.glance.state.GlanceStateDefinition
-import androidx.glance.state.PreferencesGlanceStateDefinition
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.core.stringPreferencesKey
 import {{PACKAGE_NAME}}.widget.data.*
 import {{PACKAGE_NAME}}.widget.theme.WidgetTheme
 import {{PACKAGE_NAME}}.widget.ui.LargeListContent
@@ -42,40 +36,32 @@ class MiraLibraryWidget : GlanceAppWidget() {
     companion object {
         // Large widget size
         private val LARGE = DpSize(250.dp, 250.dp)
-
-        val MODE_KEY = stringPreferencesKey("widget_mode")
-        val LAYOUT_KEY = stringPreferencesKey("widget_layout")
     }
 
-    override val stateDefinition: GlanceStateDefinition<*> = PreferencesGlanceStateDefinition
-
-    override val sizeMode = SizeMode.Responsive(
-        setOf(LARGE)
-    )
+    override val sizeMode = SizeMode.Exact
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
+        // Load widget configuration from SharedPreferences before composition
+        val dataProvider = WidgetDataProvider(context)
+        val config = dataProvider.getWidgetConfig(0) // Default widget config
+        val mode = config.mode
+        val layout = config.layoutStyle
+        val widgetData = dataProvider.getWidgetData(mode)
+
         provideContent {
             GlanceTheme {
-                WidgetContent()
+                WidgetContent(context, mode, layout, widgetData)
             }
         }
     }
 
     @Composable
-    private fun WidgetContent() {
-        val context = LocalContext.current
-        val prefs = currentState<Preferences>()
-
-        // Get widget configuration
-        val modeString = prefs[MODE_KEY] ?: WidgetMode.UPCOMING.value
-        val layoutString = prefs[LAYOUT_KEY] ?: LayoutStyle.LIST.value
-        val mode = WidgetMode.fromString(modeString)
-        val layout = LayoutStyle.fromString(layoutString)
-
-        // Load data from SharedPreferences
-        val dataProvider = WidgetDataProvider(context)
-        val widgetData = dataProvider.getWidgetData(mode)
-
+    private fun WidgetContent(
+        context: Context,
+        mode: WidgetMode,
+        layout: LayoutStyle,
+        widgetData: WidgetData
+    ) {
         Box(
             modifier = GlanceModifier
                 .fillMaxSize()
@@ -91,18 +77,22 @@ class MiraLibraryWidget : GlanceAppWidget() {
                 else -> {
                     when (layout) {
                         LayoutStyle.LIST -> LargeListContent(
+                            context = context,
                             releases = widgetData.releases.take(6),
                             mode = mode
                         )
                         LayoutStyle.GRID -> LargeGridContent(
+                            context = context,
                             releases = widgetData.releases.take(8),
                             mode = mode
                         )
                         LayoutStyle.FEATURED -> LargeFeaturedContent(
+                            context = context,
                             releases = widgetData.releases.take(5),
                             mode = mode
                         )
                         LayoutStyle.CARDS -> LargeCardsContent(
+                            context = context,
                             releases = widgetData.releases.take(4),
                             mode = mode
                         )

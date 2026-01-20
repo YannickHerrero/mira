@@ -9,25 +9,17 @@ import androidx.compose.ui.unit.dp
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
-import androidx.glance.LocalContext
-import androidx.glance.LocalSize
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.SizeMode
 import androidx.glance.appwidget.action.actionStartActivity
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.appwidget.provideContent
-import androidx.glance.appwidget.state.updateAppWidgetState
 import androidx.glance.background
-import androidx.glance.currentState
 import androidx.glance.layout.*
-import androidx.glance.state.GlanceStateDefinition
-import androidx.glance.state.PreferencesGlanceStateDefinition
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.core.stringPreferencesKey
 import {{PACKAGE_NAME}}.widget.data.*
 import {{PACKAGE_NAME}}.widget.theme.WidgetTheme
 import {{PACKAGE_NAME}}.widget.ui.SmallWidgetContent
@@ -46,43 +38,31 @@ class MiraWidget : GlanceAppWidget() {
         private val SMALL = DpSize(110.dp, 110.dp)
         private val MEDIUM = DpSize(250.dp, 110.dp)
         private val LARGE = DpSize(250.dp, 250.dp)
-
-        val MODE_KEY = stringPreferencesKey("widget_mode")
     }
 
-    override val stateDefinition: GlanceStateDefinition<*> = PreferencesGlanceStateDefinition
-
-    override val sizeMode = SizeMode.Responsive(
-        setOf(SMALL, MEDIUM, LARGE)
-    )
+    // Use Exact size mode - Glance will call provideGlance for each size
+    override val sizeMode = SizeMode.Exact
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
+        // Load widget configuration from SharedPreferences before composition
+        val dataProvider = WidgetDataProvider(context)
+        val config = dataProvider.getWidgetConfig(0) // Default config for mode
+        val mode = config.mode
+        val widgetData = dataProvider.getWidgetData(mode)
+
         provideContent {
             GlanceTheme {
-                WidgetContent()
+                WidgetContent(context, mode, widgetData)
             }
         }
     }
 
     @Composable
-    private fun WidgetContent() {
-        val context = LocalContext.current
-        val size = LocalSize.current
-        val prefs = currentState<Preferences>()
-
-        // Get widget configuration
-        val modeString = prefs[MODE_KEY] ?: WidgetMode.UPCOMING.value
-        val mode = WidgetMode.fromString(modeString)
-
-        // Load data from SharedPreferences
-        val dataProvider = WidgetDataProvider(context)
-        val widgetData = dataProvider.getWidgetData(mode)
-
-        // Determine which layout to show based on size
-        val isSmall = size.width < 200.dp && size.height < 200.dp
-        val isMedium = size.width >= 200.dp && size.height < 200.dp
-        val isLarge = size.width >= 200.dp && size.height >= 200.dp
-
+    private fun WidgetContent(
+        context: Context,
+        mode: WidgetMode,
+        widgetData: WidgetData
+    ) {
         Box(
             modifier = GlanceModifier
                 .fillMaxSize()
@@ -91,34 +71,21 @@ class MiraWidget : GlanceAppWidget() {
                 .clickable(actionStartActivity(getLaunchIntent(context))),
             contentAlignment = Alignment.Center
         ) {
-            when {
-                widgetData.releases.isEmpty() -> {
-                    EmptyStateContent(mode)
-                }
-                isSmall -> {
-                    SmallWidgetContent(
-                        release = widgetData.releases.first(),
-                        mode = mode
-                    )
-                }
-                isMedium -> {
-                    MediumWidgetContent(
-                        releases = widgetData.releases.take(3),
-                        mode = mode
-                    )
-                }
-                isLarge -> {
-                    LargeListContent(
-                        releases = widgetData.releases.take(6),
-                        mode = mode
-                    )
-                }
-                else -> {
-                    SmallWidgetContent(
-                        release = widgetData.releases.first(),
-                        mode = mode
-                    )
-                }
+            if (widgetData.releases.isEmpty()) {
+                EmptyStateContent(mode)
+            } else if (widgetData.releases.size >= 3) {
+                // Show list content for larger data sets
+                LargeListContent(
+                    context = context,
+                    releases = widgetData.releases.take(6),
+                    mode = mode
+                )
+            } else {
+                // Show single item for smaller data sets
+                SmallWidgetContent(
+                    release = widgetData.releases.first(),
+                    mode = mode
+                )
             }
         }
     }

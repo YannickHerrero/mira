@@ -10,7 +10,6 @@ import androidx.compose.ui.unit.dp
 import androidx.glance.GlanceModifier
 import androidx.glance.Image
 import androidx.glance.ImageProvider
-import androidx.glance.LocalContext
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.action.actionStartActivity
 import androidx.glance.appwidget.cornerRadius
@@ -125,10 +124,10 @@ fun ScoreBadge(score: String) {
  */
 @Composable
 fun PosterImage(
+    context: Context,
     release: WidgetReleaseItem,
     modifier: GlanceModifier = GlanceModifier
 ) {
-    val context = LocalContext.current
     val bitmap = loadPosterBitmap(context, release.posterFilename)
 
     if (bitmap != null) {
