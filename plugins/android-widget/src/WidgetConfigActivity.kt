@@ -12,8 +12,6 @@ import android.widget.LinearLayout
 import android.widget.Spinner
 import android.widget.TextView
 import androidx.glance.appwidget.GlanceAppWidgetManager
-import androidx.glance.appwidget.state.updateAppWidgetState
-import androidx.glance.state.PreferencesGlanceStateDefinition
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import {{PACKAGE_NAME}}.widget.data.LayoutStyle
@@ -255,36 +253,16 @@ class WidgetConfigActivity : Activity() {
         val dataProvider = WidgetDataProvider(this)
         dataProvider.saveWidgetConfig(appWidgetId, config)
 
-        // Update widget state and trigger refresh
+        // Trigger widget refresh
         coroutineScope.launch {
             try {
                 val glanceManager = GlanceAppWidgetManager(this@WidgetConfigActivity)
                 val glanceId = glanceManager.getGlanceIdBy(appWidgetId)
 
+                // Update the widget - it will read config from SharedPreferences in provideGlance
                 if (isLibraryWidget) {
-                    // Update MiraLibraryWidget state
-                    updateAppWidgetState(
-                        this@WidgetConfigActivity,
-                        PreferencesGlanceStateDefinition,
-                        glanceId
-                    ) { prefs ->
-                        prefs.toMutablePreferences().apply {
-                            this[MiraLibraryWidget.MODE_KEY] = config.mode.value
-                            this[MiraLibraryWidget.LAYOUT_KEY] = config.layoutStyle.value
-                        }
-                    }
                     MiraLibraryWidget().update(this@WidgetConfigActivity, glanceId)
                 } else {
-                    // Update MiraWidget state
-                    updateAppWidgetState(
-                        this@WidgetConfigActivity,
-                        PreferencesGlanceStateDefinition,
-                        glanceId
-                    ) { prefs ->
-                        prefs.toMutablePreferences().apply {
-                            this[MiraWidget.MODE_KEY] = config.mode.value
-                        }
-                    }
                     MiraWidget().update(this@WidgetConfigActivity, glanceId)
                 }
             } catch (e: Exception) {

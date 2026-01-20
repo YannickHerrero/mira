@@ -5,8 +5,7 @@ import android.content.Context
 import android.content.Intent
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
-import androidx.glance.appwidget.state.updateAppWidgetState
-import androidx.glance.state.PreferencesGlanceStateDefinition
+import androidx.glance.appwidget.GlanceAppWidgetManager
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import {{PACKAGE_NAME}}.widget.data.WidgetDataProvider
@@ -28,24 +27,13 @@ class MiraLibraryWidgetReceiver : GlanceAppWidgetReceiver() {
     ) {
         super.onUpdate(context, appWidgetManager, appWidgetIds)
 
-        // Update widget state from SharedPreferences
+        // Trigger widget update - config is loaded in provideGlance
         coroutineScope.launch {
             appWidgetIds.forEach { widgetId ->
-                val dataProvider = WidgetDataProvider(context)
-                val config = dataProvider.getWidgetConfig(widgetId)
-
-                updateAppWidgetState(context, PreferencesGlanceStateDefinition,
-                    androidx.glance.appwidget.GlanceAppWidgetManager(context)
-                        .getGlanceIdBy(widgetId)) { prefs ->
-                    prefs.toMutablePreferences().apply {
-                        this[MiraLibraryWidget.MODE_KEY] = config.mode.value
-                        this[MiraLibraryWidget.LAYOUT_KEY] = config.layoutStyle.value
-                    }
-                }
-
-                glanceAppWidget.update(context,
-                    androidx.glance.appwidget.GlanceAppWidgetManager(context)
-                        .getGlanceIdBy(widgetId))
+                glanceAppWidget.update(
+                    context,
+                    GlanceAppWidgetManager(context).getGlanceIdBy(widgetId)
+                )
             }
         }
     }
