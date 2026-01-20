@@ -1,13 +1,15 @@
 package {{PACKAGE_NAME}}.widget.theme
 
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.sp
 
 /**
  * Catppuccin Macchiato color theme for Mira widgets.
- * Provides consistent colors across all widget layouts.
+ * Provides consistent colors and typography across all widget layouts.
  */
 object WidgetTheme {
     val colors = WidgetColors()
+    val typography = WidgetTypography()
 }
 
 /**
@@ -39,4 +41,17 @@ class WidgetColors {
     
     // Card colors
     val cardBackground = Color(0xFF363A4F)
+}
+
+/**
+ * Widget typography settings.
+ */
+class WidgetTypography {
+    // Font sizes
+    val largeTitle = 20.sp
+    val title = 16.sp
+    val body = 14.sp
+    val caption = 12.sp
+    val badge = 10.sp
+    val small = 10.sp
 }
