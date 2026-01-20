@@ -57,11 +57,16 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     "expo-updates",
     "react-native-vlc-media-player",
     "@bacons/apple-targets",
+    "./plugins/android-widget",
     [
       "expo-build-properties",
       {
         android: {
           minSdkVersion: 26,
+          // Add Jetpack Glance dependencies for Android widgets
+          extraMavenRepos: [
+            "https://androidx.dev/storage/compose-compiler/repository/"
+          ],
         },
       },
     ],
