@@ -2,6 +2,7 @@ const {
   withAndroidManifest,
   withDangerousMod,
   withPlugins,
+  withAppBuildGradle,
 } = require("@expo/config-plugins");
 const fs = require("fs");
 const path = require("path");
@@ -312,12 +313,52 @@ function withWidgetSourceFiles(config) {
 }
 
 /**
+ * Adds Jetpack Glance dependencies to the app's build.gradle.
+ */
+function withGlanceDependencies(config) {
+  return withAppBuildGradle(config, (config) => {
+    const buildGradle = config.modResults.contents;
+
+    // Glance dependencies to add
+    const glanceDependencies = `
+    // Jetpack Glance for Android widgets
+    implementation "androidx.glance:glance:1.1.1"
+    implementation "androidx.glance:glance-appwidget:1.1.1"
+    implementation "androidx.glance:glance-material3:1.1.1"
+    
+    // DataStore for widget state
+    implementation "androidx.datastore:datastore-preferences:1.1.1"
+    
+    // Kotlinx serialization for JSON parsing
+    implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3"
+    implementation "org.json:json:20231013"
+`;
+
+    // Check if dependencies already exist
+    if (!buildGradle.includes("androidx.glance:glance:")) {
+      // Find the dependencies block and add our dependencies
+      const dependenciesBlockRegex = /dependencies\s*\{/;
+      if (dependenciesBlockRegex.test(buildGradle)) {
+        config.modResults.contents = buildGradle.replace(
+          dependenciesBlockRegex,
+          `dependencies {${glanceDependencies}`
+        );
+        console.log("[AndroidWidget] Added Jetpack Glance dependencies to build.gradle");
+      }
+    }
+
+    return config;
+  });
+}
+
+/**
  * Main plugin function that applies all widget-related modifications.
  */
 function withAndroidWidget(config, props = {}) {
   return withPlugins(config, [
     withWidgetSourceFiles,
     withWidgetManifest,
+    withGlanceDependencies,
   ]);
 }
 
