@@ -15,6 +15,7 @@ import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.SizeMode
 import androidx.glance.appwidget.action.actionStartActivity
+import androidx.glance.appwidget.cornerRadius
 import androidx.glance.appwidget.provideContent
 import androidx.glance.appwidget.state.updateAppWidgetState
 import androidx.glance.background
@@ -153,11 +154,4 @@ class MiraWidget : GlanceAppWidget() {
         return context.packageManager.getLaunchIntentForPackage(context.packageName)
             ?: Intent(Intent.ACTION_VIEW, Uri.parse("mira://"))
     }
-}
-
-/**
- * Extension function to add corner radius to Glance modifiers.
- */
-fun GlanceModifier.cornerRadius(radius: androidx.compose.ui.unit.Dp): GlanceModifier {
-    return this.then(androidx.glance.appwidget.cornerRadius(radius))
 }

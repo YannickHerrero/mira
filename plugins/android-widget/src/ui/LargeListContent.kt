@@ -54,7 +54,7 @@ fun LargeListContent(
                 .fillMaxWidth()
                 .height(1.dp)
                 .background(WidgetTheme.colors.surface)
-        )
+        ) {}
         
         Spacer(modifier = GlanceModifier.height(8.dp))
         
@@ -128,7 +128,7 @@ private fun LargeListReleases(
                         .fillMaxWidth()
                         .height(1.dp)
                         .background(WidgetTheme.colors.surface.copy(alpha = 0.5f))
-                )
+                ) {}
                 Spacer(modifier = GlanceModifier.height(6.dp))
             }
         }
