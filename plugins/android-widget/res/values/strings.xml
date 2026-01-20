@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="widget_description">Shows recent or upcoming releases from your watchlist</string>
+    <string name="widget_library_description">Shows your library releases with multiple layout options</string>
+    <string name="widget_config_title">Configure Widget</string>
+    <string name="widget_config_display_mode">Display Mode</string>
+    <string name="widget_config_layout_style">Layout Style</string>
+    <string name="display_mode_recent">Recent Releases</string>
+    <string name="display_mode_upcoming">Upcoming Releases</string>
+    <string name="layout_list">List</string>
+    <string name="layout_grid">Grid</string>
+    <string name="layout_featured">Featured</string>
+    <string name="layout_cards">Cards</string>
+    <string name="widget_loading">Loading...</string>
+    <string name="widget_no_data">No releases available</string>
+    <string name="widget_error">Unable to load data</string>
+    <string name="save">Save</string>
+    <string name="cancel">Cancel</string>
+</resources>

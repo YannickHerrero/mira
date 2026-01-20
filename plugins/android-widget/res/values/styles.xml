@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.Mira.WidgetConfig" parent="@android:style/Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/widget_background</item>
+        <item name="android:colorPrimary">@color/widget_accent</item>
+        <item name="android:colorAccent">@color/widget_accent</item>
+        <item name="android:textColorPrimary">@color/widget_text</item>
+        <item name="android:textColorSecondary">@color/widget_subtext</item>
+        <item name="android:statusBarColor">@color/widget_background</item>
+        <item name="android:navigationBarColor">@color/widget_background</item>
+    </style>
+</resources>
