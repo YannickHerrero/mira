@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Catppuccin Macchiato Theme Colors -->
+    <color name="widget_background">#24273a</color>
+    <color name="widget_surface">#363a4f</color>
+    <color name="widget_overlay">#494d64</color>
+    <color name="widget_text">#cad3f5</color>
+    <color name="widget_subtext">#a5adcb</color>
+    <color name="widget_subtext_dim">#8087a2</color>
+    <color name="widget_accent">#b7bdf8</color>
+    <color name="widget_accent_secondary">#8aadf4</color>
+    <color name="widget_success">#a6da95</color>
+    <color name="widget_warning">#eed49f</color>
+    <color name="widget_error">#ed8796</color>
+    
+    <!-- Semantic Colors -->
+    <color name="widget_card_background">#363a4f</color>
+    <color name="widget_badge_movie">#f5a97f</color>
+    <color name="widget_badge_tv">#8aadf4</color>
+</resources>

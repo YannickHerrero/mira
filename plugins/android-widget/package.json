@@ -1,0 +1,14 @@
+{
+  "name": "@mira/android-widget",
+  "version": "1.0.0",
+  "description": "Expo config plugin for Mira Android widgets",
+  "main": "index.js",
+  "private": true,
+  "keywords": [
+    "expo",
+    "expo-config-plugin",
+    "android",
+    "widget",
+    "glance"
+  ]
+}
