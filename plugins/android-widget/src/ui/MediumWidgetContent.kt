@@ -54,7 +54,7 @@ fun MediumWidgetContent(
                 .fillMaxWidth()
                 .height(1.dp)
                 .background(WidgetTheme.colors.surface)
-        )
+        ) {}
         
         Spacer(modifier = GlanceModifier.height(4.dp))
         
