@@ -1,7 +1,5 @@
 package {{PACKAGE_NAME}}.widget.theme
 
-import androidx.glance.color.ColorProviders
-import androidx.glance.material3.ColorProviders
 import androidx.glance.unit.ColorProvider
 
 /**
