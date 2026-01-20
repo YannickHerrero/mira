@@ -1,49 +1,84 @@
 /**
  * Widget Poster Cache Module
  *
- * Handles downloading and caching poster images to the App Group shared container
- * so the iOS widget can load them synchronously.
- *
- * This module is iOS-only. On other platforms, all operations are no-ops.
+ * Handles downloading and caching poster images for widget display.
+ * - iOS: Uses App Group shared container
+ * - Android: Uses app's document directory (via Paths.document/posters)
  */
 
 import { Platform } from "react-native";
 import type { MediaType } from "@/lib/types";
 import { getPosterUrl } from "@/lib/types";
 
-// App Group identifier - must match app.config.ts and widget
+// App Group identifier for iOS
 const APP_GROUP_ID = "group.com.yherrero.mira";
 const POSTERS_DIRECTORY = "posters";
 
+// Types for expo-file-system (using require to avoid import issues)
+type ExpoDirectory = InstanceType<typeof import("expo-file-system").Directory>;
+type ExpoFile = InstanceType<typeof import("expo-file-system").File>;
+
 // Lazy-loaded references
-let postersDirectory: InstanceType<typeof import("expo-file-system").Directory> | null = null;
-let FileModule: typeof import("expo-file-system").File | null = null;
-let DirectoryModule: typeof import("expo-file-system").Directory | null = null;
+let postersDirectory: ExpoDirectory | null = null;
+let FileClass: typeof import("expo-file-system").File | null = null;
+let DirectoryClass: typeof import("expo-file-system").Directory | null = null;
+let PathsClass: typeof import("expo-file-system").Paths | null = null;
 
 /**
- * Initialize the posters directory in the App Group container
+ * Initialize the expo-file-system classes (lazy load)
  */
-function getPostersDirectory(): typeof postersDirectory {
-  if (Platform.OS !== "ios") {
-    return null;
+function initFileSystem(): boolean {
+  if (FileClass && DirectoryClass && PathsClass) {
+    return true;
   }
 
+  try {
+    const ExpoFileSystem = require("expo-file-system");
+    FileClass = ExpoFileSystem.File;
+    DirectoryClass = ExpoFileSystem.Directory;
+    PathsClass = ExpoFileSystem.Paths;
+    return true;
+  } catch (error) {
+    console.warn("[PosterCache] Failed to load expo-file-system:", error);
+    return false;
+  }
+}
+
+/**
+ * Get the posters directory (iOS: App Group, Android: document directory)
+ */
+function getPostersDirectory(): ExpoDirectory | null {
   if (postersDirectory) {
     return postersDirectory;
   }
 
-  try {
-    const { Paths, Directory, File } = require("expo-file-system");
-    FileModule = File;
-    DirectoryModule = Directory;
+  if (!initFileSystem() || !DirectoryClass || !PathsClass) {
+    return null;
+  }
 
-    const appGroupContainer = Paths.appleSharedContainers?.[APP_GROUP_ID];
-    if (!appGroupContainer) {
-      console.warn("[PosterCache] App Group container not available");
+  try {
+    let baseDir: ExpoDirectory | undefined;
+
+    if (Platform.OS === "ios") {
+      // iOS: Use App Group container
+      const appGroupContainer = PathsClass.appleSharedContainers?.[APP_GROUP_ID];
+      if (!appGroupContainer) {
+        console.warn("[PosterCache] App Group container not available");
+        return null;
+      }
+      baseDir = appGroupContainer;
+    } else if (Platform.OS === "android") {
+      // Android: Use document directory
+      baseDir = PathsClass.document;
+    } else {
       return null;
     }
 
-    const dir = new Directory(appGroupContainer, POSTERS_DIRECTORY);
+    if (!baseDir) {
+      return null;
+    }
+
+    const dir = new DirectoryClass(baseDir, POSTERS_DIRECTORY);
     
     // Create the directory if it doesn't exist
     if (!dir.exists) {
@@ -53,13 +88,13 @@ function getPostersDirectory(): typeof postersDirectory {
     postersDirectory = dir;
     return postersDirectory;
   } catch (error) {
-    console.warn("[PosterCache] Failed to initialize:", error);
+    console.warn("[PosterCache] Failed to initialize posters directory:", error);
     return null;
   }
 }
 
 /**
- * Check if poster caching is available (iOS only)
+ * Check if poster caching is available
  */
 export function isPosterCacheAvailable(): boolean {
   return getPostersDirectory() !== null;
@@ -74,14 +109,14 @@ export function getPosterFilename(tmdbId: number, mediaType: MediaType): string 
 }
 
 /**
- * Get the full path to a cached poster file
+ * Get a File reference for a cached poster
  */
-function getPosterFile(tmdbId: number, mediaType: MediaType) {
+function getPosterFile(tmdbId: number, mediaType: MediaType): ExpoFile | null {
   const dir = getPostersDirectory();
-  if (!dir || !FileModule) return null;
+  if (!dir || !FileClass) return null;
 
   const filename = getPosterFilename(tmdbId, mediaType);
-  return new FileModule(dir, filename);
+  return new FileClass(dir, filename);
 }
 
 /**
@@ -110,7 +145,7 @@ export async function cachePosterImage(
   }
 
   const dir = getPostersDirectory();
-  if (!dir || !FileModule) {
+  if (!dir || !FileClass) {
     return false;
   }
 
@@ -126,15 +161,17 @@ export async function cachePosterImage(
 
   try {
     const filename = getPosterFilename(tmdbId, mediaType);
-    const targetFile = new FileModule(dir, filename);
+    const targetFile = new FileClass(dir, filename);
 
-    // Download the image
-    await FileModule.downloadFileAsync(url, targetFile, { idempotent: true });
+    // Download the image using the File's static method
+    await FileClass.downloadFileAsync(url, targetFile, { idempotent: true });
 
-    console.log(`[PosterCache] Cached poster for ${mediaType}/${tmdbId}`);
+    const platformLabel = Platform.OS === "ios" ? "iOS" : "Android";
+    console.log(`[PosterCache] Cached poster for ${mediaType}/${tmdbId} (${platformLabel})`);
     return true;
   } catch (error) {
-    console.warn(`[PosterCache] Failed to cache poster for ${mediaType}/${tmdbId}:`, error);
+    const platformLabel = Platform.OS === "ios" ? "iOS" : "Android";
+    console.warn(`[PosterCache] Failed to cache poster for ${mediaType}/${tmdbId} (${platformLabel}):`, error);
     return false;
   }
 }
@@ -149,17 +186,19 @@ export async function cachePosterImage(
 export function deleteCachedPoster(tmdbId: number, mediaType: MediaType): boolean {
   const file = getPosterFile(tmdbId, mediaType);
   if (!file) {
-    return true; // Not on iOS, consider it a success
+    return true; // Cache not available, consider it a success
   }
 
   try {
     if (file.exists) {
       file.delete();
-      console.log(`[PosterCache] Deleted poster for ${mediaType}/${tmdbId}`);
+      const platformLabel = Platform.OS === "ios" ? "iOS" : "Android";
+      console.log(`[PosterCache] Deleted poster for ${mediaType}/${tmdbId} (${platformLabel})`);
     }
     return true;
   } catch (error) {
-    console.warn(`[PosterCache] Failed to delete poster for ${mediaType}/${tmdbId}:`, error);
+    const platformLabel = Platform.OS === "ios" ? "iOS" : "Android";
+    console.warn(`[PosterCache] Failed to delete poster for ${mediaType}/${tmdbId} (${platformLabel}):`, error);
     return false;
   }
 }
@@ -169,15 +208,15 @@ export function deleteCachedPoster(tmdbId: number, mediaType: MediaType): boolea
  */
 export function listCachedPosters(): string[] {
   const dir = getPostersDirectory();
-  if (!dir) {
+  if (!dir || !DirectoryClass) {
     return [];
   }
 
   try {
     const contents = dir.list();
     return contents
-      .filter((item: any) => !(item instanceof (DirectoryModule as any)))
-      .map((file: any) => file.name);
+      .filter((item: ExpoFile | ExpoDirectory) => !(item instanceof DirectoryClass!))
+      .map((file: ExpoFile | ExpoDirectory) => (file as ExpoFile).name);
   } catch (error) {
     console.warn("[PosterCache] Failed to list posters:", error);
     return [];
@@ -198,7 +237,8 @@ export function clearAllCachedPosters(): boolean {
       dir.delete();
       dir.create();
     }
-    console.log("[PosterCache] Cleared all cached posters");
+    const platformLabel = Platform.OS === "ios" ? "iOS" : "Android";
+    console.log(`[PosterCache] Cleared all cached posters (${platformLabel})`);
     return true;
   } catch (error) {
     console.warn("[PosterCache] Failed to clear posters:", error);
@@ -211,7 +251,7 @@ export function clearAllCachedPosters(): boolean {
  */
 export function getCacheStats(): { count: number; sizeBytes: number } {
   const dir = getPostersDirectory();
-  if (!dir) {
+  if (!dir || !FileClass) {
     return { count: 0, sizeBytes: 0 };
   }
 
@@ -220,7 +260,7 @@ export function getCacheStats(): { count: number; sizeBytes: number } {
     let totalSize = 0;
 
     for (const filename of files) {
-      const file = new (FileModule as any)(dir, filename);
+      const file = new FileClass(dir, filename);
       if (file.exists) {
         totalSize += file.size || 0;
       }
