@@ -218,6 +218,76 @@ function withWidgetManifest(config) {
 }
 
 /**
+ * Modifies MainApplication.kt to register the WidgetDataPackage.
+ */
+function registerNativePackage(projectRoot, packageName) {
+  const packagePath = packageName.replace(/\./g, "/");
+  const mainApplicationPath = path.join(
+    projectRoot,
+    "android",
+    "app",
+    "src",
+    "main",
+    "java",
+    packagePath,
+    "MainApplication.kt"
+  );
+
+  if (!fs.existsSync(mainApplicationPath)) {
+    console.warn("[AndroidWidget] MainApplication.kt not found, skipping package registration");
+    return;
+  }
+
+  let content = fs.readFileSync(mainApplicationPath, "utf8");
+
+  // Add import for WidgetDataPackage if not present
+  const importStatement = `import ${packageName}.widget.WidgetDataPackage`;
+  if (!content.includes(importStatement)) {
+    // Find the last import statement and add after it
+    const importRegex = /^import .+$/gm;
+    let lastImportMatch;
+    let match;
+    while ((match = importRegex.exec(content)) !== null) {
+      lastImportMatch = match;
+    }
+    if (lastImportMatch) {
+      const insertPosition = lastImportMatch.index + lastImportMatch[0].length;
+      content = content.slice(0, insertPosition) + "\n" + importStatement + content.slice(insertPosition);
+    }
+  }
+
+  // Add WidgetDataPackage() to getPackages() if not present
+  const packageRegistration = "WidgetDataPackage()";
+  if (!content.includes(packageRegistration)) {
+    // Find the packages list and add WidgetDataPackage
+    // Look for pattern like: packages.add(WidgetDataPackage())
+    // Or: PackageList(this).packages.apply { add(...) }
+    
+    // Method 1: Look for "add()" calls inside getPackages
+    const addPattern = /packages\.add\([^)]+\)/;
+    if (addPattern.test(content)) {
+      // Add after existing add() call
+      content = content.replace(
+        addPattern,
+        (match) => `${match}\n              packages.add(${packageRegistration})`
+      );
+    } else {
+      // Method 2: Look for .apply { } block
+      const applyPattern = /(\.apply\s*\{[^}]*)(})/;
+      if (applyPattern.test(content)) {
+        content = content.replace(
+          applyPattern,
+          (_, before, after) => `${before}\n              add(${packageRegistration})\n            ${after}`
+        );
+      }
+    }
+  }
+
+  fs.writeFileSync(mainApplicationPath, content);
+  console.log("[AndroidWidget] Registered WidgetDataPackage in MainApplication.kt");
+}
+
+/**
  * Adds dangerous modifications to copy source files during prebuild.
  */
 function withWidgetSourceFiles(config) {
@@ -232,6 +302,9 @@ function withWidgetSourceFiles(config) {
 
       // Copy resource files
       copyResources(projectRoot);
+
+      // Register the native module package
+      registerNativePackage(projectRoot, packageName);
 
       return config;
     },
