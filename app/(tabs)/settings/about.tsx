@@ -7,7 +7,7 @@ import ListItem from "@/components/ui/list-item";
 import { Text } from "@/components/ui/text";
 import { Muted } from "@/components/ui/typography";
 import { SettingsPageHeader } from "@/components/settings/SettingsPageHeader";
-import { Send, Star, Download, Trash } from "@/lib/icons";
+import { Send, Star, Download, Trash, Info } from "@/lib/icons";
 import { useDatabase } from "@/db/provider";
 import { listsTable, listItemsTable, mediaTable } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
@@ -16,8 +16,10 @@ import {
   cacheMultiplePosters,
   getCacheStats,
   clearAllCachedPosters,
+  listCachedPosters,
 } from "@/lib/widget/poster-cache";
 import { reloadWidget } from "@/lib/widget";
+import { getAndroidWidgetDebugInfo } from "@/lib/widget/android-storage";
 
 export default function AboutSettings() {
   const { t } = useTranslation();
@@ -131,7 +133,51 @@ export default function AboutSettings() {
     );
   };
 
-  const showWidgetSection = Platform.OS === "ios" && isPosterCacheAvailable();
+  const handleShowDebugInfo = async () => {
+    try {
+      const cacheStats = getCacheStats();
+      const cachedPosters = listCachedPosters();
+      const sizeMB = (cacheStats.sizeBytes / 1024 / 1024).toFixed(2);
+
+      let message = `Poster Cache:\n- Images: ${cacheStats.count}\n- Size: ${sizeMB} MB`;
+
+      if (Platform.OS === "android") {
+        const debugInfo = await getAndroidWidgetDebugInfo();
+        if (debugInfo) {
+          const formatDate = (iso: string | null) => {
+            if (!iso) return "Never";
+            try {
+              return new Date(iso).toLocaleString();
+            } catch {
+              return iso;
+            }
+          };
+
+          message += `\n\nWidget Data (SharedPreferences):`;
+          message += `\n- Recent releases: ${debugInfo.recentReleasesCount}`;
+          message += `\n- Recent updated: ${formatDate(debugInfo.recentLastUpdated)}`;
+          message += `\n- Upcoming releases: ${debugInfo.upcomingReleasesCount}`;
+          message += `\n- Upcoming updated: ${formatDate(debugInfo.upcomingLastUpdated)}`;
+          message += `\n\nActive Widgets:`;
+          message += `\n- Mira Widget: ${debugInfo.miraWidgetCount}`;
+          message += `\n- Library Widget: ${debugInfo.libraryWidgetCount}`;
+          message += `\n\nData synced: ${debugInfo.hasData ? "Yes" : "No"}`;
+        } else {
+          message += `\n\nAndroid widget module not available.`;
+        }
+      } else if (Platform.OS === "ios") {
+        message += `\n\niOS uses App Group storage.`;
+        message += `\nData is synced when viewing the calendar.`;
+      }
+
+      Alert.alert("Widget Debug Info", message);
+    } catch (error) {
+      console.error("Failed to get debug info:", error);
+      Alert.alert("Error", "Failed to get widget debug info.");
+    }
+  };
+
+  const showWidgetSection = isPosterCacheAvailable();
 
   return (
     <View className="flex-1 bg-base">
@@ -159,7 +205,7 @@ export default function AboutSettings() {
           />
         </View>
 
-        {/* Widget Section - iOS only */}
+        {/* Widget Section */}
         {showWidgetSection && (
           <>
             <View className="mt-8 mb-3">
@@ -185,6 +231,14 @@ export default function AboutSettings() {
                 label="Clear Widget Cache"
                 description="Remove all cached poster images"
                 onPress={handleClearCache}
+                disabled={isCaching}
+                className="border-0 border-b border-surface1/30"
+              />
+              <ListItem
+                itemLeft={(props) => <Info {...props} />}
+                label="Widget Debug Info"
+                description="View sync status and cache info"
+                onPress={handleShowDebugInfo}
                 disabled={isCaching}
                 className="border-0"
               />
