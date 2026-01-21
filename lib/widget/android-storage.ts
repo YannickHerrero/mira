@@ -16,6 +16,17 @@ interface WidgetDataModuleInterface {
   getWidgetConfig(widgetId: number): Promise<string | null>;
   updateAllWidgets(): Promise<boolean>;
   hasActiveWidgets(): Promise<boolean>;
+  getDebugInfo(): Promise<string>;
+}
+
+export interface WidgetDebugInfo {
+  recentReleasesCount: number;
+  recentLastUpdated: string | null;
+  upcomingReleasesCount: number;
+  upcomingLastUpdated: string | null;
+  miraWidgetCount: number;
+  libraryWidgetCount: number;
+  hasData: boolean;
 }
 
 /**
@@ -165,6 +176,24 @@ export async function getAndroidWidgetConfig(
     return null;
   } catch (error) {
     console.warn("[AndroidWidget] Failed to get widget config:", error);
+    return null;
+  }
+}
+
+/**
+ * Get debug information about widget data storage
+ *
+ * @returns Debug info including release counts and last updated times
+ */
+export async function getAndroidWidgetDebugInfo(): Promise<WidgetDebugInfo | null> {
+  const module = getNativeModule();
+  if (!module) return null;
+
+  try {
+    const jsonString = await module.getDebugInfo();
+    return JSON.parse(jsonString) as WidgetDebugInfo;
+  } catch (error) {
+    console.warn("[AndroidWidget] Failed to get debug info:", error);
     return null;
   }
 }

@@ -119,6 +119,69 @@ class WidgetDataModule(reactContext: ReactApplicationContext) : ReactContextBase
     }
 
     /**
+     * Get debug information about widget data storage
+     * Returns JSON with release counts, last updated times, and widget counts
+     */
+    @ReactMethod
+    fun getDebugInfo(promise: Promise) {
+        try {
+            val prefs = reactApplicationContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            val appWidgetManager = AppWidgetManager.getInstance(reactApplicationContext)
+            
+            // Parse recent releases
+            val recentJson = prefs.getString(KEY_RECENT_RELEASES, null)
+            var recentCount = 0
+            var recentLastUpdated: String? = null
+            if (recentJson != null) {
+                try {
+                    val json = org.json.JSONObject(recentJson)
+                    recentCount = json.optJSONArray("releases")?.length() ?: 0
+                    recentLastUpdated = json.optString("lastUpdated", null)
+                } catch (e: Exception) {
+                    // Ignore parse errors
+                }
+            }
+            
+            // Parse upcoming releases
+            val upcomingJson = prefs.getString(KEY_UPCOMING_RELEASES, null)
+            var upcomingCount = 0
+            var upcomingLastUpdated: String? = null
+            if (upcomingJson != null) {
+                try {
+                    val json = org.json.JSONObject(upcomingJson)
+                    upcomingCount = json.optJSONArray("releases")?.length() ?: 0
+                    upcomingLastUpdated = json.optString("lastUpdated", null)
+                } catch (e: Exception) {
+                    // Ignore parse errors
+                }
+            }
+            
+            // Get widget counts
+            val miraWidgetCount = appWidgetManager.getAppWidgetIds(
+                ComponentName(reactApplicationContext, MiraWidgetReceiver::class.java)
+            ).size
+            val libraryWidgetCount = appWidgetManager.getAppWidgetIds(
+                ComponentName(reactApplicationContext, MiraLibraryWidgetReceiver::class.java)
+            ).size
+            
+            // Build result JSON
+            val result = org.json.JSONObject().apply {
+                put("recentReleasesCount", recentCount)
+                put("recentLastUpdated", recentLastUpdated)
+                put("upcomingReleasesCount", upcomingCount)
+                put("upcomingLastUpdated", upcomingLastUpdated)
+                put("miraWidgetCount", miraWidgetCount)
+                put("libraryWidgetCount", libraryWidgetCount)
+                put("hasData", recentJson != null || upcomingJson != null)
+            }
+            
+            promise.resolve(result.toString())
+        } catch (e: Exception) {
+            promise.reject("ERROR", "Failed to get debug info: ${e.message}", e)
+        }
+    }
+
+    /**
      * Internal: Update all Mira widgets
      */
     private fun updateWidgets() {
