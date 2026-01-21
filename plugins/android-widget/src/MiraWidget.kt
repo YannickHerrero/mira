@@ -3,6 +3,7 @@ package {{PACKAGE_NAME}}.widget
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
@@ -26,6 +27,8 @@ import {{PACKAGE_NAME}}.widget.ui.SmallWidgetContent
 import {{PACKAGE_NAME}}.widget.ui.MediumWidgetContent
 import {{PACKAGE_NAME}}.widget.ui.LargeListContent
 
+private const val TAG = "MiraWidget"
+
 /**
  * Main Mira Widget using Jetpack Glance.
  * Supports small (2x2), medium (4x2), and large (4x4) sizes.
@@ -44,15 +47,60 @@ class MiraWidget : GlanceAppWidget() {
     override val sizeMode = SizeMode.Exact
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
-        // Load widget configuration from SharedPreferences before composition
-        val dataProvider = WidgetDataProvider(context)
-        val config = dataProvider.getWidgetConfig(0) // Default config for mode
-        val mode = config.mode
-        val widgetData = dataProvider.getWidgetData(mode)
+        try {
+            // Load widget configuration from SharedPreferences before composition
+            val dataProvider = WidgetDataProvider(context)
+            val config = dataProvider.getWidgetConfig(0) // Default config for mode
+            val mode = config.mode
+            val widgetData = dataProvider.getWidgetData(mode)
 
-        provideContent {
-            GlanceTheme {
-                WidgetContent(context, mode, widgetData)
+            Log.d(TAG, "provideGlance: mode=$mode, releases=${widgetData.releases.size}")
+
+            provideContent {
+                GlanceTheme {
+                    WidgetContent(context, mode, widgetData)
+                }
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error in provideGlance", e)
+            // Provide a fallback error UI
+            provideContent {
+                GlanceTheme {
+                    ErrorContent(context)
+                }
+            }
+        }
+    }
+
+    @Composable
+    private fun ErrorContent(context: Context) {
+        Box(
+            modifier = GlanceModifier
+                .fillMaxSize()
+                .background(ColorProvider(WidgetTheme.colors.background))
+                .cornerRadius(16.dp)
+                .clickable(actionStartActivity(getLaunchIntent(context))),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Widget Error",
+                    style = TextStyle(
+                        color = ColorProvider(WidgetTheme.colors.text),
+                        fontSize = WidgetTheme.typography.body
+                    )
+                )
+                Spacer(modifier = GlanceModifier.height(4.dp))
+                Text(
+                    text = "Tap to open app",
+                    style = TextStyle(
+                        color = ColorProvider(WidgetTheme.colors.subtext),
+                        fontSize = WidgetTheme.typography.caption
+                    )
+                )
             }
         }
     }
