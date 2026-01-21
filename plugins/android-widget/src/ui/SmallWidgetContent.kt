@@ -143,7 +143,7 @@ private fun SmallMediaTypeBadge(mediaType: MediaType) {
     
     Box(
         modifier = GlanceModifier
-            .background(WidgetTheme.colors.accent.copy(alpha = 0.15f))
+            .background(ColorProvider(WidgetTheme.colors.accent.copy(alpha = 0.15f)))
             .cornerRadius(4.dp)
             .padding(horizontal = 4.dp, vertical = 2.dp)
     ) {

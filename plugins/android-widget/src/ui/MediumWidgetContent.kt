@@ -51,7 +51,7 @@ fun MediumWidgetContent(
             modifier = GlanceModifier
                 .fillMaxWidth()
                 .height(1.dp)
-                .background(WidgetTheme.colors.surface)
+                .background(ColorProvider(WidgetTheme.colors.surface))
         ) {}
         
         Spacer(modifier = GlanceModifier.height(4.dp))
@@ -219,7 +219,7 @@ private fun MediumPosterThumbnail(
         Box(
             modifier = GlanceModifier
                 .size(posterWidth, posterHeight)
-                .background(WidgetTheme.colors.surface)
+                .background(ColorProvider(WidgetTheme.colors.surface))
                 .cornerRadius(4.dp),
             contentAlignment = Alignment.Center
         ) {
@@ -243,7 +243,7 @@ private fun MediumMediaTypeBadge(mediaType: MediaType) {
     
     Box(
         modifier = GlanceModifier
-            .background(WidgetTheme.colors.accent.copy(alpha = 0.15f))
+            .background(ColorProvider(WidgetTheme.colors.accent.copy(alpha = 0.15f)))
             .cornerRadius(4.dp)
             .padding(horizontal = 3.dp, vertical = 2.dp)
     ) {

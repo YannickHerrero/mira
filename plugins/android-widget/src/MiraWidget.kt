@@ -66,7 +66,7 @@ class MiraWidget : GlanceAppWidget() {
         Box(
             modifier = GlanceModifier
                 .fillMaxSize()
-                .background(WidgetTheme.colors.background)
+                .background(ColorProvider(WidgetTheme.colors.background))
                 .cornerRadius(16.dp)
                 .clickable(actionStartActivity(getLaunchIntent(context))),
             contentAlignment = Alignment.Center
