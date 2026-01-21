@@ -156,7 +156,7 @@ data class WidgetReleaseItem(
                     id = json.getInt("id"),
                     mediaType = MediaType.fromString(json.getString("mediaType")),
                     title = json.getString("title"),
-                    posterFilename = json.optString("posterFilename", null),
+                    posterFilename = if (json.has("posterFilename") && !json.isNull("posterFilename")) json.getString("posterFilename") else null,
                     releaseDate = json.getString("releaseDate"),
                     releaseType = ReleaseType.fromString(json.getString("releaseType")),
                     episodeInfo = EpisodeInfo.fromJson(json.optJSONObject("episodeInfo")),

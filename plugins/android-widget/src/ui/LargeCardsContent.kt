@@ -117,7 +117,7 @@ private fun HorizontalCard(
     Row(
         modifier = GlanceModifier
             .fillMaxWidth()
-            .background(WidgetTheme.colors.surface.copy(alpha = 0.4f))
+            .background(ColorProvider(WidgetTheme.colors.surface.copy(alpha = 0.4f)))
             .cornerRadius(10.dp)
             .padding(8.dp)
             .clickable(actionStartActivity(
@@ -219,7 +219,7 @@ private fun CardPoster(
     Box(
         modifier = GlanceModifier
             .size(posterWidth, posterHeight)
-            .background(WidgetTheme.colors.surface)
+            .background(ColorProvider(WidgetTheme.colors.surface))
             .cornerRadius(6.dp),
         contentAlignment = Alignment.Center
     ) {
@@ -253,7 +253,7 @@ private fun CardMediaTypeBadge(mediaType: MediaType) {
     
     Box(
         modifier = GlanceModifier
-            .background(WidgetTheme.colors.accent.copy(alpha = 0.15f))
+            .background(ColorProvider(WidgetTheme.colors.accent.copy(alpha = 0.15f)))
             .cornerRadius(4.dp)
             .padding(horizontal = 5.dp, vertical = 2.dp)
     ) {

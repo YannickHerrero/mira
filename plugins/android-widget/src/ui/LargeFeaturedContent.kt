@@ -115,7 +115,7 @@ private fun FeaturedCard(
     Row(
         modifier = GlanceModifier
             .fillMaxWidth()
-            .background(WidgetTheme.colors.surface.copy(alpha = 0.5f))
+            .background(ColorProvider(WidgetTheme.colors.surface.copy(alpha = 0.5f)))
             .cornerRadius(12.dp)
             .padding(10.dp)
             .clickable(actionStartActivity(
@@ -223,7 +223,7 @@ private fun FeaturedPoster(
     Box(
         modifier = GlanceModifier
             .size(posterWidth, posterHeight)
-            .background(WidgetTheme.colors.surface)
+            .background(ColorProvider(WidgetTheme.colors.surface))
             .cornerRadius(8.dp),
         contentAlignment = Alignment.Center
     ) {
@@ -257,7 +257,7 @@ private fun FeaturedMediaTypeBadge(mediaType: MediaType) {
     
     Box(
         modifier = GlanceModifier
-            .background(WidgetTheme.colors.accent.copy(alpha = 0.15f))
+            .background(ColorProvider(WidgetTheme.colors.accent.copy(alpha = 0.15f)))
             .cornerRadius(4.dp)
             .padding(horizontal = 6.dp, vertical = 2.dp)
     ) {
@@ -350,7 +350,7 @@ private fun SmallPosterImage(
     Box(
         modifier = GlanceModifier
             .size(posterWidth, posterHeight)
-            .background(WidgetTheme.colors.surface)
+            .background(ColorProvider(WidgetTheme.colors.surface))
             .cornerRadius(5.dp),
         contentAlignment = Alignment.Center
     ) {

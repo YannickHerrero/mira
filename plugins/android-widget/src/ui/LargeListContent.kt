@@ -51,7 +51,7 @@ fun LargeListContent(
             modifier = GlanceModifier
                 .fillMaxWidth()
                 .height(1.dp)
-                .background(WidgetTheme.colors.surface)
+                .background(ColorProvider(WidgetTheme.colors.surface))
         ) {}
         
         Spacer(modifier = GlanceModifier.height(8.dp))
@@ -125,7 +125,7 @@ private fun LargeListReleases(
                     modifier = GlanceModifier
                         .fillMaxWidth()
                         .height(1.dp)
-                        .background(WidgetTheme.colors.surface.copy(alpha = 0.5f))
+                        .background(ColorProvider(WidgetTheme.colors.surface.copy(alpha = 0.5f)))
                 ) {}
                 Spacer(modifier = GlanceModifier.height(6.dp))
             }
@@ -234,7 +234,7 @@ private fun LargeListPosterThumbnail(
         Box(
             modifier = GlanceModifier
                 .size(posterWidth, posterHeight)
-                .background(WidgetTheme.colors.surface)
+                .background(ColorProvider(WidgetTheme.colors.surface))
                 .cornerRadius(4.dp),
             contentAlignment = Alignment.Center
         ) {
@@ -258,7 +258,7 @@ private fun LargeListMediaTypeBadge(mediaType: MediaType) {
     
     Box(
         modifier = GlanceModifier
-            .background(WidgetTheme.colors.accent.copy(alpha = 0.15f))
+            .background(ColorProvider(WidgetTheme.colors.accent.copy(alpha = 0.15f)))
             .cornerRadius(4.dp)
             .padding(horizontal = 4.dp, vertical = 2.dp)
     ) {

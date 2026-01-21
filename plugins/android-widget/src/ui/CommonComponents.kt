@@ -104,7 +104,7 @@ fun ScoreBadge(score: String) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = GlanceModifier
-            .background(WidgetTheme.colors.surface)
+            .background(ColorProvider(WidgetTheme.colors.surface))
             .cornerRadius(4.dp)
             .padding(horizontal = 6.dp, vertical = 2.dp)
     ) {
@@ -140,7 +140,7 @@ fun PosterImage(
         // Placeholder
         Box(
             modifier = modifier
-                .background(WidgetTheme.colors.surface)
+                .background(ColorProvider(WidgetTheme.colors.surface))
                 .cornerRadius(8.dp),
             contentAlignment = Alignment.Center
         ) {
