@@ -6,17 +6,22 @@ import { Muted } from "@/components/ui/typography";
 import { Switch } from "@/components/ui/switch";
 import { SettingsPageHeader } from "@/components/settings/SettingsPageHeader";
 import { QualityFilterItem, LanguageFilterItem } from "@/components/settings/SourceFilterItem";
-import { MonitorPlay } from "@/lib/icons";
+import { MonitorPlay, Download } from "@/lib/icons";
 import { useSettings } from "@/hooks/useSettings";
 import { selectionChanged } from "@/lib/haptics";
 
 export default function PlaybackSettings() {
   const { t } = useTranslation();
-  const { useVlcPlayer, setUseVlcPlayer, isLoading } = useSettings();
+  const { useVlcPlayer, setUseVlcPlayer, downloadOnlyMode, setDownloadOnlyMode, isLoading } = useSettings();
 
   const handleVlcToggle = (checked: boolean) => {
     selectionChanged();
     setUseVlcPlayer(checked);
+  };
+
+  const handleDownloadOnlyToggle = (checked: boolean) => {
+    selectionChanged();
+    setDownloadOnlyMode(checked);
   };
 
   if (isLoading) {
@@ -58,6 +63,19 @@ export default function PlaybackSettings() {
               <Switch
                 checked={useVlcPlayer}
                 onCheckedChange={handleVlcToggle}
+              />
+            )}
+            className="border-0 border-b border-surface1/30"
+          />
+          <ListItem
+            itemLeft={(props) => <Download {...props} />}
+            label={t("settings.downloadOnlyMode")}
+            description={t("settings.downloadOnlyModeDesc")}
+            detail={false}
+            itemRight={() => (
+              <Switch
+                checked={downloadOnlyMode}
+                onCheckedChange={handleDownloadOnlyToggle}
               />
             )}
             className="border-0"

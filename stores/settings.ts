@@ -7,6 +7,8 @@ const STORAGE_KEY = "app_settings";
 interface AppSettings {
   useVlcPlayer: boolean;
   enableAnilistSync: boolean;
+  downloadOnlyMode: boolean;
+  safDirectoryUri: string | null;
 }
 
 interface SettingsStore extends AppSettings {
@@ -14,11 +16,15 @@ interface SettingsStore extends AppSettings {
   loadSettings: () => void;
   setUseVlcPlayer: (value: boolean) => void;
   setAnilistSyncEnabled: (value: boolean) => void;
+  setDownloadOnlyMode: (value: boolean) => void;
+  setSafDirectoryUri: (value: string | null) => void;
 }
 
 const DEFAULT_SETTINGS: AppSettings = {
   useVlcPlayer: false,
   enableAnilistSync: false,
+  downloadOnlyMode: false,
+  safDirectoryUri: null,
 };
 
 function saveSettings(settings: AppSettings) {
@@ -48,15 +54,28 @@ export const useSettingsStore = create<SettingsStore>((set, get) => ({
 
   setUseVlcPlayer: (value: boolean) => {
     set({ useVlcPlayer: value });
-    const { useVlcPlayer, enableAnilistSync } = get();
-    saveSettings({ useVlcPlayer, enableAnilistSync });
+    const { useVlcPlayer, enableAnilistSync, downloadOnlyMode, safDirectoryUri } = get();
+    saveSettings({ useVlcPlayer, enableAnilistSync, downloadOnlyMode, safDirectoryUri });
     markManualSyncSettingsUpdated("settings");
   },
 
   setAnilistSyncEnabled: (value: boolean) => {
     set({ enableAnilistSync: value });
-    const { useVlcPlayer, enableAnilistSync } = get();
-    saveSettings({ useVlcPlayer, enableAnilistSync });
+    const { useVlcPlayer, enableAnilistSync, downloadOnlyMode, safDirectoryUri } = get();
+    saveSettings({ useVlcPlayer, enableAnilistSync, downloadOnlyMode, safDirectoryUri });
     markManualSyncSettingsUpdated("settings");
+  },
+
+  setDownloadOnlyMode: (value: boolean) => {
+    set({ downloadOnlyMode: value });
+    const { useVlcPlayer, enableAnilistSync, downloadOnlyMode, safDirectoryUri } = get();
+    saveSettings({ useVlcPlayer, enableAnilistSync, downloadOnlyMode, safDirectoryUri });
+    markManualSyncSettingsUpdated("settings");
+  },
+
+  setSafDirectoryUri: (value: string | null) => {
+    set({ safDirectoryUri: value });
+    const { useVlcPlayer, enableAnilistSync, downloadOnlyMode, safDirectoryUri } = get();
+    saveSettings({ useVlcPlayer, enableAnilistSync, downloadOnlyMode, safDirectoryUri });
   },
 }));

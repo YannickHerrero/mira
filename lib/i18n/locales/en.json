@@ -119,6 +119,8 @@
     "free": "(Free)",
     "playInVlc": "Play in VLC",
     "playInVlcDesc": "Open videos in external VLC app (requires VLC installed)",
+    "downloadOnlyMode": "Download Only Mode",
+    "downloadOnlyModeDesc": "Tap a source to download instead of stream",
     "theme": "Theme",
     "language": "Language",
     "rateMira": "Rate Mira",
