@@ -326,19 +326,6 @@ export function SourceList({
   }, [filteredStreams, download, recommendedStreams]);
 
 
-  // Handler to play downloaded content
-  const handlePlayDownloaded = React.useCallback(async () => {
-    if (!download || download.status !== "completed") return;
-    await playMedia({
-      url: download.filePath,
-      title: download.title,
-      tmdbId: download.tmdbId,
-      mediaType: download.mediaType,
-      seasonNumber: download.seasonNumber,
-      episodeNumber: download.episodeNumber,
-    });
-  }, [download, playMedia]);
-
   const openActionSheet = React.useCallback(
     (stream: Stream) => {
       if (Platform.OS === "web") return;
@@ -731,26 +718,6 @@ export function SourceList({
           <View>
             {/* Custom header (e.g., hero section) */}
             {CustomHeaderComponent}
-
-            {/* Downloaded banner */}
-            {Platform.OS !== "web" && download?.status === "completed" && (
-              <View className="bg-green-600/10 border border-green-600/30 rounded-lg p-3 mb-4">
-                <View className="flex-row items-center mb-2">
-                  <Check size={18} className="text-green-600 mr-2" />
-                  <Text className="text-green-600 font-medium">
-                    Downloaded - Ready to watch offline
-                  </Text>
-                </View>
-                <TextButton
-                  size="sm"
-                  onPress={handlePlayDownloaded}
-                  leftIcon={
-                    <Play size={16} className="text-crust" fill="currentColor" />
-                  }
-                  label="Play Downloaded"
-                />
-              </View>
-            )}
 
             {streams.length > 0 && (
               <>

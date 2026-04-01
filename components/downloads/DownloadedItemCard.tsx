@@ -1,7 +1,7 @@
 import * as React from "react";
 import { View, Pressable, Image } from "react-native";
 import { Text } from "@/components/ui/text";
-import { Download, Play, AlertCircle } from "@/lib/icons";
+import { Download, AlertCircle, Check } from "@/lib/icons";
 import { formatBytes } from "@/stores/downloads";
 import { getPosterUrl } from "@/lib/types";
 import type { DownloadItem } from "@/stores/downloads";
@@ -69,23 +69,13 @@ export function DownloadedItemCard({
               <Text className="text-xs text-red">Download failed</Text>
             </>
           ) : (
-            <Text className="text-xs text-subtext0">Ready to watch</Text>
+            <>
+              <Check size={14} className="text-green mr-1" />
+              <Text className="text-xs text-subtext0">Downloaded</Text>
+            </>
           )}
         </View>
       </View>
-
-      {/* Play button for completed */}
-      {download.status === "completed" && (
-        <View className="justify-center pr-3">
-          <View className="w-10 h-10 rounded-full bg-lavender items-center justify-center">
-            <Play
-              size={18}
-              className="text-crust ml-0.5"
-              fill="currentColor"
-            />
-          </View>
-        </View>
-      )}
     </Pressable>
   );
 }

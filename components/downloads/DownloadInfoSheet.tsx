@@ -9,24 +9,20 @@ import {
   BottomSheetContent,
   BottomSheetView,
 } from "@/components/primitives/bottomSheet/bottom-sheet.native";
-import { Trash, Play, RefreshCw, Download } from "@/lib/icons";
+import { Trash, Download } from "@/lib/icons";
 import { formatBytes, type DownloadItem } from "@/stores/downloads";
 import { getPosterUrl } from "@/lib/types";
 
 interface DownloadInfoSheetProps {
   sheetRef: React.RefObject<BottomSheetModal | null>;
   download: DownloadItem | null;
-  onPlay: () => void;
   onDelete: () => void;
-  onRetry?: () => void;
 }
 
 export function DownloadInfoSheet({
   sheetRef,
   download,
-  onPlay,
   onDelete,
-  onRetry,
 }: DownloadInfoSheetProps) {
   const { dismiss } = useBottomSheetModal();
 
@@ -92,7 +88,7 @@ export function DownloadInfoSheet({
             label="Status"
             value={
               isCompleted
-                ? "Ready to watch"
+                ? "Downloaded"
                 : isFailed
                   ? "Download failed"
                   : isCaching
@@ -109,32 +105,6 @@ export function DownloadInfoSheet({
 
         {/* Actions */}
         <BottomSheetActionGroup>
-          {isCompleted && (
-            <BottomSheetActionRow
-              layout="grouped"
-              title="Play Now"
-              description="Watch this download"
-              icon={<Play size={20} className="text-text" />}
-              onPress={() => {
-                onPlay();
-                dismiss();
-              }}
-            />
-          )}
-
-          {isFailed && onRetry && (
-            <BottomSheetActionRow
-              layout="grouped"
-              title="Retry Download"
-              description="Try the download again"
-              icon={<RefreshCw size={20} className="text-text" />}
-              onPress={() => {
-                onRetry();
-                dismiss();
-              }}
-            />
-          )}
-
           <BottomSheetActionRow
             layout="grouped"
             title="Delete Download"

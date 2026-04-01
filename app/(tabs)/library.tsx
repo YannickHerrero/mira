@@ -20,7 +20,6 @@ import {
 import { useListActions, useListItems, useLists } from "@/hooks/useLists";
 import { useDownloads, useDownloadsList } from "@/hooks/useDownloads";
 import { useAniListWatchList } from "@/hooks/useAniListWatchList";
-import { useMediaPlayer } from "@/hooks/useSettings";
 import {
   Play,
   Plus,
@@ -33,7 +32,6 @@ import {
   BookOpen,
 } from "@/lib/icons";
 import { selectionChanged, mediumImpact, lightImpact } from "@/lib/haptics";
-import { fileExists } from "@/lib/download-manager";
 import { cn } from "@/lib/utils";
 import type { Media, MediaType } from "@/lib/types";
 import type { DownloadItem } from "@/stores/downloads";
@@ -71,7 +69,6 @@ export default function LibraryScreen() {
   const { items: favoriteItems, isLoading: loadingFavorites, refetch: refetchFavorites } = useFavorites();
   const { items: downloadItems, isLoading: loadingDownloads } = useDownloadsList();
   const { deleteDownload } = useDownloads();
-  const { playMedia } = useMediaPlayer();
   const {
     items: anilistItems,
     isLoading: loadingAnilist,
@@ -148,26 +145,18 @@ export default function LibraryScreen() {
   };
 
   const handleDownloadPress = React.useCallback(
-    async (download: DownloadItem) => {
-      if (download.status === "completed") {
-        // Play the downloaded file
-        const exists = fileExists(download.filePath);
-        if (exists) {
-          await playMedia({
-            url: download.filePath,
-            title: download.title,
-            tmdbId: download.tmdbId,
-            mediaType: download.mediaType,
-            seasonNumber: download.seasonNumber,
-            episodeNumber: download.episodeNumber,
-          });
-        } else {
-          // File doesn't exist, show error
-          console.error("Downloaded file not found:", download.filePath);
-        }
-      }
+    (download: DownloadItem) => {
+      // Navigate to media detail page
+      lightImpact();
+      router.push({
+        pathname: "/media/[id]",
+        params: {
+          id: download.tmdbId.toString(),
+          type: download.mediaType,
+        },
+      } as any);
     },
-    [playMedia]
+    [router]
   );
 
   const handleDownloadLongPress = React.useCallback((download: DownloadItem) => {
@@ -176,19 +165,6 @@ export default function LibraryScreen() {
     downloadInfoSheetRef.current?.present();
   }, []);
 
-  const handlePlayDownload = React.useCallback(async () => {
-    if (selectedDownload?.status === "completed") {
-      await playMedia({
-        url: selectedDownload.filePath,
-        title: selectedDownload.title,
-        tmdbId: selectedDownload.tmdbId,
-        mediaType: selectedDownload.mediaType,
-        seasonNumber: selectedDownload.seasonNumber,
-        episodeNumber: selectedDownload.episodeNumber,
-      });
-    }
-  }, [selectedDownload, playMedia]);
-
   const handleDeleteDownload = React.useCallback(() => {
     if (selectedDownload) {
       deleteDownload(selectedDownload.id);
@@ -196,10 +172,6 @@ export default function LibraryScreen() {
     }
   }, [selectedDownload, deleteDownload]);
 
-  const handleRetryDownload = React.useCallback(() => {
-    // Retry is no longer supported — user should re-initiate from sources
-    setSelectedDownload(null);
-  }, []);
 
   const renderContent = () => {
     switch (activeTab) {
@@ -389,9 +361,7 @@ export default function LibraryScreen() {
           <DownloadInfoSheet
             sheetRef={downloadInfoSheetRef}
             download={selectedDownload}
-            onPlay={handlePlayDownload}
             onDelete={handleDeleteDownload}
-            onRetry={handleRetryDownload}
           />
         </BottomSheet>
       )}
