@@ -75,7 +75,11 @@
     "anilistEmptyDesc": "Anime you're watching on AniList will appear here",
     "anilistEpisodes": "{{progress}}/{{total}} episodes",
     "anilistEpisodesUnknown": "{{progress}} episodes",
-    "anilistUpdateFailed": "Failed to update progress"
+    "anilistUpdateFailed": "Failed to update progress",
+    "anilistAddAnime": "Add anime",
+    "anilistAddAnimeDesc": "Search AniList and add to your watching list",
+    "anilistSearchPlaceholder": "Search for anime...",
+    "anilistAddFailed": "Failed to add. Try again."
   },
   "settings": {
     "myProfile": "MY PROFILE",
