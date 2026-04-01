@@ -1,11 +1,11 @@
 import * as React from "react";
-import { View, Pressable, ActivityIndicator, Alert, ScrollView } from "react-native";
+import { View, Pressable, ActivityIndicator, Alert } from "react-native";
 import type { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useBottomSheetModal } from "@gorhom/bottom-sheet";
 import { Text } from "@/components/ui/text";
 import {
   BottomSheetContent,
-  BottomSheetView,
+  BottomSheetFlatList,
 } from "@/components/primitives/bottomSheet/bottom-sheet.native";
 import { Download, Check } from "@/lib/icons";
 import { fetchBestSource } from "@/lib/fetch-best-source";
@@ -146,68 +146,76 @@ export function SeasonDownloadSheet({
 
   const seasonNumber = episodes[0].seasonNumber;
 
-  return (
-    <BottomSheetContent ref={sheetRef} snapPoints={["70%"]}>
-      <BottomSheetView className="pb-8">
-        {/* Header */}
-        <View className="px-4 pb-4 border-b border-surface1/30">
-          <Text className="text-lg font-semibold text-text">
-            Download Season {seasonNumber}
-          </Text>
-          <Text className="text-sm text-subtext0 mt-1">
-            {episodes.length} episode{episodes.length !== 1 ? "s" : ""}
-          </Text>
+  const renderEpisodeRow = React.useCallback(
+    ({ item: episode }: { item: Episode }) => {
+      const isDownloaded = downloadedEpisodes.has(episode.episodeNumber);
+      const isLoading = loadingEpisode === episode.episodeNumber;
+
+      return (
+        <View className="flex-row items-center py-3 px-4 border-b border-surface1/20">
+          {/* Episode info */}
+          <View className="flex-1 mr-3">
+            <Text className="text-sm font-medium text-text" numberOfLines={1}>
+              E{String(episode.episodeNumber).padStart(2, "0")} - {episode.title}
+            </Text>
+            <View className="flex-row items-center gap-2 mt-1">
+              {episode.runtime && (
+                <Text className="text-xs text-subtext0">{episode.runtime}m</Text>
+              )}
+              {episode.airDate && (
+                <Text className="text-xs text-subtext0">{episode.airDate}</Text>
+              )}
+            </View>
+          </View>
+
+          {/* Download button / status */}
+          {isDownloaded ? (
+            <View className="w-10 h-10 rounded-full bg-green/20 items-center justify-center">
+              <Check size={20} className="text-green" />
+            </View>
+          ) : isLoading ? (
+            <View className="w-10 h-10 items-center justify-center">
+              <ActivityIndicator size="small" />
+            </View>
+          ) : (
+            <Pressable
+              onPress={() => handleDownloadEpisode(episode)}
+              className="w-10 h-10 rounded-full bg-surface0 items-center justify-center active:opacity-70"
+              disabled={activeDownloadId !== null}
+            >
+              <Download size={20} className="text-text" />
+            </Pressable>
+          )}
         </View>
+      );
+    },
+    [downloadedEpisodes, loadingEpisode, activeDownloadId, handleDownloadEpisode]
+  );
 
-        {/* Episode list */}
-        <ScrollView className="px-4" style={{ maxHeight: 400 }}>
-          {episodes.map((episode) => {
-            const isDownloaded = downloadedEpisodes.has(episode.episodeNumber);
-            const isLoading = loadingEpisode === episode.episodeNumber;
+  const keyExtractor = React.useCallback(
+    (item: Episode) => `ep-${item.episodeNumber}`,
+    []
+  );
 
-            return (
-              <View
-                key={episode.episodeNumber}
-                className="flex-row items-center py-3 border-b border-surface1/20"
-              >
-                {/* Episode info */}
-                <View className="flex-1 mr-3">
-                  <Text className="text-sm font-medium text-text" numberOfLines={1}>
-                    E{String(episode.episodeNumber).padStart(2, "0")} - {episode.title}
-                  </Text>
-                  <View className="flex-row items-center gap-2 mt-1">
-                    {episode.runtime && (
-                      <Text className="text-xs text-subtext0">{episode.runtime}m</Text>
-                    )}
-                    {episode.airDate && (
-                      <Text className="text-xs text-subtext0">{episode.airDate}</Text>
-                    )}
-                  </View>
-                </View>
+  return (
+    <BottomSheetContent ref={sheetRef} snapPoints={["95%"]} enableDynamicSizing={false}>
+      {/* Header */}
+      <View className="px-4 pb-4 border-b border-surface1/30">
+        <Text className="text-lg font-semibold text-text">
+          Download Season {seasonNumber}
+        </Text>
+        <Text className="text-sm text-subtext0 mt-1">
+          {episodes.length} episode{episodes.length !== 1 ? "s" : ""}
+        </Text>
+      </View>
 
-                {/* Download button / status */}
-                {isDownloaded ? (
-                  <View className="w-10 h-10 rounded-full bg-green/20 items-center justify-center">
-                    <Check size={20} className="text-green" />
-                  </View>
-                ) : isLoading ? (
-                  <View className="w-10 h-10 items-center justify-center">
-                    <ActivityIndicator size="small" />
-                  </View>
-                ) : (
-                  <Pressable
-                    onPress={() => handleDownloadEpisode(episode)}
-                    className="w-10 h-10 rounded-full bg-surface0 items-center justify-center active:opacity-70"
-                    disabled={activeDownloadId !== null}
-                  >
-                    <Download size={20} className="text-text" />
-                  </Pressable>
-                )}
-              </View>
-            );
-          })}
-        </ScrollView>
-      </BottomSheetView>
+      {/* Episode list */}
+      <BottomSheetFlatList
+        data={episodes}
+        renderItem={renderEpisodeRow}
+        keyExtractor={keyExtractor}
+        contentContainerStyle={{ paddingBottom: 32 }}
+      />
     </BottomSheetContent>
   );
 }
