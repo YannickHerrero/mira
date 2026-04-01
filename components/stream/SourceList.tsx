@@ -17,7 +17,9 @@ import { useApiKeyStore } from "@/stores/api-keys";
 import { createRealDebridClient, UnplayableFileError } from "@/lib/api/realdebrid";
 import { mediumImpact } from "@/lib/haptics";
 import { Check, Play, Eye } from "@/lib/icons";
-import type { Stream, MediaType } from "@/lib/types";
+import type { Stream, MediaType, Media } from "@/lib/types";
+import { useWatchProgress } from "@/hooks/useWatchProgress";
+import { useLibraryActions } from "@/hooks/useLibrary";
 import { useSourceFilters } from "@/hooks/useSourceFilters";
 import { useStreamingPreferences } from "@/hooks/useStreamingPreferences";
 import { useRealDebridTorrents } from "@/hooks/useRealDebridTorrents";
@@ -224,6 +226,8 @@ export function SourceList({
   const { playMedia } = useMediaPlayer();
   const { preferredAudioLanguages, preferredSubtitleLanguages } = useStreamingPreferences();
   const { cachingHashes } = useRealDebridTorrents({ enabled: !!realDebridApiKey });
+  const { saveProgress } = useWatchProgress();
+  const { saveMedia } = useLibraryActions();
 
   const preferredLanguages = React.useMemo(() => {
     const subtitleLanguages = preferredSubtitleLanguages.filter((language) => language !== "Off");
@@ -433,12 +437,32 @@ export function SourceList({
           posterPath,
           stream,
         });
+
+        // Add to continue watching when downloading a TV episode
+        if (mediaType === "tv" && seasonNumber && episodeNumber) {
+          saveMedia({
+            id: tmdbId,
+            mediaType,
+            title: mediaTitle ?? title ?? "",
+            posterPath,
+            genres: [],
+          } as Media);
+
+          saveProgress({
+            tmdbId,
+            mediaType,
+            seasonNumber,
+            episodeNumber,
+            position: 0,
+            duration: 1,
+          });
+        }
       } catch (err: unknown) {
         const message = err instanceof Error ? err.message : "Download failed";
         Alert.alert("Download Error", message);
       }
     },
-    [tmdbId, mediaType, title, seasonNumber, episodeNumber, posterPath, startDownload, activeDownloadId, t]
+    [tmdbId, mediaType, title, mediaTitle, seasonNumber, episodeNumber, posterPath, startDownload, saveMedia, saveProgress, activeDownloadId, t]
   );
 
   const handleCardPress = React.useCallback(
