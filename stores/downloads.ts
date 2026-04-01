@@ -49,9 +49,6 @@ interface DownloadsState {
   // State
   downloads: DownloadItem[];
   isInitialized: boolean;
-
-  // Queue management
-  downloadQueue: string[]; // IDs of pending downloads
   activeDownloadId: string | null;
 
   // Actions
@@ -62,13 +59,11 @@ interface DownloadsState {
     deleteFromDb: (id: string) => Promise<void>
   ) => Promise<void>;
 
-  queueDownload: (params: StartDownloadParams) => Promise<string>;
+  startDownload: (params: StartDownloadParams) => Promise<string>;
   cancelDownload: (id: string) => Promise<void>;
   deleteDownload: (id: string) => Promise<void>;
-  retryDownload: (id: string) => Promise<void>;
 
   // Internal
-  processQueue: () => Promise<void>;
   updateProgress: (id: string, progress: number) => void;
 
   // Queries
@@ -79,7 +74,6 @@ interface DownloadsState {
   ) => DownloadItem | undefined;
   getActiveDownload: () => DownloadItem | undefined;
   getCompletedDownloads: () => DownloadItem[];
-  getPendingDownloads: () => DownloadItem[];
 }
 
 // Store database functions for persistence
@@ -92,7 +86,6 @@ let dbFunctions: {
 export const useDownloadsStore = create<DownloadsState>((set, get) => ({
   downloads: [],
   isInitialized: false,
-  downloadQueue: [],
   activeDownloadId: null,
 
   initialize: async (loadFromDb, saveToDb, updateInDb, deleteFromDb) => {
@@ -104,48 +97,35 @@ export const useDownloadsStore = create<DownloadsState>((set, get) => ({
     try {
       const downloads = await loadFromDb();
 
-      // Find any downloads that were interrupted (downloading status)
+      // Reset any interrupted downloads to failed
       const interruptedDownloads = downloads.filter(
         (d) => d.status === "downloading" || d.status === "pending" || d.status === "caching"
       );
 
-      // Reset interrupted downloads to pending
       for (const download of interruptedDownloads) {
         await updateInDb(download.id, {
-          status: "pending",
+          status: "failed",
           progress: 0,
         });
       }
 
-      // Update local state with corrected statuses
       const correctedDownloads = downloads.map((d) =>
-        d.status === "downloading" || d.status === "caching"
-          ? { ...d, status: "pending" as DownloadStatus, progress: 0 }
+        d.status === "downloading" || d.status === "caching" || d.status === "pending"
+          ? { ...d, status: "failed" as DownloadStatus, progress: 0 }
           : d
       );
-
-      // Build queue from pending downloads
-      const queue = correctedDownloads
-        .filter((d) => d.status === "pending")
-        .map((d) => d.id);
 
       set({
         downloads: correctedDownloads,
         isInitialized: true,
-        downloadQueue: queue,
       });
-
-      // Start processing queue if there are pending downloads
-      if (queue.length > 0) {
-        get().processQueue();
-      }
     } catch (error) {
       console.error("Failed to initialize downloads store:", error);
       set({ isInitialized: true });
     }
   },
 
-  queueDownload: async (params) => {
+  startDownload: async (params) => {
     const { tmdbId, mediaType, seasonNumber, episodeNumber, title, posterPath, stream } =
       params;
 
@@ -153,28 +133,27 @@ export const useDownloadsStore = create<DownloadsState>((set, get) => ({
       throw new Error("Stream URL or info hash is required for download");
     }
 
-    // Check if already downloaded or downloading
-    const existing = get().getDownloadForMedia(
-      tmdbId,
-      seasonNumber,
-      episodeNumber
-    );
+    // Block if a download is already active
+    if (get().activeDownloadId) {
+      throw new Error("A download is already in progress");
+    }
+
+    // Check if already downloaded
+    const existing = get().getDownloadForMedia(tmdbId, seasonNumber, episodeNumber);
     if (existing) {
       if (existing.status === "completed") {
         throw new Error("This content is already downloaded");
       }
-      if (
-        existing.status === "downloading" ||
-        existing.status === "pending" ||
-        existing.status === "caching"
-      ) {
-        throw new Error("This content is already in the download queue");
+      if (existing.status === "downloading" || existing.status === "caching") {
+        throw new Error("This content is already downloading");
       }
     }
 
     const id = createId();
     const fileName = generateFileName(title, stream.quality);
     const now = new Date().toISOString();
+    const needsCaching = !stream.url;
+    const initialStatus: DownloadStatus = needsCaching ? "caching" : "downloading";
 
     const downloadItem: DownloadItem = {
       id,
@@ -185,10 +164,10 @@ export const useDownloadsStore = create<DownloadsState>((set, get) => ({
       title,
       posterPath,
       fileName,
-      filePath: "", // Will be set when download starts
+      filePath: "",
       fileSize: stream.sizeBytes,
       quality: stream.quality,
-      status: "pending",
+      status: initialStatus,
       progress: 0,
       streamUrl: stream.url ?? "",
       infoHash: stream.infoHash,
@@ -200,63 +179,23 @@ export const useDownloadsStore = create<DownloadsState>((set, get) => ({
       await dbFunctions.saveToDb(downloadItem);
     }
 
-    // Add to state and queue
+    // Add to state and set as active
     set((state) => ({
       downloads: [...state.downloads, downloadItem],
-      downloadQueue: [...state.downloadQueue, id],
+      activeDownloadId: id,
     }));
 
-    // Start processing queue
-    get().processQueue();
-
-    return id;
-  },
-
-  processQueue: async () => {
-    const state = get();
-
-    // If already processing or queue is empty, return
-    if (state.activeDownloadId || state.downloadQueue.length === 0) {
-      return;
-    }
-
-    // Get next download from queue
-    const nextId = state.downloadQueue[0];
-    const download = state.downloads.find((d) => d.id === nextId);
-
-    if (!download) {
-      // Remove invalid ID from queue and continue
-      set((s) => ({
-        downloadQueue: s.downloadQueue.slice(1),
-      }));
-      get().processQueue();
-      return;
-    }
-
-    const needsCaching = download.streamUrl.length === 0;
-    const initialStatus: DownloadStatus = needsCaching ? "caching" : "downloading";
-
-    set((s) => ({
-      activeDownloadId: nextId,
-      downloads: s.downloads.map((d) =>
-        d.id === nextId ? { ...d, status: initialStatus } : d
-      ),
-    }));
-
-    if (dbFunctions) {
-      await dbFunctions.updateInDb(nextId, { status: initialStatus });
-    }
-
-    let streamUrl = download.streamUrl;
+    // Resolve stream URL if needed (Real-Debrid caching)
+    let streamUrl = stream.url ?? "";
 
     if (needsCaching) {
       try {
         const apiKey = useApiKeyStore.getState().realDebridApiKey;
-        if (!apiKey || !download.infoHash) {
+        if (!apiKey || !stream.infoHash) {
           throw new Error("Real-Debrid cache unavailable");
         }
         const client = createRealDebridClient(apiKey);
-        streamUrl = await client.resolveInfoHashToStreamUrl(download.infoHash, download.title);
+        streamUrl = await client.resolveInfoHashToStreamUrl(stream.infoHash, title);
 
         const cacheUpdates = {
           streamUrl,
@@ -265,17 +204,16 @@ export const useDownloadsStore = create<DownloadsState>((set, get) => ({
 
         set((s) => ({
           downloads: s.downloads.map((d) =>
-            d.id === nextId ? { ...d, ...cacheUpdates } : d
+            d.id === id ? { ...d, ...cacheUpdates } : d
           ),
         }));
 
         if (dbFunctions) {
-          await dbFunctions.updateInDb(nextId, cacheUpdates);
+          await dbFunctions.updateInDb(id, cacheUpdates);
         }
       } catch (error) {
         console.error("Download cache failed:", error);
 
-        // Check if this is an unplayable file error
         const isUnplayable = error instanceof UnplayableFileError;
         const updates: Partial<DownloadItem> = {
           status: isUnplayable ? "unplayable" as DownloadStatus : "failed" as DownloadStatus,
@@ -284,32 +222,30 @@ export const useDownloadsStore = create<DownloadsState>((set, get) => ({
 
         set((s) => ({
           activeDownloadId: null,
-          downloadQueue: s.downloadQueue.slice(1),
           downloads: s.downloads.map((d) =>
-            d.id === nextId ? { ...d, ...updates } : d
+            d.id === id ? { ...d, ...updates } : d
           ),
         }));
 
         if (dbFunctions) {
-          await dbFunctions.updateInDb(nextId, updates);
+          await dbFunctions.updateInDb(id, updates);
         }
 
-        get().processQueue();
-        return;
+        return id;
       }
     }
 
+    // Start the actual file download
     try {
       const result = await startDownload(
-        download.id,
+        id,
         streamUrl,
-        download.fileName,
+        fileName,
         (progress: DownloadProgress) => {
-          get().updateProgress(download.id, progress.progress);
+          get().updateProgress(id, progress.progress);
         }
       );
 
-      // Download completed
       const completedAt = new Date().toISOString();
       const updates = {
         status: "completed" as DownloadStatus,
@@ -321,18 +257,14 @@ export const useDownloadsStore = create<DownloadsState>((set, get) => ({
 
       set((s) => ({
         activeDownloadId: null,
-        downloadQueue: s.downloadQueue.slice(1),
         downloads: s.downloads.map((d) =>
-          d.id === nextId ? { ...d, ...updates } : d
+          d.id === id ? { ...d, ...updates } : d
         ),
       }));
 
       if (dbFunctions) {
-        await dbFunctions.updateInDb(nextId, updates);
+        await dbFunctions.updateInDb(id, updates);
       }
-
-      // Process next in queue
-      get().processQueue();
     } catch (error) {
       console.error("Download failed:", error);
 
@@ -342,19 +274,17 @@ export const useDownloadsStore = create<DownloadsState>((set, get) => ({
 
       set((s) => ({
         activeDownloadId: null,
-        downloadQueue: s.downloadQueue.slice(1),
         downloads: s.downloads.map((d) =>
-          d.id === nextId ? { ...d, ...updates } : d
+          d.id === id ? { ...d, ...updates } : d
         ),
       }));
 
       if (dbFunctions) {
-        await dbFunctions.updateInDb(nextId, updates);
+        await dbFunctions.updateInDb(id, updates);
       }
-
-      // Process next in queue
-      get().processQueue();
     }
+
+    return id;
   },
 
   updateProgress: (id, progress) => {
@@ -369,25 +299,17 @@ export const useDownloadsStore = create<DownloadsState>((set, get) => ({
     const download = get().downloads.find((d) => d.id === id);
     if (!download) return;
 
-    // Cancel if currently downloading
     if (download.status === "downloading") {
       await cancelDownload(id);
     }
 
-    // Remove from queue and delete record
     set((s) => ({
       activeDownloadId: s.activeDownloadId === id ? null : s.activeDownloadId,
-      downloadQueue: s.downloadQueue.filter((qId) => qId !== id),
       downloads: s.downloads.filter((d) => d.id !== id),
     }));
 
     if (dbFunctions) {
       await dbFunctions.deleteFromDb(id);
-    }
-
-    // Continue processing queue
-    if (get().activeDownloadId === null) {
-      get().processQueue();
     }
   },
 
@@ -395,7 +317,6 @@ export const useDownloadsStore = create<DownloadsState>((set, get) => ({
     const download = get().downloads.find((d) => d.id === id);
     if (!download) return;
 
-    // Delete file if exists
     if (download.filePath) {
       try {
         await deleteDownloadFile(download.filePath);
@@ -404,7 +325,6 @@ export const useDownloadsStore = create<DownloadsState>((set, get) => ({
       }
     }
 
-    // Remove from state
     set((s) => ({
       downloads: s.downloads.filter((d) => d.id !== id),
     }));
@@ -412,31 +332,6 @@ export const useDownloadsStore = create<DownloadsState>((set, get) => ({
     if (dbFunctions) {
       await dbFunctions.deleteFromDb(id);
     }
-  },
-
-  retryDownload: async (id) => {
-    const download = get().downloads.find((d) => d.id === id);
-    if (!download || download.status !== "failed") return;
-
-    // Reset status and add to queue
-    const updates = {
-      status: "pending" as DownloadStatus,
-      progress: 0,
-    };
-
-    set((s) => ({
-      downloads: s.downloads.map((d) =>
-        d.id === id ? { ...d, ...updates } : d
-      ),
-      downloadQueue: [...s.downloadQueue, id],
-    }));
-
-    if (dbFunctions) {
-      await dbFunctions.updateInDb(id, updates);
-    }
-
-    // Start processing
-    get().processQueue();
   },
 
   getDownloadForMedia: (tmdbId, seasonNumber, episodeNumber) => {
@@ -456,12 +351,6 @@ export const useDownloadsStore = create<DownloadsState>((set, get) => ({
 
   getCompletedDownloads: () => {
     return get().downloads.filter((d) => d.status === "completed");
-  },
-
-  getPendingDownloads: () => {
-    return get().downloads.filter(
-      (d) => d.status === "pending" || d.status === "caching" || d.status === "downloading"
-    );
   },
 }));
 

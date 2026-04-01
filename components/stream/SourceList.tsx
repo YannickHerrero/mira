@@ -211,7 +211,7 @@ export function SourceList({
   const actionSheetRef = React.useRef<BottomSheetModal>(null);
   
   const realDebridApiKey = useApiKeyStore((s) => s.realDebridApiKey);
-  const { queueDownload } = useDownloads();
+  const { startDownload } = useDownloads();
   const { download, isDownloading, isDownloaded } = useDownloadStatus(
     tmdbId ?? 0,
     seasonNumber,
@@ -462,7 +462,7 @@ export function SourceList({
     if (!selectedStream.url && !selectedStream.infoHash) return;
 
     try {
-      await queueDownload({
+      await startDownload({
         tmdbId,
         mediaType,
         seasonNumber,
@@ -483,7 +483,7 @@ export function SourceList({
     episodeNumber,
     title,
     posterPath,
-    queueDownload,
+    startDownload,
   ]);
 
   const selectedPlaybackState = React.useMemo<PlaybackCacheState>(() => {

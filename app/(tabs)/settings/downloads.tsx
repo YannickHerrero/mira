@@ -7,7 +7,7 @@ import { useDownloads } from "@/hooks/useDownloads";
 import { formatBytes, type DownloadItem } from "@/stores/downloads";
 import { type DownloadStatus } from "@/lib/download-manager";
 import { getPosterUrl } from "@/lib/types";
-import { Trash, RefreshCw, Clock, Download, CheckCircle, XCircle, Loader, AlertCircle } from "@/lib/icons";
+import { Trash, Clock, Download, CheckCircle, XCircle, Loader, AlertCircle } from "@/lib/icons";
 import { cn } from "@/lib/utils";
 
 function getStatusIcon(status: DownloadStatus) {
@@ -73,7 +73,7 @@ function getStatusText(status: DownloadStatus, t: (key: string, options?: Record
 
 export default function DownloadsSettings() {
   const { t } = useTranslation();
-  const { downloads, isInitialized, cancelDownload, deleteDownload, retryDownload } = useDownloads();
+  const { downloads, isInitialized, cancelDownload, deleteDownload } = useDownloads();
 
   const handleDelete = (id: string, title: string) => {
     Alert.alert(
@@ -95,10 +95,6 @@ export default function DownloadsSettings() {
         },
       ]
     );
-  };
-
-  const handleRetry = (id: string) => {
-    retryDownload(id);
   };
 
   if (!isInitialized) {
@@ -123,9 +119,6 @@ export default function DownloadsSettings() {
     return (statusOrder[a.status] ?? 99) - (statusOrder[b.status] ?? 99);
   });
 
-  const activeDownloads = sortedDownloads.filter(
-    (d) => d.status === "downloading" || d.status === "caching" || d.status === "pending"
-  );
   const failedDownloads = sortedDownloads.filter(
     (d) => d.status === "failed" || d.status === "paused" || d.status === "unplayable"
   );
@@ -147,29 +140,6 @@ export default function DownloadsSettings() {
           </View>
         ) : (
           <>
-            {/* Active/Pending Downloads */}
-            {activeDownloads.length > 0 && (
-              <View className="mb-6">
-                <View className="mb-3">
-                  <Muted className="uppercase text-xs font-bold opacity-50 px-1">
-                    {t("downloads.queue")} ({activeDownloads.length})
-                  </Muted>
-                </View>
-                <View className="bg-surface0/20 rounded-2xl overflow-hidden">
-                  {activeDownloads.map((download, index) => (
-                    <DownloadItemRow
-                      key={download.id}
-                      download={download}
-                      onDelete={() => handleDelete(download.id, download.title)}
-                      onRetry={() => handleRetry(download.id)}
-                      isLast={index === activeDownloads.length - 1}
-                      t={t}
-                    />
-                  ))}
-                </View>
-              </View>
-            )}
-
             {/* Failed Downloads */}
             {failedDownloads.length > 0 && (
               <View className="mb-6">
@@ -184,7 +154,6 @@ export default function DownloadsSettings() {
                       key={download.id}
                       download={download}
                       onDelete={() => handleDelete(download.id, download.title)}
-                      onRetry={() => handleRetry(download.id)}
                       isLast={index === failedDownloads.length - 1}
                       t={t}
                     />
@@ -207,7 +176,6 @@ export default function DownloadsSettings() {
                       key={download.id}
                       download={download}
                       onDelete={() => handleDelete(download.id, download.title)}
-                      onRetry={() => handleRetry(download.id)}
                       isLast={index === completedDownloads.length - 1}
                       t={t}
                     />
@@ -225,16 +193,13 @@ export default function DownloadsSettings() {
 interface DownloadItemRowProps {
   download: DownloadItem;
   onDelete: () => void;
-  onRetry: () => void;
   isLast: boolean;
   t: (key: string, options?: Record<string, unknown>) => string;
 }
 
-function DownloadItemRow({ download, onDelete, onRetry, isLast, t }: DownloadItemRowProps) {
+function DownloadItemRow({ download, onDelete, isLast, t }: DownloadItemRowProps) {
   const StatusIcon = getStatusIcon(download.status);
   const statusColor = getStatusColor(download.status);
-  // Don't allow retry for unplayable files - they'll never work
-  const canRetry = download.status === "failed" || download.status === "paused";
   const isActive = download.status === "downloading" || download.status === "caching";
 
   // Format episode info if available
@@ -305,14 +270,6 @@ function DownloadItemRow({ download, onDelete, onRetry, isLast, t }: DownloadIte
 
       {/* Actions */}
       <View className="flex-row items-center gap-1">
-        {canRetry && (
-          <Pressable
-            onPress={onRetry}
-            className="p-2 rounded-full active:bg-surface1"
-          >
-            <RefreshCw size={20} className="text-blue" />
-          </Pressable>
-        )}
         <Pressable
           onPress={onDelete}
           className="p-2 rounded-full active:bg-surface1"

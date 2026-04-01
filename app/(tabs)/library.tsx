@@ -66,7 +66,7 @@ export default function LibraryScreen() {
   } = useListItems(defaultList?.id ?? null);
   const { items: favoriteItems, isLoading: loadingFavorites, refetch: refetchFavorites } = useFavorites();
   const { items: downloadItems, isLoading: loadingDownloads } = useDownloadsList();
-  const { deleteDownload, retryDownload } = useDownloads();
+  const { deleteDownload } = useDownloads();
   const { playMedia } = useMediaPlayer();
 
   // Ensure default list exists and migrate old watchlist on first load
@@ -144,12 +144,9 @@ export default function LibraryScreen() {
           // File doesn't exist, show error
           console.error("Downloaded file not found:", download.filePath);
         }
-      } else if (download.status === "failed") {
-        // Retry failed download
-        retryDownload(download.id);
       }
     },
-    [playMedia, retryDownload]
+    [playMedia]
   );
 
   const handleDownloadLongPress = React.useCallback((download: DownloadItem) => {
@@ -179,11 +176,9 @@ export default function LibraryScreen() {
   }, [selectedDownload, deleteDownload]);
 
   const handleRetryDownload = React.useCallback(() => {
-    if (selectedDownload?.status === "failed") {
-      retryDownload(selectedDownload.id);
-      setSelectedDownload(null);
-    }
-  }, [selectedDownload, retryDownload]);
+    // Retry is no longer supported — user should re-initiate from sources
+    setSelectedDownload(null);
+  }, []);
 
   const renderContent = () => {
     switch (activeTab) {

@@ -84,14 +84,14 @@ export function useDownloads() {
     store.initialize(loadFromDb, saveToDb, updateInDb, deleteFromDb);
   }, [db, store.isInitialized, store.initialize]);
 
-  const queueDownload = React.useCallback(
+  const startDownload = React.useCallback(
     async (params: StartDownloadParams): Promise<string> => {
       if (!isDownloadSupported()) {
         throw new Error("Downloads are not supported on this platform");
       }
-      return store.queueDownload(params);
+      return store.startDownload(params);
     },
-    [store.queueDownload]
+    [store.startDownload]
   );
 
   return {
@@ -100,13 +100,11 @@ export function useDownloads() {
     isInitialized: store.isInitialized,
     activeDownload: store.getActiveDownload(),
     completedDownloads: store.getCompletedDownloads(),
-    pendingDownloads: store.getPendingDownloads(),
 
     // Actions
-    queueDownload,
+    startDownload,
     cancelDownload: store.cancelDownload,
     deleteDownload: store.deleteDownload,
-    retryDownload: store.retryDownload,
 
     // Queries
     getDownloadForMedia: store.getDownloadForMedia,
@@ -137,7 +135,6 @@ export function useDownloadStatus(
     isDownloaded: download?.status === "completed",
     isDownloading:
       download?.status === "downloading" ||
-      download?.status === "pending" ||
       download?.status === "caching",
     isFailed: download?.status === "failed",
     progress: download?.progress ?? 0,
