@@ -12,6 +12,7 @@ import {
   DownloadInfoSheet,
 } from "@/components/downloads";
 import { AniListWatchListItem } from "@/components/anilist/AniListWatchListItem";
+import { AddAniListAnimeSheet } from "@/components/anilist/AddAniListAnimeSheet";
 import { BottomSheet } from "@/components/primitives/bottomSheet/bottom-sheet.native";
 import {
   useContinueWatching,
@@ -90,6 +91,7 @@ export default function LibraryScreen() {
   // Bottom sheet for download info
   const [selectedDownload, setSelectedDownload] = React.useState<DownloadItem | null>(null);
   const downloadInfoSheetRef = React.useRef<BottomSheetModal>(null);
+  const addAniListSheetRef = React.useRef<BottomSheetModal>(null);
 
 
   // Refetch data when screen gains focus
@@ -261,15 +263,6 @@ export default function LibraryScreen() {
         if (loadingAnilist && anilistItems.length === 0) {
           return <AniListLoadingState />;
         }
-        if (anilistItems.length === 0) {
-          return (
-            <EmptyState
-              icon={<BookOpen size={48} className="text-subtext0" />}
-              title={t("library.anilistEmpty")}
-              description={t("library.anilistEmptyDesc")}
-            />
-          );
-        }
         return (
           <ScrollView
             className="flex-1"
@@ -279,6 +272,17 @@ export default function LibraryScreen() {
               <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
             }
           >
+            {anilistItems.length === 0 && (
+              <View className="items-center py-8">
+                <BookOpen size={48} className="text-subtext0" />
+                <Text className="text-base font-medium text-subtext0 mt-3">
+                  {t("library.anilistEmpty")}
+                </Text>
+                <Text className="text-sm text-subtext0 mt-1">
+                  {t("library.anilistEmptyDesc")}
+                </Text>
+              </View>
+            )}
             {anilistItems.map((entry) => (
               <AniListWatchListItem
                 key={entry.id}
@@ -286,6 +290,25 @@ export default function LibraryScreen() {
                 onUpdateProgress={updateAnilistProgress}
               />
             ))}
+            <Pressable
+              onPress={() => {
+                lightImpact();
+                addAniListSheetRef.current?.present();
+              }}
+              className="flex-row items-center rounded-2xl border border-dashed border-surface1/60 px-4 py-3 active:opacity-70 mt-1"
+            >
+              <View className="w-5 h-5 mr-3 items-center justify-center">
+                <Plus size={20} className="text-lavender" />
+              </View>
+              <View>
+                <Text className="text-base text-text font-medium">
+                  {t("library.anilistAddAnime")}
+                </Text>
+                <Text className="text-xs text-subtext0">
+                  {t("library.anilistAddAnimeDesc")}
+                </Text>
+              </View>
+            </Pressable>
           </ScrollView>
         );
     }
@@ -362,6 +385,16 @@ export default function LibraryScreen() {
             sheetRef={downloadInfoSheetRef}
             download={selectedDownload}
             onDelete={handleDeleteDownload}
+          />
+        </BottomSheet>
+      )}
+
+      {/* Add AniList Anime Sheet */}
+      {showAniListTab && (
+        <BottomSheet>
+          <AddAniListAnimeSheet
+            sheetRef={addAniListSheetRef}
+            onAnimeAdded={refetchAnilist}
           />
         </BottomSheet>
       )}
