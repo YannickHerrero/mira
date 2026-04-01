@@ -39,9 +39,38 @@ type AniListProgressResponse = {
   } | null;
 };
 
+export type AniListMediaListEntry = {
+  id: number;
+  progress: number;
+  media: {
+    id: number;
+    title: AniListTitle;
+    episodes: number | null;
+    coverImage: AniListCoverImage | null;
+    format: string | null;
+    status: string | null;
+  };
+};
+
+type AniListViewerResponse = {
+  Viewer: {
+    id: number;
+  };
+};
+
+type AniListMediaListCollectionResponse = {
+  MediaListCollection: {
+    lists: Array<{
+      entries: AniListMediaListEntry[];
+    }>;
+  } | null;
+};
+
 const ANILIST_API_URL = "https://graphql.anilist.co";
 
 export class AniListClient {
+  private viewerId: number | null = null;
+
   constructor(private accessToken: string | null) {}
 
   private async request<T>(query: string, variables?: Record<string, unknown>): Promise<T> {
@@ -155,6 +184,54 @@ export class AniListClient {
       progress,
       status: status ?? null,
     });
+  }
+
+  async getViewerId(): Promise<number> {
+    if (this.viewerId !== null) return this.viewerId;
+
+    const query = `
+      query {
+        Viewer {
+          id
+        }
+      }
+    `;
+
+    const data = await this.request<AniListViewerResponse>(query);
+    this.viewerId = data.Viewer.id;
+    return this.viewerId;
+  }
+
+  async getWatchingList(): Promise<AniListMediaListEntry[]> {
+    const userId = await this.getViewerId();
+
+    const query = `
+      query ($userId: Int!, $status: MediaListStatus) {
+        MediaListCollection(userId: $userId, type: ANIME, status: $status) {
+          lists {
+            entries {
+              id
+              progress
+              media {
+                id
+                title { romaji english native }
+                episodes
+                coverImage { medium }
+                format
+                status
+              }
+            }
+          }
+        }
+      }
+    `;
+
+    const data = await this.request<AniListMediaListCollectionResponse>(query, {
+      userId,
+      status: "CURRENT",
+    });
+
+    return data.MediaListCollection?.lists.flatMap((list) => list.entries) ?? [];
   }
 }
 
