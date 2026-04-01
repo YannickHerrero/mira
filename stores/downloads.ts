@@ -138,14 +138,26 @@ export const useDownloadsStore = create<DownloadsState>((set, get) => ({
       throw new Error("A download is already in progress");
     }
 
-    // Check if already downloaded
+    // Block if this content is currently downloading
     const existing = get().getDownloadForMedia(tmdbId, seasonNumber, episodeNumber);
+    if (existing && (existing.status === "downloading" || existing.status === "caching")) {
+      throw new Error("This content is already downloading");
+    }
+
+    // Remove previous download record if re-downloading
     if (existing) {
-      if (existing.status === "completed") {
-        throw new Error("This content is already downloaded");
+      if (existing.filePath) {
+        try {
+          await deleteDownloadFile(existing.filePath);
+        } catch {
+          // Ignore - old file may not exist
+        }
       }
-      if (existing.status === "downloading" || existing.status === "caching") {
-        throw new Error("This content is already downloading");
+      set((s) => ({
+        downloads: s.downloads.filter((d) => d.id !== existing.id),
+      }));
+      if (dbFunctions) {
+        await dbFunctions.deleteFromDb(existing.id);
       }
     }
 
