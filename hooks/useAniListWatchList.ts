@@ -88,7 +88,7 @@ export function useAniListWatchList() {
           await fetchList();
           setError("Failed to update progress");
         }
-      }, 500);
+      }, 1500);
 
       debounceTimers.current.set(mediaId, timer);
     },
