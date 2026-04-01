@@ -53,11 +53,10 @@ export function useContinueWatching() {
     if (!db) return;
 
     try {
-      // Get progress entries ordered by most recent
+      // Get all progress entries ordered by most recent
       const progressResult = await db
         .select()
         .from(watchProgressTable)
-        .where(eq(watchProgressTable.completed, false))
         .orderBy(desc(watchProgressTable.updatedAt));
 
       // Deduplicate: keep only the most recent episode per TV show
