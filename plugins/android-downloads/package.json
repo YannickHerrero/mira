@@ -1,0 +1,13 @@
+{
+  "name": "@mira/android-downloads",
+  "version": "1.0.0",
+  "description": "Expo config plugin for copying downloads to Android public Downloads folder",
+  "main": "index.js",
+  "private": true,
+  "keywords": [
+    "expo",
+    "expo-config-plugin",
+    "android",
+    "downloads"
+  ]
+}

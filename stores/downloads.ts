@@ -14,7 +14,6 @@ import {
 import { createRealDebridClient, UnplayableFileError } from "@/lib/api/realdebrid";
 import type { MediaType, Stream } from "@/lib/types";
 import { useApiKeyStore } from "@/stores/api-keys";
-import { useSettingsStore } from "@/stores/settings";
 
 export interface DownloadItem {
   id: string;
@@ -251,20 +250,11 @@ export const useDownloadsStore = create<DownloadsState>((set, get) => ({
 
       let finalFilePath = result.filePath;
 
-      // On Android, copy to public Downloads folder
+      // On Android, copy to public Downloads folder via native module
       if (Platform.OS === "android") {
-        const { safDirectoryUri, setSafDirectoryUri } = useSettingsStore.getState();
-        const copyResult = await copyToPublicDownloads(
-          result.filePath,
-          fileName,
-          safDirectoryUri
-        );
-        if (copyResult) {
-          finalFilePath = copyResult.fileUri;
-          // Persist the directory URI so we don't re-prompt
-          if (copyResult.directoryUri !== safDirectoryUri) {
-            setSafDirectoryUri(copyResult.directoryUri);
-          }
+        const publicUri = await copyToPublicDownloads(result.filePath, fileName);
+        if (publicUri) {
+          finalFilePath = publicUri;
         }
       }
 

@@ -58,6 +58,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     "react-native-vlc-media-player",
     "@bacons/apple-targets",
     "./plugins/android-widget",
+    "./plugins/android-downloads",
     [
       "expo-build-properties",
       {

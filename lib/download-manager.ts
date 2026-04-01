@@ -1,6 +1,6 @@
 import { File, Directory, Paths } from "expo-file-system";
 import * as LegacyFileSystem from "expo-file-system/legacy";
-import { Platform } from "react-native";
+import { Platform, NativeModules } from "react-native";
 
 export type DownloadStatus =
   | "pending"
@@ -71,58 +71,37 @@ export function getFilePath(fileName: string): string {
   return `${dir.uri}${fileName}`;
 }
 
+interface DownloadsCopyModule {
+  copyToDownloads(
+    sourcePath: string,
+    fileName: string,
+    mimeType: string,
+    deleteSource: boolean
+  ): Promise<string>;
+}
+
+const MiraDownloadsCopy: DownloadsCopyModule | undefined =
+  Platform.OS === "android" ? NativeModules.MiraDownloadsCopy : undefined;
+
 /**
- * Copy a downloaded file to Android's public Downloads folder using SAF.
- * Returns the public file URI, or null if the copy failed.
+ * Copy a downloaded file to Android's public Downloads folder using MediaStore.
+ * Uses a native module with buffered stream copy — safe for large files (2GB+).
+ * Returns the content URI of the copied file, or null on failure.
  */
 export async function copyToPublicDownloads(
   sourcePath: string,
-  fileName: string,
-  savedDirectoryUri: string | null
-): Promise<{ fileUri: string; directoryUri: string } | null> {
-  if (Platform.OS !== "android") return null;
+  fileName: string
+): Promise<string | null> {
+  if (Platform.OS !== "android" || !MiraDownloadsCopy) return null;
 
   try {
-    const { StorageAccessFramework } = LegacyFileSystem;
-
-    // Request directory access if we don't have a saved URI
-    let directoryUri = savedDirectoryUri;
-    if (!directoryUri) {
-      const permissions = await StorageAccessFramework.requestDirectoryPermissionsAsync();
-      if (!permissions.granted) {
-        console.warn("SAF directory permission denied");
-        return null;
-      }
-      directoryUri = permissions.directoryUri;
-    }
-
-    // Create the file in the chosen directory
-    const fileUri = await StorageAccessFramework.createFileAsync(
-      directoryUri,
+    const uri = await MiraDownloadsCopy.copyToDownloads(
+      sourcePath,
       fileName,
-      "video/mp4"
+      "video/mp4",
+      true // delete source after copy
     );
-
-    // Read source file as base64 and write to SAF destination
-    const base64Content = await LegacyFileSystem.readAsStringAsync(sourcePath, {
-      encoding: LegacyFileSystem.EncodingType.Base64,
-    });
-
-    await LegacyFileSystem.writeAsStringAsync(fileUri, base64Content, {
-      encoding: LegacyFileSystem.EncodingType.Base64,
-    });
-
-    // Delete the app-private copy
-    try {
-      const sourceFile = new File(sourcePath);
-      if (sourceFile.exists) {
-        await sourceFile.delete();
-      }
-    } catch {
-      // Non-critical — the public copy succeeded
-    }
-
-    return { fileUri, directoryUri };
+    return uri;
   } catch (error) {
     console.error("Failed to copy to public Downloads:", error);
     return null;
