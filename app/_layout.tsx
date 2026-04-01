@@ -15,6 +15,7 @@ import { setAndroidNavigationBar } from "@/lib/android-navigation-bar";
 import { DARK_THEME } from "@/lib/constants";
 import { useFrameworkReady } from "@/hooks/useFrameworkReady";
 import { useLanguage } from "@/hooks/useLanguage";
+import { useOTAUpdates } from "@/hooks/useOTAUpdates";
 import {
   Raleway_400Regular,
   Raleway_600SemiBold,
@@ -46,6 +47,9 @@ SplashScreen.preventAutoHideAsync();
 export default function RootLayout() {
   // Initialize language on app start
   useLanguage();
+
+  // Check for OTA updates
+  useOTAUpdates();
 
   const [loaded, error] = useFonts({
     Raleway_400Regular,
