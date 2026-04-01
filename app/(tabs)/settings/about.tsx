@@ -2,12 +2,14 @@ import { useState } from "react";
 import { View, Linking, Platform, Alert, ActivityIndicator } from "react-native";
 import { ScrollView } from "react-native-gesture-handler";
 import * as WebBrowser from "expo-web-browser";
+import Constants from "expo-constants";
 import { useTranslation } from "react-i18next";
 import ListItem from "@/components/ui/list-item";
 import { Text } from "@/components/ui/text";
 import { Muted } from "@/components/ui/typography";
 import { SettingsPageHeader } from "@/components/settings/SettingsPageHeader";
-import { Send, Star, Download, Trash, Info } from "@/lib/icons";
+import { Send, Star, Download, Trash, Info, RefreshCw } from "@/lib/icons";
+import { useOTAUpdates } from "@/hooks/useOTAUpdates";
 import { useDatabase } from "@/db/provider";
 import { listsTable, listItemsTable, mediaTable } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
@@ -24,6 +26,7 @@ import { getAndroidWidgetDebugInfo } from "@/lib/widget/android-storage";
 export default function AboutSettings() {
   const { t } = useTranslation();
   const { db } = useDatabase();
+  const { checkForUpdate, isChecking } = useOTAUpdates();
   const [isCaching, setIsCaching] = useState(false);
   const [cachingProgress, setCachingProgress] = useState<string | null>(null);
 
@@ -203,6 +206,19 @@ export default function AboutSettings() {
             onPress={() => openExternalURL("https://github.com/YannickHerrero/mira/issues")}
             className="border-0 border-b border-surface1/30"
           />
+          <ListItem
+            itemLeft={(props) =>
+              isChecking ? (
+                <ActivityIndicator size="small" className={props.className} />
+              ) : (
+                <RefreshCw {...props} />
+              )
+            }
+            label={isChecking ? "Checking for updates..." : "Check for Updates"}
+            onPress={checkForUpdate}
+            disabled={isChecking}
+            className="border-0"
+          />
         </View>
 
         {/* Widget Section */}
@@ -249,7 +265,7 @@ export default function AboutSettings() {
         {/* Version */}
         <View className="py-8 items-center">
           <Text className="text-subtext0 text-sm">
-            {t("settings.version", { version: "1.0.0" })}
+            {t("settings.version", { version: Constants.expoConfig?.version ?? "1.0.0" })}
           </Text>
         </View>
       </ScrollView>
