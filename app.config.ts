@@ -1,14 +1,17 @@
 import type { ConfigContext, ExpoConfig } from "@expo/config";
 
-export default ({ config }: ConfigContext): ExpoConfig => ({
-  ...config,
-  name: "Mira",
-  slug: "mira",
-  newArchEnabled: true,
-  version: "1.0.0",
-  orientation: "portrait",
-  icon: "./assets/images/icon.png",
-  scheme: "mira",
+export default ({ config }: ConfigContext): ExpoConfig => {
+  const isDev = process.env.APP_VARIANT === "development";
+
+  return {
+    ...config,
+    name: isDev ? "Mira (Dev)" : "Mira",
+    slug: "mira",
+    newArchEnabled: true,
+    version: "1.0.0",
+    orientation: "portrait",
+    icon: "./assets/images/icon.png",
+    scheme: isDev ? "mira-dev" : "mira",
   userInterfaceStyle: "dark",
   runtimeVersion: {
     policy: "appVersion",
@@ -18,11 +21,13 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ios: {
     newArchEnabled: true,
     supportsTablet: true,
-    bundleIdentifier: "com.yherrero.mira",
+    bundleIdentifier: isDev ? "com.yherrero.mira.dev" : "com.yherrero.mira",
     // TODO: Replace with your Apple Developer Team ID (found in Apple Developer Portal)
     appleTeamId: "YOUR_TEAM_ID",
     entitlements: {
-      "com.apple.security.application-groups": ["group.com.yherrero.mira"],
+      "com.apple.security.application-groups": [
+        isDev ? "group.com.yherrero.mira.dev" : "group.com.yherrero.mira",
+      ],
     },
     infoPlist: {
       ITSAppUsesNonExemptEncryption: false,
@@ -40,7 +45,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       foregroundImage: "./assets/images/adaptive-icon.png",
       backgroundColor: "#08080a",
     },
-    package: "com.yherrero.mira",
+    package: isDev ? "com.yherrero.mira.dev" : "com.yherrero.mira",
   },
   web: {
     bundler: "metro",
@@ -89,4 +94,5 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     },
   },
   owner: "yherrero",
-});
+  };
+};
