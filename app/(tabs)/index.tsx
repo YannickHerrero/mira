@@ -10,7 +10,6 @@ import {
   ContinueWatchingList,
   NewReleasesCarousel,
 } from "@/components/home";
-import { useMigrationHelper } from "@/db/drizzle";
 import { useApiKeys } from "@/hooks/useApiKeys";
 import { useDeviceLayout } from "@/hooks/useDeviceLayout";
 import { useTrending } from "@/hooks/useTrending";
@@ -24,7 +23,6 @@ import type { Media, MediaType } from "@/lib/types";
 export default function HomeScreen() {
   const router = useRouter();
   const { t } = useTranslation();
-  const { success, error: migrationError } = useMigrationHelper();
   const { isConfigured, isLoading: loadingKeys } = useApiKeys();
   const { isTabletLandscape } = useDeviceLayout();
 
@@ -116,29 +114,6 @@ export default function HomeScreen() {
 
     return null;
   }, [continueItems, trendingTv]);
-
-  // Migration error
-  if (migrationError) {
-    return (
-      <TabContentWrapper className="bg-base">
-        <View className="flex-1 items-center justify-center px-6">
-          <Text className="text-red">{t("home.migrationError", { message: migrationError.message })}</Text>
-        </View>
-      </TabContentWrapper>
-    );
-  }
-
-  // Loading migration
-  if (!success) {
-    return (
-      <TabContentWrapper className="bg-base">
-        <View className="flex-1 items-center justify-center px-6">
-          <ActivityIndicator size="large" />
-          <Text className="text-subtext0 mt-4">{t("home.loading")}</Text>
-        </View>
-      </TabContentWrapper>
-    );
-  }
 
   // Not configured - prompt to set up API keys
   if (!loadingKeys && !isConfigured) {
