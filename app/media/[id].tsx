@@ -30,6 +30,7 @@ import {
   EpisodeCard,
   MediaSectionSkeleton,
 } from "@/components/media";
+import { SeasonDownloadSheet } from "@/components/media/SeasonDownloadSheet";
 import { MediaSection } from "@/components/library";
 import { ListSelectorSheet } from "@/components/lists";
 import {
@@ -154,8 +155,9 @@ export default function MediaDetailScreen() {
   const actionSheetRef = React.useRef<BottomSheetModal>(null);
   const listSelectorSheetRef = React.useRef<BottomSheetModal>(null);
   const trackingSheetRef = React.useRef<BottomSheetModal>(null);
+  const seasonDownloadSheetRef = React.useRef<BottomSheetModal>(null);
 
-  const { enableAnilistSync, loadSettings } = useSettingsStore();
+  const { enableAnilistSync, downloadOnlyMode, loadSettings } = useSettingsStore();
   const {
     mappings: aniListMappings,
     loadState: loadAniListState,
@@ -633,6 +635,7 @@ export default function MediaDetailScreen() {
           seasons={seasons}
           selectedSeason={selectedSeason}
           onSelectSeason={setSelectedSeason}
+          onDownloadSeason={downloadOnlyMode ? () => seasonDownloadSheetRef.current?.present() : undefined}
         />
 
         <View className="px-4 mt-2">
@@ -1078,6 +1081,23 @@ export default function MediaDetailScreen() {
           onComplete={handleListSelectorComplete}
         />
       </BottomSheet>
+
+      {/* Season download sheet */}
+      {mediaType === "tv" && downloadOnlyMode && (
+        <BottomSheet>
+          <SeasonDownloadSheet
+            sheetRef={seasonDownloadSheetRef}
+            episodes={episodes}
+            tmdbId={tmdbId}
+            mediaType={mediaType}
+            title={media?.title ?? ""}
+            posterPath={media?.posterPath}
+            imdbId={imdbId}
+            isAnime={media?.genres?.includes("Animation") ?? false}
+            originalTitle={media?.titleOriginal}
+          />
+        </BottomSheet>
+      )}
     </View>
   );
 }
