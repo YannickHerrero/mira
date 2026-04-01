@@ -7,20 +7,17 @@ import { useDownloads } from "@/hooks/useDownloads";
 import { formatBytes, type DownloadItem } from "@/stores/downloads";
 import { type DownloadStatus } from "@/lib/download-manager";
 import { getPosterUrl } from "@/lib/types";
-import { Trash, Clock, Download, CheckCircle, XCircle, Loader, AlertCircle } from "@/lib/icons";
+import { Trash, Download, CheckCircle, XCircle, Loader, AlertCircle } from "@/lib/icons";
 import { cn } from "@/lib/utils";
 
 function getStatusIcon(status: DownloadStatus) {
   switch (status) {
-    case "pending":
-      return Clock;
     case "caching":
     case "downloading":
       return Loader;
     case "completed":
       return CheckCircle;
     case "failed":
-    case "paused":
       return XCircle;
     case "unplayable":
       return AlertCircle;
@@ -31,15 +28,12 @@ function getStatusIcon(status: DownloadStatus) {
 
 function getStatusColor(status: DownloadStatus): string {
   switch (status) {
-    case "pending":
-      return "text-yellow";
     case "caching":
     case "downloading":
       return "text-blue";
     case "completed":
       return "text-green";
     case "failed":
-    case "paused":
       return "text-red";
     case "unplayable":
       return "text-peach";
@@ -50,8 +44,6 @@ function getStatusColor(status: DownloadStatus): string {
 
 function getStatusText(status: DownloadStatus, t: (key: string, options?: Record<string, unknown>) => string, failureReason?: string): string {
   switch (status) {
-    case "pending":
-      return t("downloads.statusPending");
     case "caching":
       return t("downloads.statusCaching");
     case "downloading":
@@ -60,8 +52,6 @@ function getStatusText(status: DownloadStatus, t: (key: string, options?: Record
       return t("downloads.statusCompleted");
     case "failed":
       return t("downloads.statusFailed");
-    case "paused":
-      return t("downloads.statusPaused");
     case "unplayable":
       return failureReason 
         ? t("downloads.statusUnplayableFormat", { format: failureReason.toUpperCase() })
@@ -105,22 +95,20 @@ export default function DownloadsSettings() {
     );
   }
 
-  // Sort downloads: active first, then pending, then failed/unplayable, then completed
+  // Sort downloads: failed/unplayable first, then completed
   const sortedDownloads = [...downloads].sort((a, b) => {
-    const statusOrder: Record<DownloadStatus, number> = {
+    const statusOrder: Record<string, number> = {
       downloading: 0,
       caching: 1,
-      pending: 2,
-      failed: 3,
-      unplayable: 4,
-      paused: 5,
-      completed: 6,
+      failed: 2,
+      unplayable: 3,
+      completed: 4,
     };
     return (statusOrder[a.status] ?? 99) - (statusOrder[b.status] ?? 99);
   });
 
   const failedDownloads = sortedDownloads.filter(
-    (d) => d.status === "failed" || d.status === "paused" || d.status === "unplayable"
+    (d) => d.status === "failed" || d.status === "unplayable"
   );
   const completedDownloads = sortedDownloads.filter((d) => d.status === "completed");
 

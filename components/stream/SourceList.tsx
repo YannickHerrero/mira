@@ -585,15 +585,14 @@ export function SourceList({
       const normalizedHash = item.infoHash?.toLowerCase();
       const isCaching = normalizedHash ? cachingHashes.has(normalizedHash) : false;
 
-      // For download status indicator (downloading/pending/caching)
+      // For download status indicator (downloading/caching)
       const streamDownloadStatus = isThisStreamDownloaded
         ? "completed"
         : download?.status === "downloading" ||
-            download?.status === "pending" ||
             download?.status === "caching"
           ? download.status
           : download?.status === "completed"
-            ? "completed" // Another source is downloaded, show muted state
+            ? "completed"
             : null;
 
        return (

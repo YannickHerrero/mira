@@ -4,7 +4,6 @@ import { Text } from "@/components/ui/text";
 import { Download, Play, AlertCircle } from "@/lib/icons";
 import { formatBytes } from "@/stores/downloads";
 import { getPosterUrl } from "@/lib/types";
-import { cn } from "@/lib/utils";
 import type { DownloadItem } from "@/stores/downloads";
 
 interface DownloadedItemCardProps {
@@ -19,9 +18,6 @@ export function DownloadedItemCard({
   onLongPress,
 }: DownloadedItemCardProps) {
   const posterUrl = getPosterUrl(download.posterPath, "small");
-  const isCaching = download.status === "caching";
-  const isDownloading =
-    download.status === "downloading" || download.status === "pending" || isCaching;
   const isFailed = download.status === "failed";
 
   return (
@@ -42,13 +38,6 @@ export function DownloadedItemCard({
         ) : (
           <View className="w-full h-full items-center justify-center">
             <Download size={24} className="text-subtext0" />
-          </View>
-        )}
-
-        {/* Overlay for status */}
-        {isDownloading && (
-          <View className="absolute inset-0 bg-black/50 items-center justify-center">
-            <View className="w-10 h-10 rounded-full border-2 border-white border-t-transparent animate-spin" />
           </View>
         )}
       </View>
@@ -77,37 +66,12 @@ export function DownloadedItemCard({
           {isFailed ? (
             <>
               <AlertCircle size={14} className="text-red mr-1" />
-              <Text className="text-xs text-red">
-                Download failed - tap to retry
-              </Text>
-            </>
-          ) : isDownloading ? (
-            <>
-              <Download size={14} className="text-subtext0 mr-1" />
-              <Text className="text-xs text-subtext0">
-                {download.status === "caching"
-                  ? "Caching..."
-                  : download.status === "pending"
-                    ? "Waiting..."
-                    : `${Math.round(download.progress)}%`}
-              </Text>
+              <Text className="text-xs text-red">Download failed</Text>
             </>
           ) : (
-            <Text className="text-xs text-subtext0">
-              Ready to watch
-            </Text>
+            <Text className="text-xs text-subtext0">Ready to watch</Text>
           )}
         </View>
-
-        {/* Progress bar for downloading */}
-        {isDownloading && download.status === "downloading" && (
-          <View className="h-1 bg-surface0 rounded-full mt-2 overflow-hidden">
-            <View
-              className="h-full bg-lavender"
-              style={{ width: `${download.progress}%` }}
-            />
-          </View>
-        )}
       </View>
 
       {/* Play button for completed */}
