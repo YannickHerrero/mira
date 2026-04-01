@@ -8,7 +8,6 @@ export type DownloadStatus =
   | "downloading"
   | "completed"
   | "failed"
-  | "paused"
   | "unplayable";
 
 export interface DownloadProgress {
@@ -19,14 +18,14 @@ export interface DownloadProgress {
 
 export type ProgressCallback = (progress: DownloadProgress) => void;
 
-// Store for active download resumables
-const activeDownloads = new Map<
-  string,
-  LegacyFileSystem.DownloadResumable
->();
+// Store for active download resumable
+let activeDownload: {
+  id: string;
+  resumable: LegacyFileSystem.DownloadResumable;
+} | null = null;
 
-// Store for progress callbacks
-const progressCallbacks = new Map<string, ProgressCallback>();
+// Store for progress callback
+let activeProgressCallback: ProgressCallback | null = null;
 
 /**
  * Get the downloads directory
@@ -53,11 +52,10 @@ export function generateFileName(
   quality?: string,
   extension = "mp4"
 ): string {
-  // Remove or replace unsafe characters
   const safeName = title
     .replace(/[<>:"/\\|?*]/g, "")
     .replace(/\s+/g, "_")
-    .substring(0, 100); // Limit length
+    .substring(0, 100);
 
   const qualitySuffix = quality ? `_${quality}` : "";
   const timestamp = Date.now();
@@ -71,6 +69,64 @@ export function generateFileName(
 export function getFilePath(fileName: string): string {
   const dir = getDownloadsDirectory();
   return `${dir.uri}${fileName}`;
+}
+
+/**
+ * Copy a downloaded file to Android's public Downloads folder using SAF.
+ * Returns the public file URI, or null if the copy failed.
+ */
+export async function copyToPublicDownloads(
+  sourcePath: string,
+  fileName: string,
+  savedDirectoryUri: string | null
+): Promise<{ fileUri: string; directoryUri: string } | null> {
+  if (Platform.OS !== "android") return null;
+
+  try {
+    const { StorageAccessFramework } = LegacyFileSystem;
+
+    // Request directory access if we don't have a saved URI
+    let directoryUri = savedDirectoryUri;
+    if (!directoryUri) {
+      const permissions = await StorageAccessFramework.requestDirectoryPermissionsAsync();
+      if (!permissions.granted) {
+        console.warn("SAF directory permission denied");
+        return null;
+      }
+      directoryUri = permissions.directoryUri;
+    }
+
+    // Create the file in the chosen directory
+    const fileUri = await StorageAccessFramework.createFileAsync(
+      directoryUri,
+      fileName,
+      "video/mp4"
+    );
+
+    // Read source file as base64 and write to SAF destination
+    const base64Content = await LegacyFileSystem.readAsStringAsync(sourcePath, {
+      encoding: LegacyFileSystem.EncodingType.Base64,
+    });
+
+    await LegacyFileSystem.writeAsStringAsync(fileUri, base64Content, {
+      encoding: LegacyFileSystem.EncodingType.Base64,
+    });
+
+    // Delete the app-private copy
+    try {
+      const sourceFile = new File(sourcePath);
+      if (sourceFile.exists) {
+        await sourceFile.delete();
+      }
+    } catch {
+      // Non-critical — the public copy succeeded
+    }
+
+    return { fileUri, directoryUri };
+  } catch (error) {
+    console.error("Failed to copy to public Downloads:", error);
+    return null;
+  }
 }
 
 /**
@@ -90,10 +146,7 @@ export async function startDownload(
 
   const filePath = getFilePath(fileName);
 
-  // Store progress callback
-  if (onProgress) {
-    progressCallbacks.set(downloadId, onProgress);
-  }
+  activeProgressCallback = onProgress ?? null;
 
   const downloadResumable = LegacyFileSystem.createDownloadResumable(
     url,
@@ -105,9 +158,8 @@ export async function startDownload(
           downloadProgress.totalBytesExpectedToWrite) *
         100;
 
-      const callback = progressCallbacks.get(downloadId);
-      if (callback) {
-        callback({
+      if (activeProgressCallback) {
+        activeProgressCallback({
           totalBytesWritten: downloadProgress.totalBytesWritten,
           totalBytesExpectedToWrite:
             downloadProgress.totalBytesExpectedToWrite,
@@ -117,8 +169,7 @@ export async function startDownload(
     }
   );
 
-  // Store the resumable for potential pause/resume
-  activeDownloads.set(downloadId, downloadResumable);
+  activeDownload = { id: downloadId, resumable: downloadResumable };
 
   try {
     const result = await downloadResumable.downloadAsync();
@@ -128,10 +179,9 @@ export async function startDownload(
     }
 
     // Clean up
-    activeDownloads.delete(downloadId);
-    progressCallbacks.delete(downloadId);
+    activeDownload = null;
+    activeProgressCallback = null;
 
-    // Get file size using new API
     const file = new File(result.uri);
     const fileSize = file.exists && file.size ? file.size : 0;
 
@@ -140,119 +190,26 @@ export async function startDownload(
       fileSize,
     };
   } catch (error) {
-    // Clean up on error
-    activeDownloads.delete(downloadId);
-    progressCallbacks.delete(downloadId);
+    activeDownload = null;
+    activeProgressCallback = null;
     throw error;
   }
 }
 
 /**
- * Pause an active download
- */
-export async function pauseDownload(
-  downloadId: string
-): Promise<string | null> {
-  const resumable = activeDownloads.get(downloadId);
-  if (!resumable) {
-    return null;
-  }
-
-  try {
-    const pauseResult = await resumable.pauseAsync();
-    // Return the savable data for resuming later
-    return JSON.stringify(pauseResult);
-  } catch (error) {
-    console.error("Failed to pause download:", error);
-    return null;
-  }
-}
-
-/**
- * Resume a paused download
- */
-export async function resumeDownload(
-  downloadId: string,
-  savedData: string,
-  onProgress?: ProgressCallback
-): Promise<{ filePath: string; fileSize: number }> {
-  if (Platform.OS === "web") {
-    throw new Error("Downloads are not supported on web");
-  }
-
-  // Store progress callback
-  if (onProgress) {
-    progressCallbacks.set(downloadId, onProgress);
-  }
-
-  const pauseData = JSON.parse(savedData);
-
-  const downloadResumable = LegacyFileSystem.createDownloadResumable(
-    pauseData.url,
-    pauseData.fileUri,
-    pauseData.options || {},
-    (downloadProgress: LegacyFileSystem.DownloadProgressData) => {
-      const progress =
-        (downloadProgress.totalBytesWritten /
-          downloadProgress.totalBytesExpectedToWrite) *
-        100;
-
-      const callback = progressCallbacks.get(downloadId);
-      if (callback) {
-        callback({
-          totalBytesWritten: downloadProgress.totalBytesWritten,
-          totalBytesExpectedToWrite:
-            downloadProgress.totalBytesExpectedToWrite,
-          progress,
-        });
-      }
-    },
-    pauseData.resumeData
-  );
-
-  activeDownloads.set(downloadId, downloadResumable);
-
-  try {
-    const result = await downloadResumable.resumeAsync();
-
-    if (!result) {
-      throw new Error("Resume failed - no result returned");
-    }
-
-    // Clean up
-    activeDownloads.delete(downloadId);
-    progressCallbacks.delete(downloadId);
-
-    // Get file size using new API
-    const file = new File(result.uri);
-    const fileSize = file.exists && file.size ? file.size : 0;
-
-    return {
-      filePath: result.uri,
-      fileSize,
-    };
-  } catch (error) {
-    activeDownloads.delete(downloadId);
-    progressCallbacks.delete(downloadId);
-    throw error;
-  }
-}
-
-/**
- * Cancel an active download
+ * Cancel the active download
  */
 export async function cancelDownload(downloadId: string): Promise<void> {
-  const resumable = activeDownloads.get(downloadId);
-  if (resumable) {
+  if (activeDownload && activeDownload.id === downloadId) {
     try {
-      await resumable.pauseAsync();
+      await activeDownload.resumable.pauseAsync();
     } catch {
       // Ignore errors when canceling
     }
   }
 
-  activeDownloads.delete(downloadId);
-  progressCallbacks.delete(downloadId);
+  activeDownload = null;
+  activeProgressCallback = null;
 }
 
 /**

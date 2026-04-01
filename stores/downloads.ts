@@ -1,8 +1,10 @@
 import { create } from "zustand";
 import { createId } from "@paralleldrive/cuid2";
+import { Platform } from "react-native";
 import {
   startDownload,
   cancelDownload,
+  copyToPublicDownloads,
   deleteDownloadFile,
   generateFileName,
   formatBytes,
@@ -12,6 +14,7 @@ import {
 import { createRealDebridClient, UnplayableFileError } from "@/lib/api/realdebrid";
 import type { MediaType, Stream } from "@/lib/types";
 import { useApiKeyStore } from "@/stores/api-keys";
+import { useSettingsStore } from "@/stores/settings";
 
 export interface DownloadItem {
   id: string;
@@ -246,11 +249,30 @@ export const useDownloadsStore = create<DownloadsState>((set, get) => ({
         }
       );
 
+      let finalFilePath = result.filePath;
+
+      // On Android, copy to public Downloads folder
+      if (Platform.OS === "android") {
+        const { safDirectoryUri, setSafDirectoryUri } = useSettingsStore.getState();
+        const copyResult = await copyToPublicDownloads(
+          result.filePath,
+          fileName,
+          safDirectoryUri
+        );
+        if (copyResult) {
+          finalFilePath = copyResult.fileUri;
+          // Persist the directory URI so we don't re-prompt
+          if (copyResult.directoryUri !== safDirectoryUri) {
+            setSafDirectoryUri(copyResult.directoryUri);
+          }
+        }
+      }
+
       const completedAt = new Date().toISOString();
       const updates = {
         status: "completed" as DownloadStatus,
         progress: 100,
-        filePath: result.filePath,
+        filePath: finalFilePath,
         fileSize: result.fileSize,
         completedAt,
       };
