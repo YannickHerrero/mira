@@ -11,6 +11,8 @@ import { SourceCard } from "./SourceCard";
 import { SourceActionSheet } from "./SourceActionSheet";
 import { useDownloads, useDownloadStatus } from "@/hooks/useDownloads";
 import { useMediaPlayer } from "@/hooks/useSettings";
+import { useSettingsStore } from "@/stores/settings";
+import { useDownloadsStore } from "@/stores/downloads";
 import { useApiKeyStore } from "@/stores/api-keys";
 import { createRealDebridClient, UnplayableFileError } from "@/lib/api/realdebrid";
 import { mediumImpact } from "@/lib/haptics";
@@ -211,7 +213,9 @@ export function SourceList({
   const actionSheetRef = React.useRef<BottomSheetModal>(null);
   
   const realDebridApiKey = useApiKeyStore((s) => s.realDebridApiKey);
+  const downloadOnlyMode = useSettingsStore((s) => s.downloadOnlyMode);
   const { startDownload } = useDownloads();
+  const activeDownloadId = useDownloadsStore((s) => s.activeDownloadId);
   const { download, isDownloading, isDownloaded } = useDownloadStatus(
     tmdbId ?? 0,
     seasonNumber,
@@ -406,8 +410,45 @@ export function SourceList({
     [onSelectStream, t]
   );
 
+  const handleDownloadStream = React.useCallback(
+    async (stream: Stream) => {
+      if (!tmdbId || !mediaType || !title) return;
+      if (!stream.url && !stream.infoHash) return;
+
+      if (activeDownloadId) {
+        Alert.alert(
+          t("downloads.inProgressTitle", "Download in Progress"),
+          t("downloads.inProgressMessage", "Please wait for the current download to finish.")
+        );
+        return;
+      }
+
+      try {
+        await startDownload({
+          tmdbId,
+          mediaType,
+          seasonNumber,
+          episodeNumber,
+          title,
+          posterPath,
+          stream,
+        });
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : "Download failed";
+        Alert.alert("Download Error", message);
+      }
+    },
+    [tmdbId, mediaType, title, seasonNumber, episodeNumber, posterPath, startDownload, activeDownloadId, t]
+  );
+
   const handleCardPress = React.useCallback(
     (stream: Stream) => {
+      // Download-only mode: tap downloads instead of streaming
+      if (downloadOnlyMode && Platform.OS !== "web") {
+        handleDownloadStream(stream);
+        return;
+      }
+
       if (stream.url && stream.isCached) {
         confirmAndPlay(stream);
         return;
@@ -428,7 +469,7 @@ export function SourceList({
 
       openActionSheet(stream);
     },
-    [confirmAndPlay, openActionSheet, startPlaybackCache, t]
+    [downloadOnlyMode, handleDownloadStream, confirmAndPlay, openActionSheet, startPlaybackCache, t]
   );
 
   const handlePlay = React.useCallback(async () => {
@@ -711,7 +752,9 @@ export function SourceList({
             )}
             {Platform.OS !== "web" && !isDownloaded && streams.length > 0 && (
               <Text className="text-xs text-subtext0 mb-3">
-                Long press a source to download for offline viewing
+                {downloadOnlyMode
+                  ? "Tap a source to download for offline viewing"
+                  : "Long press a source to download for offline viewing"}
               </Text>
             )}
           </View>
