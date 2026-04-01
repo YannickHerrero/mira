@@ -16,6 +16,9 @@ export default ({ config }: ConfigContext): ExpoConfig => {
   runtimeVersion: {
     policy: "appVersion",
   },
+  updates: {
+    url: "https://u.expo.dev/73c87940-8013-4e8b-b8c0-fbf35a56e3da",
+  },
 
   assetBundlePatterns: ["**/*"],
   ios: {
