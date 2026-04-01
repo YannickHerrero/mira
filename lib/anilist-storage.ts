@@ -44,6 +44,13 @@ export function buildAniListQueueKey(
   return `${tmdbId}:${mediaType}:${seasonNumber ?? ""}:${episodeNumber ?? ""}`;
 }
 
+export function findMappingByAniListId(
+  mappings: Record<string, AniListMapping>,
+  anilistId: number
+): AniListMapping | undefined {
+  return Object.values(mappings).find((m) => m.anilistId === anilistId);
+}
+
 export function getAniListMappings(): Record<string, AniListMapping> {
   return getItem<Record<string, AniListMapping>>(MAPPINGS_KEY) ?? {};
 }
