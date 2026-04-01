@@ -42,7 +42,7 @@ function getStatusColor(status: DownloadStatus): string {
   }
 }
 
-function getStatusText(status: DownloadStatus, t: (key: string, options?: Record<string, unknown>) => string, failureReason?: string): string {
+function getStatusText(status: DownloadStatus, t: (key: string, options?: Record<string, unknown>) => string): string {
   switch (status) {
     case "caching":
       return t("downloads.statusCaching");
@@ -53,9 +53,7 @@ function getStatusText(status: DownloadStatus, t: (key: string, options?: Record
     case "failed":
       return t("downloads.statusFailed");
     case "unplayable":
-      return failureReason 
-        ? t("downloads.statusUnplayableFormat", { format: failureReason.toUpperCase() })
-        : t("downloads.statusUnplayable");
+      return t("downloads.statusUnplayable");
     default:
       return status;
   }
@@ -240,7 +238,7 @@ function DownloadItemRow({ download, onDelete, isLast, t }: DownloadItemRowProps
         <View className="flex-row items-center gap-1.5 mt-1.5">
           <StatusIcon size={14} className={cn(statusColor, isActive && "animate-spin")} />
           <Muted className={cn("text-xs", statusColor)}>
-            {getStatusText(download.status, t, download.failureReason)}
+            {getStatusText(download.status, t)}
             {isActive && download.progress > 0 && ` (${Math.round(download.progress)}%)`}
           </Muted>
         </View>

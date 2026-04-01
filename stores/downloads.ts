@@ -33,8 +33,6 @@ export interface DownloadItem {
   infoHash?: string;
   addedAt: string;
   completedAt?: string;
-  /** Reason for failure (e.g., "iso" for disc image, "archive" for archive files) */
-  failureReason?: string;
 }
 
 export interface StartDownloadParams {
@@ -219,7 +217,6 @@ export const useDownloadsStore = create<DownloadsState>((set, get) => ({
         const isUnplayable = error instanceof UnplayableFileError;
         const updates: Partial<DownloadItem> = {
           status: isUnplayable ? "unplayable" as DownloadStatus : "failed" as DownloadStatus,
-          failureReason: isUnplayable ? (error as UnplayableFileError).extension : undefined,
         };
 
         set((s) => ({
