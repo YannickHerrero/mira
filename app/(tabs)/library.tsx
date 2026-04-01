@@ -11,6 +11,7 @@ import {
   DownloadedItemCard,
   DownloadInfoSheet,
 } from "@/components/downloads";
+import { AniListWatchListItem } from "@/components/anilist/AniListWatchListItem";
 import { BottomSheet } from "@/components/primitives/bottomSheet/bottom-sheet.native";
 import {
   useContinueWatching,
@@ -18,6 +19,7 @@ import {
 } from "@/hooks/useLibrary";
 import { useListActions, useListItems, useLists } from "@/hooks/useLists";
 import { useDownloads, useDownloadsList } from "@/hooks/useDownloads";
+import { useAniListWatchList } from "@/hooks/useAniListWatchList";
 import { useMediaPlayer } from "@/hooks/useSettings";
 import {
   Play,
@@ -28,6 +30,7 @@ import {
   List,
   ChevronRight,
   ListChecks,
+  BookOpen,
 } from "@/lib/icons";
 import { selectionChanged, mediumImpact, lightImpact } from "@/lib/haptics";
 import { fileExists } from "@/lib/download-manager";
@@ -36,7 +39,7 @@ import type { Media, MediaType } from "@/lib/types";
 import type { DownloadItem } from "@/stores/downloads";
 import type { ListWithCount } from "@/hooks/useLists";
 
-type TabType = "watchlist" | "continue" | "lists" | "favorites" | "downloads";
+type TabType = "watchlist" | "continue" | "lists" | "favorites" | "downloads" | "anilist";
 
 export default function LibraryScreen() {
   const router = useRouter();
@@ -48,7 +51,8 @@ export default function LibraryScreen() {
     value === "continue" ||
     value === "lists" ||
     value === "favorites" ||
-    value === "downloads";
+    value === "downloads" ||
+    value === "anilist";
   const [activeTab, setActiveTab] = React.useState<TabType>(() =>
     isTab(normalizedTab) ? normalizedTab : "watchlist"
   );
@@ -68,6 +72,13 @@ export default function LibraryScreen() {
   const { items: downloadItems, isLoading: loadingDownloads } = useDownloadsList();
   const { deleteDownload } = useDownloads();
   const { playMedia } = useMediaPlayer();
+  const {
+    items: anilistItems,
+    isLoading: loadingAnilist,
+    refetch: refetchAnilist,
+    updateProgress: updateAnilistProgress,
+    isAvailable: showAniListTab,
+  } = useAniListWatchList();
 
   // Ensure default list exists and migrate old watchlist on first load
   React.useEffect(() => {
@@ -91,7 +102,8 @@ export default function LibraryScreen() {
       refetchLists();
       refetchWatchlist();
       refetchFavorites();
-    }, [refetchContinue, refetchLists, refetchWatchlist, refetchFavorites])
+      if (showAniListTab) refetchAnilist();
+    }, [refetchContinue, refetchLists, refetchWatchlist, refetchFavorites, showAniListTab, refetchAnilist])
   );
 
   React.useEffect(() => {
@@ -100,16 +112,25 @@ export default function LibraryScreen() {
     }
   }, [normalizedTab]);
 
+  // Fall back to watchlist if AniList tab becomes unavailable
+  React.useEffect(() => {
+    if (activeTab === "anilist" && !showAniListTab) {
+      setActiveTab("watchlist");
+    }
+  }, [activeTab, showAniListTab]);
+
   const handleRefresh = React.useCallback(async () => {
     setRefreshing(true);
-    await Promise.all([
+    const promises: Promise<void>[] = [
       refetchContinue(),
       refetchLists(),
       refetchWatchlist(),
       refetchFavorites(),
-    ]);
+    ];
+    if (showAniListTab) promises.push(refetchAnilist());
+    await Promise.all(promises);
     setRefreshing(false);
-  }, [refetchContinue, refetchLists, refetchWatchlist, refetchFavorites]);
+  }, [refetchContinue, refetchLists, refetchWatchlist, refetchFavorites, showAniListTab, refetchAnilist]);
 
   const handleTabChange = React.useCallback(
     (nextTab: TabType) => {
@@ -263,6 +284,38 @@ export default function LibraryScreen() {
             contentPaddingBottom={96}
           />
         );
+
+      case "anilist":
+        if (loadingAnilist && anilistItems.length === 0) {
+          return <AniListLoadingState />;
+        }
+        if (anilistItems.length === 0) {
+          return (
+            <EmptyState
+              icon={<BookOpen size={48} className="text-subtext0" />}
+              title={t("library.anilistEmpty")}
+              description={t("library.anilistEmptyDesc")}
+            />
+          );
+        }
+        return (
+          <ScrollView
+            className="flex-1"
+            contentContainerStyle={{ padding: 16, paddingBottom: 112 }}
+            showsVerticalScrollIndicator={false}
+            refreshControl={
+              <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+            }
+          >
+            {anilistItems.map((entry) => (
+              <AniListWatchListItem
+                key={entry.id}
+                entry={entry}
+                onUpdateProgress={updateAnilistProgress}
+              />
+            ))}
+          </ScrollView>
+        );
     }
   };
 
@@ -314,6 +367,15 @@ export default function LibraryScreen() {
             isActive={activeTab === "downloads"}
             onPress={() => handleTabChange("downloads")}
             badge={downloadItems.length > 0 ? downloadItems.length : undefined}
+          />
+        )}
+        {showAniListTab && (
+          <TabButton
+            label={t("library.anilist")}
+            icon={<BookOpen size={16} />}
+            isActive={activeTab === "anilist"}
+            onPress={() => handleTabChange("anilist")}
+            badge={anilistItems.length > 0 ? anilistItems.length : undefined}
           />
         )}
       </ScrollView>
@@ -394,6 +456,30 @@ function DownloadLoadingState() {
           <View className="flex-1 p-3 justify-center">
             <View className="h-4 bg-surface0 rounded w-3/4 animate-pulse mb-2" />
             <View className="h-3 bg-surface0 rounded w-1/2 animate-pulse" />
+          </View>
+        </View>
+      ))}
+    </View>
+  );
+}
+
+function AniListLoadingState() {
+  return (
+    <View className="flex-1 px-4 pt-4">
+      {Array.from({ length: 3 }).map((_, i) => (
+        <View
+          key={i}
+          className="flex-row bg-surface0 rounded-lg overflow-hidden mb-3 border border-surface1 h-24"
+        >
+          <View className="w-16 h-full bg-surface0 animate-pulse" />
+          <View className="flex-1 p-3 justify-center">
+            <View className="h-4 bg-surface0 rounded w-3/4 animate-pulse mb-2" />
+            <View className="h-3 bg-surface0 rounded w-1/2 animate-pulse" />
+          </View>
+          <View className="flex-row items-center pr-3 gap-2">
+            <View className="w-8 h-8 rounded-full bg-surface0 animate-pulse" />
+            <View className="w-6 h-4 bg-surface0 rounded animate-pulse" />
+            <View className="w-8 h-8 rounded-full bg-surface0 animate-pulse" />
           </View>
         </View>
       ))}
