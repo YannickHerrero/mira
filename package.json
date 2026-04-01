@@ -12,7 +12,9 @@
     "build:web": "expo export --platform web",
     "format": "biome check --no-errors-on-unmatched --apply .",
     "db:generate": "bun drizzle-kit generate",
-    "expo-check": "bun expo install --check"
+    "expo-check": "bun expo install --check",
+    "update:preview": "eas update --channel preview",
+    "update:production": "eas update --channel production"
   },
   "dependencies": {
     "@bacons/apple-targets": "^3.0.7",
