@@ -69,7 +69,13 @@
     "listEmpty": "List is empty",
     "item_one": "{{count}} item",
     "item_other": "{{count}} items",
-    "default": "(Default)"
+    "default": "(Default)",
+    "anilist": "AniList",
+    "anilistEmpty": "No anime currently watching",
+    "anilistEmptyDesc": "Anime you're watching on AniList will appear here",
+    "anilistEpisodes": "{{progress}}/{{total}} episodes",
+    "anilistEpisodesUnknown": "{{progress}} episodes",
+    "anilistUpdateFailed": "Failed to update progress"
   },
   "settings": {
     "myProfile": "MY PROFILE",
