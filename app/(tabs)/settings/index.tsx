@@ -13,7 +13,8 @@ import {
   RefreshCw,
   Info,
   Download,
-  BarChart3
+  BarChart3,
+  Cloud
 } from "@/lib/icons";
 
 export default function SettingsIndex() {
@@ -69,6 +70,13 @@ export default function SettingsIndex() {
             itemLeft={(props) => <Volume2 {...props} />}
             label={t("settings.streamingSettings")}
             href="/settings/streaming"
+            className="bg-transparent border-0"
+          />
+
+          <ListItem
+            itemLeft={(props) => <Cloud {...props} />}
+            label={t("settings.cloudSync")}
+            href="/settings/cloud-sync"
             className="bg-transparent border-0"
           />
 
