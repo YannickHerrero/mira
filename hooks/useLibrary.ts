@@ -4,6 +4,7 @@ import { useDatabase } from "@/db/provider";
 import { mediaTable, watchProgressTable, watchlistTable } from "@/db/schema";
 import { favoriteKey } from "@/lib/manual-sync-keys";
 import { clearManualSyncDeletion, markManualSyncDeletion } from "@/lib/manual-sync-metadata";
+import { useSyncPush } from "@/lib/convex/sync-context";
 import type { Media, MediaType } from "@/lib/types";
 
 export interface ContinueWatchingProgress {
@@ -208,6 +209,7 @@ export function useFavorites() {
  */
 export function useLibraryActions() {
   const { db } = useDatabase();
+  const sync = useSyncPush();
 
   const saveMedia = useCallback(
     async (media: Media, imdbId?: string) => {
@@ -255,8 +257,32 @@ export function useLibraryActions() {
           mediaType: media.mediaType,
         })
         .onConflictDoNothing();
+
+      const now = new Date().toISOString();
+      sync.pushMedia({
+        tmdbId: media.id,
+        mediaType: media.mediaType,
+        title: media.title,
+        titleOriginal: media.titleOriginal,
+        imdbId: imdbId,
+        year: media.year,
+        score: media.score,
+        posterPath: media.posterPath,
+        backdropPath: media.backdropPath,
+        description: media.description,
+        genres: media.genres ? JSON.stringify(media.genres) : undefined,
+        seasonCount: media.seasonCount,
+        episodeCount: media.episodeCount,
+        updatedAt: now,
+      });
+      sync.pushWatchlistItem({
+        tmdbId: media.id,
+        mediaType: media.mediaType,
+        addedAt: now,
+        updatedAt: now,
+      });
     },
-    [db, saveMedia]
+    [db, saveMedia, sync]
   );
 
   const removeFromWatchlist = useCallback(
@@ -270,8 +296,14 @@ export function useLibraryActions() {
             eq(watchlistTable.mediaType, mediaType)
           )
         );
+
+      sync.pushWatchlistDeletion({
+        tmdbId,
+        mediaType,
+        deletedAt: new Date().toISOString(),
+      });
     },
-    [db]
+    [db, sync]
   );
 
   const toggleFavorite = useCallback(
@@ -306,10 +338,22 @@ export function useLibraryActions() {
             )
           );
 
+        const now = new Date().toISOString();
         if (nextFavorite) {
           clearManualSyncDeletion("favorites", syncKey);
+          sync.pushFavorite({
+            tmdbId: media.id,
+            mediaType: media.mediaType,
+            isFavorite: true,
+            updatedAt: now,
+          });
         } else {
           markManualSyncDeletion("favorites", syncKey);
+          sync.pushFavoriteDeletion({
+            tmdbId: media.id,
+            mediaType: media.mediaType,
+            deletedAt: now,
+          });
         }
       } else {
         await db.insert(mediaTable).values({
@@ -330,9 +374,33 @@ export function useLibraryActions() {
           updatedAt: sql`(CURRENT_TIMESTAMP)`,
         });
         clearManualSyncDeletion("favorites", syncKey);
+
+        const now = new Date().toISOString();
+        sync.pushMedia({
+          tmdbId: media.id,
+          mediaType: media.mediaType,
+          title: media.title,
+          titleOriginal: media.titleOriginal,
+          imdbId: imdbId,
+          year: media.year,
+          score: media.score,
+          posterPath: media.posterPath,
+          backdropPath: media.backdropPath,
+          description: media.description,
+          genres: media.genres ? JSON.stringify(media.genres) : undefined,
+          seasonCount: media.seasonCount,
+          episodeCount: media.episodeCount,
+          updatedAt: now,
+        });
+        sync.pushFavorite({
+          tmdbId: media.id,
+          mediaType: media.mediaType,
+          isFavorite: true,
+          updatedAt: now,
+        });
       }
     },
-    [db]
+    [db, sync]
   );
 
   const checkIsFavorite = useCallback(
