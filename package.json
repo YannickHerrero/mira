@@ -17,7 +17,9 @@
     "update:production": "eas update --channel production"
   },
   "dependencies": {
+    "@auth/core": "^0.34.3",
     "@bacons/apple-targets": "^3.0.7",
+    "@convex-dev/auth": "^0.0.91",
     "@expo-google-fonts/inter": "^0.4.0",
     "@expo-google-fonts/raleway": "^0.4.2",
     "@gorhom/bottom-sheet": "^5.1.6",
@@ -42,6 +44,7 @@
     "babel-plugin-inline-import": "^3.0.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "convex": "^1.34.1",
     "drizzle-orm": "^0.43.1",
     "drizzle-zod": "^0.5.1",
     "expo": "^54.0.0",
