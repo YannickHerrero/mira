@@ -11,6 +11,8 @@ import { configureReanimatedLogger, ReanimatedLogLevel } from "react-native-rean
 import { PortalHost } from "@/components/primitives/portal";
 import { DownloadModal } from "@/components/downloads";
 import { DatabaseProvider } from "@/db/provider";
+import { ConvexSyncProvider } from "@/lib/convex/provider";
+import { useCloudSyncStore } from "@/stores/cloud-sync";
 import { setAndroidNavigationBar } from "@/lib/android-navigation-bar";
 import { DARK_THEME } from "@/lib/constants";
 import { useFrameworkReady } from "@/hooks/useFrameworkReady";
@@ -65,11 +67,13 @@ export default function RootLayout() {
   // Initialize persisted stores on app start
   const loadSettings = useSettingsStore((s) => s.loadSettings);
   const loadAniListState = useAniListStore((s) => s.loadState);
+  const loadCloudSyncSettings = useCloudSyncStore((s) => s.loadSettings);
 
   useEffect(() => {
     loadSettings();
     loadAniListState();
-  }, [loadSettings, loadAniListState]);
+    loadCloudSyncSettings();
+  }, [loadSettings, loadAniListState, loadCloudSyncSettings]);
 
   useEffect(() => {
     setAndroidNavigationBar();
@@ -83,6 +87,7 @@ export default function RootLayout() {
 
 
   return (
+    <ConvexSyncProvider>
     <DatabaseProvider>
       <ThemeProvider value={DARK_THEME}>
         <StatusBar style="light" />
@@ -127,5 +132,6 @@ export default function RootLayout() {
       </ThemeProvider>
       <PortalHost />
     </DatabaseProvider>
+    </ConvexSyncProvider>
   );
 }
