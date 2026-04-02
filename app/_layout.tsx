@@ -16,6 +16,8 @@ import { DARK_THEME } from "@/lib/constants";
 import { useFrameworkReady } from "@/hooks/useFrameworkReady";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useOTAUpdates } from "@/hooks/useOTAUpdates";
+import { useSettingsStore } from "@/stores/settings";
+import { useAniListStore } from "@/stores/anilist";
 import {
   Raleway_400Regular,
   Raleway_600SemiBold,
@@ -59,6 +61,15 @@ export default function RootLayout() {
   });
 
   useFrameworkReady();
+
+  // Initialize persisted stores on app start
+  const loadSettings = useSettingsStore((s) => s.loadSettings);
+  const loadAniListState = useAniListStore((s) => s.loadState);
+
+  useEffect(() => {
+    loadSettings();
+    loadAniListState();
+  }, [loadSettings, loadAniListState]);
 
   useEffect(() => {
     setAndroidNavigationBar();
