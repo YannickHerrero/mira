@@ -12,6 +12,7 @@ import { PortalHost } from "@/components/primitives/portal";
 import { DownloadModal } from "@/components/downloads";
 import { DatabaseProvider } from "@/db/provider";
 import { ConvexSyncProvider } from "@/lib/convex/provider";
+import { ConvexSyncEngine } from "@/hooks/useConvexSync";
 import { useCloudSyncStore } from "@/stores/cloud-sync";
 import { setAndroidNavigationBar } from "@/lib/android-navigation-bar";
 import { DARK_THEME } from "@/lib/constants";
@@ -89,6 +90,7 @@ export default function RootLayout() {
   return (
     <ConvexSyncProvider>
     <DatabaseProvider>
+    <ConvexSyncEngine>
       <ThemeProvider value={DARK_THEME}>
         <StatusBar style="light" />
         <GestureHandlerRootView style={{ flex: 1 }}>
@@ -131,6 +133,7 @@ export default function RootLayout() {
         </GestureHandlerRootView>
       </ThemeProvider>
       <PortalHost />
+    </ConvexSyncEngine>
     </DatabaseProvider>
     </ConvexSyncProvider>
   );
