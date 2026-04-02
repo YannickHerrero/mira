@@ -12,7 +12,8 @@ import {
   Volume2,
   RefreshCw,
   Info,
-  Download
+  Download,
+  BarChart3
 } from "@/lib/icons";
 
 export default function SettingsIndex() {
@@ -82,6 +83,13 @@ export default function SettingsIndex() {
             itemLeft={(props) => <Download {...props} />}
             label={t("settings.downloads")}
             href="/settings/downloads"
+            className="bg-transparent border-0"
+          />
+
+          <ListItem
+            itemLeft={(props) => <BarChart3 {...props} />}
+            label={t("settings.watchStats")}
+            href="/settings/watch-stats"
             className="bg-transparent border-0"
           />
 

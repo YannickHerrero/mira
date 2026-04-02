@@ -16,6 +16,7 @@ export default function SettingsLayout() {
         <Stack.Screen name="playback" />
         <Stack.Screen name="streaming" />
         <Stack.Screen name="synchronization" />
+        <Stack.Screen name="watch-stats" />
         <Stack.Screen name="about" />
       </Stack>
     </TabContentWrapper>
