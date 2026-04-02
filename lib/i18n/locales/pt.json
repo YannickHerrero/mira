@@ -301,12 +301,7 @@
     "started": "{{count}} iniciados",
     "episodes": "{{count}} eps",
     "empty": "Sem histórico",
-    "emptyDescription": "Veja filmes e séries para ver as suas estatísticas aqui.",
-    "backfillDurations": "Atualizar durações",
-    "backfillDurationsDesc": "Obter durações de transferências sem dados",
-    "backfilling": "A atualizar {{current}}/{{total}}...",
-    "backfillComplete": "{{count}} transferências atualizadas",
-    "backfillNone": "Todas as transferências já têm dados de duração"
+    "emptyDescription": "Veja filmes e séries para ver as suas estatísticas aqui."
   },
   "genres": {
     "Action": "Ação",

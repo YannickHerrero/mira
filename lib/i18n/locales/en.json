@@ -347,12 +347,7 @@
     "started": "{{count}} started",
     "episodes": "{{count}} eps",
     "empty": "No Watch History",
-    "emptyDescription": "Start watching movies and shows to see your stats here.",
-    "backfillDurations": "Update watch times",
-    "backfillDurationsDesc": "Fetch runtimes for downloads missing duration data",
-    "backfilling": "Updating {{current}}/{{total}}...",
-    "backfillComplete": "Updated {{count}} downloads",
-    "backfillNone": "All downloads already have duration data"
+    "emptyDescription": "Start watching movies and shows to see your stats here."
   },
   "genres": {
     "Action": "Action",

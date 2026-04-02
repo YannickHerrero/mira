@@ -301,12 +301,7 @@
     "started": "{{count}} iniciados",
     "episodes": "{{count}} eps",
     "empty": "Sin historial",
-    "emptyDescription": "Mira películas y series para ver tus estadísticas aquí.",
-    "backfillDurations": "Actualizar duraciones",
-    "backfillDurationsDesc": "Obtener duraciones de descargas sin datos",
-    "backfilling": "Actualizando {{current}}/{{total}}...",
-    "backfillComplete": "{{count}} descargas actualizadas",
-    "backfillNone": "Todas las descargas ya tienen duración"
+    "emptyDescription": "Mira películas y series para ver tus estadísticas aquí."
   },
   "genres": {
     "Action": "Acción",
