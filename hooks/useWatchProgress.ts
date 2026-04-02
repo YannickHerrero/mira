@@ -5,6 +5,7 @@ import { watchProgressTable } from "@/db/schema";
 import { progressKey } from "@/lib/manual-sync-keys";
 import { clearManualSyncDeletion, markManualSyncDeletion } from "@/lib/manual-sync-metadata";
 import { enqueueAniListSync } from "@/lib/anilist-sync";
+import { useSyncPush } from "@/lib/convex/sync-context";
 import type { MediaType } from "@/lib/types";
 
 interface ProgressParams {
@@ -24,6 +25,7 @@ interface SaveProgressParams extends ProgressParams {
  */
 export function useWatchProgress() {
   const { db } = useDatabase();
+  const sync = useSyncPush();
 
   /**
    * Save current playback position
@@ -70,6 +72,17 @@ export function useWatchProgress() {
           progressKey(tmdbId, mediaType, seasonNumber, episodeNumber)
         );
 
+        sync.pushProgress({
+          tmdbId,
+          mediaType,
+          seasonNumber: seasonNumber ?? null,
+          episodeNumber: episodeNumber ?? null,
+          position: Math.floor(position),
+          duration: Math.floor(duration),
+          completed,
+          updatedAt: new Date().toISOString(),
+        });
+
         if (completed) {
           await enqueueAniListSync({
             tmdbId,
@@ -82,7 +95,7 @@ export function useWatchProgress() {
         console.error("[useWatchProgress] Failed to save progress:", err);
       }
     },
-    [db]
+    [db, sync]
   );
 
   /**
@@ -118,6 +131,17 @@ export function useWatchProgress() {
           progressKey(tmdbId, mediaType, seasonNumber, episodeNumber)
         );
 
+        sync.pushProgress({
+          tmdbId,
+          mediaType,
+          seasonNumber: seasonNumber ?? null,
+          episodeNumber: episodeNumber ?? null,
+          position: 0,
+          duration: 1,
+          completed: true,
+          updatedAt: new Date().toISOString(),
+        });
+
         await enqueueAniListSync({
           tmdbId,
           mediaType,
@@ -128,7 +152,7 @@ export function useWatchProgress() {
         console.error("[useWatchProgress] Failed to mark as completed:", err);
       }
     },
-    [db]
+    [db, sync]
   );
 
   /**
@@ -213,11 +237,19 @@ export function useWatchProgress() {
           "progress",
           progressKey(tmdbId, mediaType, seasonNumber, episodeNumber)
         );
+
+        sync.pushProgressDeletion({
+          tmdbId,
+          mediaType,
+          seasonNumber: seasonNumber ?? null,
+          episodeNumber: episodeNumber ?? null,
+          deletedAt: new Date().toISOString(),
+        });
       } catch (err) {
         console.error("[useWatchProgress] Failed to clear progress:", err);
       }
     },
-    [db]
+    [db, sync]
   );
 
   /**
@@ -263,6 +295,17 @@ export function useWatchProgress() {
             progressKey(tmdbId, "tv", ep.seasonNumber, ep.episodeNumber)
           );
 
+          sync.pushProgress({
+            tmdbId,
+            mediaType: "tv",
+            seasonNumber: ep.seasonNumber,
+            episodeNumber: ep.episodeNumber,
+            position: 0,
+            duration: 1,
+            completed: true,
+            updatedAt: new Date().toISOString(),
+          });
+
           await enqueueAniListSync({
             tmdbId,
             mediaType: "tv",
@@ -274,7 +317,7 @@ export function useWatchProgress() {
         console.error("[useWatchProgress] Failed to mark episodes as completed:", err);
       }
     },
-    [db]
+    [db, sync]
   );
 
   /**
