@@ -10,6 +10,7 @@ import {
 } from "@/db/schema";
 import { listItemKey } from "@/lib/manual-sync-keys";
 import { clearManualSyncDeletion, markManualSyncDeletion } from "@/lib/manual-sync-metadata";
+import { useSyncPush } from "@/lib/convex/sync-context";
 import type { Media, MediaType } from "@/lib/types";
 import { cachePosterImage, deleteCachedPoster } from "@/lib/widget/poster-cache";
 
@@ -210,6 +211,7 @@ export function useMediaLists(tmdbId: number, mediaType: MediaType) {
  */
 export function useListActions() {
   const { db } = useDatabase();
+  const sync = useSyncPush();
 
   /**
    * Ensure the default "Watchlist" exists
@@ -254,19 +256,29 @@ export function useListActions() {
 
       try {
         const id = createId();
+        const now = new Date().toISOString();
         await db.insert(listsTable).values({
           id,
           name: name.trim(),
           isDefault: false,
         });
         clearManualSyncDeletion("lists", id);
+
+        sync.pushList({
+          localId: id,
+          name: name.trim(),
+          isDefault: false,
+          createdAt: now,
+          updatedAt: now,
+        });
+
         return id;
       } catch (err) {
         console.error("Failed to create list:", err);
         return null;
       }
     },
-    [db]
+    [db, sync]
   );
 
   /**
@@ -277,20 +289,38 @@ export function useListActions() {
       if (!db) return false;
 
       try {
+        const now = new Date().toISOString();
         await db
           .update(listsTable)
           .set({
             name: newName.trim(),
-            updatedAt: new Date().toISOString(),
+            updatedAt: now,
           })
           .where(eq(listsTable.id, listId));
+
+        // Get list details for sync
+        const list = await db
+          .select()
+          .from(listsTable)
+          .where(eq(listsTable.id, listId))
+          .limit(1);
+        if (list[0]) {
+          sync.pushList({
+            localId: listId,
+            name: newName.trim(),
+            isDefault: list[0].isDefault ?? false,
+            createdAt: list[0].createdAt,
+            updatedAt: now,
+          });
+        }
+
         return true;
       } catch (err) {
         console.error("Failed to rename list:", err);
         return false;
       }
     },
-    [db]
+    [db, sync]
   );
 
   /**
@@ -316,13 +346,19 @@ export function useListActions() {
         // Delete list (items will be cascade deleted)
         await db.delete(listsTable).where(eq(listsTable.id, listId));
         markManualSyncDeletion("lists", listId);
+
+        sync.pushListDeletion({
+          localId: listId,
+          deletedAt: new Date().toISOString(),
+        });
+
         return true;
       } catch (err) {
         console.error("Failed to delete list:", err);
         return false;
       }
     },
-    [db]
+    [db, sync]
   );
 
   /**
@@ -402,10 +438,19 @@ export function useListActions() {
           })
           .onConflictDoNothing();
 
+        const now = new Date().toISOString();
         clearManualSyncDeletion(
           "listItems",
           listItemKey(listId, media.id, media.mediaType)
         );
+
+        sync.pushListItem({
+          listLocalId: listId,
+          tmdbId: media.id,
+          mediaType: media.mediaType,
+          addedAt: now,
+          updatedAt: now,
+        });
 
         // Cache poster if adding to the default watchlist (for widget)
         const isWatchlist = await isDefaultWatchlist(listId);
@@ -420,7 +465,7 @@ export function useListActions() {
         return false;
       }
     },
-    [db, saveMedia, isDefaultWatchlist]
+    [db, saveMedia, isDefaultWatchlist, sync]
   );
 
   /**
@@ -449,6 +494,13 @@ export function useListActions() {
           listItemKey(listId, tmdbId, mediaType)
         );
 
+        sync.pushListItemDeletion({
+          listLocalId: listId,
+          tmdbId,
+          mediaType,
+          deletedAt: new Date().toISOString(),
+        });
+
         // Delete cached poster if removing from the default watchlist
         const isWatchlist = await isDefaultWatchlist(listId);
         if (isWatchlist) {
@@ -461,7 +513,7 @@ export function useListActions() {
         return false;
       }
     },
-    [db, isDefaultWatchlist]
+    [db, isDefaultWatchlist, sync]
   );
 
   /**
@@ -500,6 +552,8 @@ export function useListActions() {
           (id) => !targetListIds.has(id)
         );
 
+        const now = new Date().toISOString();
+
         // Add to new lists
         for (const listId of toAdd) {
           await db
@@ -514,6 +568,14 @@ export function useListActions() {
             "listItems",
             listItemKey(listId, media.id, media.mediaType)
           );
+
+          sync.pushListItem({
+            listLocalId: listId,
+            tmdbId: media.id,
+            mediaType: media.mediaType,
+            addedAt: now,
+            updatedAt: now,
+          });
 
           // Cache poster if adding to the default watchlist
           const isWatchlist = await isDefaultWatchlist(listId);
@@ -538,6 +600,13 @@ export function useListActions() {
             listItemKey(listId, media.id, media.mediaType)
           );
 
+          sync.pushListItemDeletion({
+            listLocalId: listId,
+            tmdbId: media.id,
+            mediaType: media.mediaType,
+            deletedAt: now,
+          });
+
           // Delete cached poster if removing from the default watchlist
           const isWatchlist = await isDefaultWatchlist(listId);
           if (isWatchlist) {
@@ -551,7 +620,7 @@ export function useListActions() {
         return false;
       }
     },
-    [db, saveMedia, isDefaultWatchlist]
+    [db, saveMedia, isDefaultWatchlist, sync]
   );
 
   /**
