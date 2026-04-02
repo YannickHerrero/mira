@@ -301,7 +301,12 @@
     "started": "{{count}} gestartet",
     "episodes": "{{count}} Eps",
     "empty": "Kein Verlauf",
-    "emptyDescription": "Schaue Filme und Serien, um deine Statistiken hier zu sehen."
+    "emptyDescription": "Schaue Filme und Serien, um deine Statistiken hier zu sehen.",
+    "backfillDurations": "Laufzeiten aktualisieren",
+    "backfillDurationsDesc": "Laufzeiten für Downloads ohne Daten abrufen",
+    "backfilling": "Aktualisiere {{current}}/{{total}}...",
+    "backfillComplete": "{{count}} Downloads aktualisiert",
+    "backfillNone": "Alle Downloads haben bereits Laufzeitdaten"
   },
   "genres": {
     "Action": "Action",

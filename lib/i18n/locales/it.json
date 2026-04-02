@@ -301,7 +301,12 @@
     "started": "{{count}} iniziati",
     "episodes": "{{count}} eps",
     "empty": "Nessuna cronologia",
-    "emptyDescription": "Guarda film e serie per vedere le tue statistiche qui."
+    "emptyDescription": "Guarda film e serie per vedere le tue statistiche qui.",
+    "backfillDurations": "Aggiorna durate",
+    "backfillDurationsDesc": "Recupera le durate dei download mancanti",
+    "backfilling": "Aggiornamento {{current}}/{{total}}...",
+    "backfillComplete": "{{count}} download aggiornati",
+    "backfillNone": "Tutti i download hanno già i dati di durata"
   },
   "genres": {
     "Action": "Azione",
