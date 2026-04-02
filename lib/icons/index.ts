@@ -53,3 +53,4 @@ export { CircleUser } from "./CircleUser";
 export { Info } from "./Info";
 export { Paintbrush } from "./Paintbrush";
 export { Minus } from "./Minus";
+export { BarChart3 } from "./BarChart3";
