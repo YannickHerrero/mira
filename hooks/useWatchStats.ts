@@ -104,7 +104,7 @@ export function useWatchStats() {
           mediaType: d.mediaType as "movie" | "tv",
           seasonNumber: d.seasonNumber,
           episodeNumber: d.episodeNumber,
-          duration: 0, // no duration info for download-only items
+          duration: d.duration ?? 0,
           timestamp: d.completedAt,
         })),
       ];

@@ -16,6 +16,7 @@ export interface Media {
   backdropPath?: string;
   description?: string;
   genres: string[];
+  runtime?: number; // minutes
 }
 
 export interface Season {

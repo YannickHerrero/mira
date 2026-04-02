@@ -184,6 +184,8 @@ interface SourceListProps {
   mediaTitle?: string;
   episodeTitle?: string;
   year?: number;
+  // Runtime in minutes (from TMDB)
+  runtime?: number;
   // Custom header component (e.g., hero section)
   ListHeaderComponent?: React.ReactNode;
 }
@@ -203,6 +205,7 @@ export function SourceList({
   mediaTitle,
   episodeTitle,
   year,
+  runtime,
   ListHeaderComponent: CustomHeaderComponent,
 }: SourceListProps) {
   const { t } = useTranslation();
@@ -423,6 +426,7 @@ export function SourceList({
           title,
           posterPath,
           stream,
+          duration: runtime ? runtime * 60 : undefined,
         });
 
         // Add to continue watching when downloading a TV episode
@@ -449,7 +453,7 @@ export function SourceList({
         Alert.alert("Download Error", message);
       }
     },
-    [tmdbId, mediaType, title, mediaTitle, seasonNumber, episodeNumber, posterPath, startDownload, saveMedia, saveProgress, activeDownloadId, t]
+    [tmdbId, mediaType, title, mediaTitle, seasonNumber, episodeNumber, posterPath, startDownload, saveMedia, saveProgress, activeDownloadId, t, runtime]
   );
 
   const handleCardPress = React.useCallback(
@@ -522,6 +526,7 @@ export function SourceList({
         title,
         posterPath,
         stream: selectedStream,
+        duration: runtime ? runtime * 60 : undefined,
       });
     } catch (err) {
       console.error("Failed to queue download:", err);
@@ -536,6 +541,7 @@ export function SourceList({
     title,
     posterPath,
     startDownload,
+    runtime,
   ]);
 
   const selectedPlaybackState = React.useMemo<PlaybackCacheState>(() => {

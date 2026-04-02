@@ -224,6 +224,7 @@ export class TMDBClient {
       backdropPath: details.backdrop_path ?? undefined,
       description: details.overview ?? undefined,
       genres: details.genres.map((g) => g.name),
+      runtime: details.runtime,
     };
   }
 

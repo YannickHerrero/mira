@@ -142,6 +142,7 @@ export const downloadsTable = sqliteTable("downloads", {
   progress: real("progress").default(0), // 0-100
   streamUrl: text("stream_url").notNull(), // Original URL for retry
   infoHash: text("info_hash"),
+  duration: integer("duration"), // runtime in seconds
 
   // Timestamps
   addedAt: text("added_at").default(sql`(CURRENT_TIMESTAMP)`),

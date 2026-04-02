@@ -40,6 +40,7 @@ export function useDownloads() {
         progress: row.progress ?? 0,
         streamUrl: row.streamUrl,
         infoHash: row.infoHash ?? undefined,
+        duration: row.duration ?? undefined,
         addedAt: row.addedAt ?? new Date().toISOString(),
         completedAt: row.completedAt ?? undefined,
       }));
@@ -62,6 +63,7 @@ export function useDownloads() {
         progress: download.progress,
         streamUrl: download.streamUrl,
         infoHash: download.infoHash,
+        duration: download.duration,
         addedAt: download.addedAt,
         completedAt: download.completedAt,
       });

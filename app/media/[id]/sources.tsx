@@ -38,6 +38,7 @@ export default function SourcesScreen() {
   const [episodeTitle, setEpisodeTitle] = React.useState<string | undefined>();
   const [genres, setGenres] = React.useState<string[]>([]);
   const [year, setYear] = React.useState<number | undefined>();
+  const [runtime, setRuntime] = React.useState<number | undefined>();
   const [isAnime, setIsAnime] = React.useState(false);
   const [isLoadingMedia, setIsLoadingMedia] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
@@ -87,6 +88,7 @@ export default function SourcesScreen() {
               if (episode) {
                 setEpisodeTitle(episode.title);
                 setEpisodeStillPath(episode.stillPath);
+                setRuntime(episode.runtime);
               }
             } catch {
               // Episode details are optional, continue without them
@@ -100,6 +102,7 @@ export default function SourcesScreen() {
           setBackdropPath(media.backdropPath);
           setGenres(media.genres);
           setYear(media.year);
+          setRuntime(media.runtime);
           fetchedGenres = media.genres;
         }
 
@@ -306,6 +309,7 @@ export default function SourcesScreen() {
         mediaTitle={mediaTitle}
         episodeTitle={episodeTitle}
         year={year}
+        runtime={runtime}
         ListHeaderComponent={heroSection}
       />
     </View>

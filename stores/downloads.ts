@@ -31,6 +31,7 @@ export interface DownloadItem {
   progress: number;
   streamUrl: string;
   infoHash?: string;
+  duration?: number; // runtime in seconds
   addedAt: string;
   completedAt?: string;
 }
@@ -43,6 +44,7 @@ export interface StartDownloadParams {
   title: string;
   posterPath?: string;
   stream: Stream;
+  duration?: number; // runtime in seconds
 }
 
 interface DownloadsState {
@@ -126,7 +128,7 @@ export const useDownloadsStore = create<DownloadsState>((set, get) => ({
   },
 
   startDownload: async (params) => {
-    const { tmdbId, mediaType, seasonNumber, episodeNumber, title, posterPath, stream } =
+    const { tmdbId, mediaType, seasonNumber, episodeNumber, title, posterPath, stream, duration } =
       params;
 
     if (!stream.url && !stream.infoHash) {
@@ -183,6 +185,7 @@ export const useDownloadsStore = create<DownloadsState>((set, get) => ({
       progress: 0,
       streamUrl: stream.url ?? "",
       infoHash: stream.infoHash,
+      duration,
       addedAt: now,
     };
 
