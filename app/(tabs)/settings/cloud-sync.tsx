@@ -112,13 +112,8 @@ export default function CloudSyncSettings() {
     return date.toLocaleDateString();
   };
 
-  if (isAuthLoading) {
-    return (
-      <View className="flex-1 bg-base items-center justify-center">
-        <ActivityIndicator size="large" />
-      </View>
-    );
-  }
+  // Treat loading as not-yet-authenticated (don't block the whole page)
+  const loggedIn = isAuthenticated && !isAuthLoading;
 
   return (
     <View className="flex-1 bg-base">
@@ -157,7 +152,7 @@ export default function CloudSyncSettings() {
           </Muted>
         </View>
         <View className="bg-surface0/20 rounded-2xl overflow-hidden p-4 gap-3">
-          {isAuthenticated ? (
+          {loggedIn ? (
             <>
               <View className="gap-1">
                 <Text className="text-base font-semibold text-text">
@@ -250,7 +245,7 @@ export default function CloudSyncSettings() {
         </View>
 
         {/* Sync Status */}
-        {isAuthenticated && (
+        {loggedIn && (
           <>
             <View className="mt-6 mb-3">
               <Muted className="uppercase text-xs font-bold opacity-50 px-1">
