@@ -1,6 +1,8 @@
 ---
 name: convex-create-component
-description: Designs and builds Convex components with isolated tables, clear boundaries, and app-facing wrappers. Use this skill when creating a new Convex component, extracting reusable backend logic into a component, building a third-party integration that owns its own tables, packaging Convex functionality for reuse, or when the user mentions defineComponent, app.use, ComponentApi, ctx.runQuery/runMutation across component boundaries, or wants to separate concerns into isolated Convex modules.
+description: "Designs and builds Convex components with isolated tables, clear boundaries, and app-facing wrappers. Use when creating a new component, extracting reusable backend logic, building third-party integrations, or packaging Convex functionality for reuse."
+user-invocable: true
+allowed-tools: Read, Grep, Glob, Bash, Edit, Write
 ---
 
 # Convex Create Component
@@ -44,10 +46,10 @@ Ask the user, then pick one path:
 
 | Goal | Shape | Reference |
 |------|-------|-----------|
-| Component for this app only | Local | `references/local-components.md` |
-| Publish or share across apps | Packaged | `references/packaged-components.md` |
-| User explicitly needs local + shared library code | Hybrid | `references/hybrid-components.md` |
-| Not sure | Default to local | `references/local-components.md` |
+| Component for this app only | Local | See [local-components.md](local-components.md) for details. |
+| Publish or share across apps | Packaged | See [packaged-components.md](packaged-components.md) for details. |
+| User explicitly needs local + shared library code | Hybrid | See [hybrid-components.md](hybrid-components.md) for details. |
+| Not sure | Default to local | See [local-components.md](local-components.md) for details. |
 
 Read exactly one reference file before proceeding.
 
@@ -244,7 +246,7 @@ args: { userId: v.string() }
 
 ### Advanced Patterns
 
-For additional patterns including function handles for callbacks, deriving validators from schema, static configuration with a globals table, and class-based client wrappers, see `references/advanced-patterns.md`.
+For additional patterns including function handles for callbacks, deriving validators from schema, static configuration with a globals table, and class-based client wrappers, see [advanced-patterns.md](advanced-patterns.md) for details.
 
 ## Validation
 
@@ -264,9 +266,9 @@ Important:
 
 Read exactly one of these after the user confirms the goal:
 
-- `references/local-components.md`
-- `references/packaged-components.md`
-- `references/hybrid-components.md`
+- See [local-components.md](local-components.md) for local component details.
+- See [packaged-components.md](packaged-components.md) for packaged component details.
+- See [hybrid-components.md](hybrid-components.md) for hybrid component details.
 
 Official docs: [Authoring Components](https://docs.convex.dev/components/authoring)
 

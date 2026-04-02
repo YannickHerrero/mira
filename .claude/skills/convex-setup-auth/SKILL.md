@@ -1,6 +1,8 @@
 ---
 name: convex-setup-auth
-description: Sets up Convex authentication with user management, identity mapping, and access control. Use this skill when adding login or signup to a Convex app, configuring Convex Auth, Clerk, WorkOS AuthKit, Auth0, or custom JWT providers, wiring auth.config.ts, protecting queries and mutations with ctx.auth.getUserIdentity(), creating a users table with identity mapping, or setting up role-based access control, even if the user just says "add auth" or "make it require login."
+description: "Sets up Convex authentication with user management, identity mapping, and access control. Use when adding login/signup, configuring Convex Auth, Clerk, WorkOS AuthKit, Auth0, or custom JWT providers, or protecting queries and mutations."
+user-invocable: true
+allowed-tools: Read, Grep, Glob, Bash, Edit, Write
 ---
 
 # Convex Authentication Setup
@@ -49,12 +51,10 @@ Look for signals in the repo before asking:
 
 Read the provider's official guide and the matching local reference file:
 
-- Convex Auth: [official docs](https://docs.convex.dev/auth/convex-auth), then `references/convex-auth.md`
-- Clerk: [official docs](https://docs.convex.dev/auth/clerk), then `references/clerk.md`
-- WorkOS AuthKit: [official docs](https://docs.convex.dev/auth/authkit/), then `references/workos-authkit.md`
-- Auth0: [official docs](https://docs.convex.dev/auth/auth0), then `references/auth0.md`
-
-The local reference files contain the concrete workflow, expected files and env vars, gotchas, and validation checks.
+- Convex Auth: [official docs](https://docs.convex.dev/auth/convex-auth), then see [convex-auth.md](convex-auth.md) for details.
+- Clerk: [official docs](https://docs.convex.dev/auth/clerk), then see [clerk.md](clerk.md) for details.
+- WorkOS AuthKit: [official docs](https://docs.convex.dev/auth/authkit/), then see [workos-authkit.md](workos-authkit.md) for details.
+- Auth0: [official docs](https://docs.convex.dev/auth/auth0), then see [auth0.md](auth0.md) for details.
 
 Use those sources for:
 
@@ -122,17 +122,15 @@ export const getMyProfile = query({
 
 If the flow blocks on interactive provider or deployment setup, ask the user explicitly for the exact human step needed, then continue after they complete it.
 For UI-facing auth flows, offer to validate the real sign-up or sign-in flow after setup is done.
-If the environment has browser automation tools, you can use them.
-If it does not, give the user a short manual validation checklist instead.
 
 ## Reference Files
 
 ### Provider References
 
-- `references/convex-auth.md`
-- `references/clerk.md`
-- `references/workos-authkit.md`
-- `references/auth0.md`
+- See [convex-auth.md](convex-auth.md) for Convex Auth setup details.
+- See [clerk.md](clerk.md) for Clerk setup details.
+- See [workos-authkit.md](workos-authkit.md) for WorkOS AuthKit setup details.
+- See [auth0.md](auth0.md) for Auth0 setup details.
 
 ## Checklist
 

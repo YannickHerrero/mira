@@ -1,6 +1,8 @@
 ---
 name: convex-quickstart
-description: Initializes a new Convex project from scratch or adds Convex to an existing app. Use this skill when starting a new project with Convex, scaffolding with npm create convex@latest, adding Convex to an existing React, Next.js, Vue, Svelte, or other frontend, wiring up ConvexProvider, configuring environment variables for the deployment URL, or running npx convex dev for the first time, even if the user just says "set up Convex" or "add a backend."
+description: "Initializes a new Convex project or adds Convex to an existing app. Use when starting a new project, scaffolding with npm create convex@latest, adding Convex to a React/Next.js/Vue/Svelte frontend, or running npx convex dev for the first time."
+user-invocable: true
+allowed-tools: Read, Grep, Glob, Bash, Edit, Write
 ---
 
 # Convex Quickstart
@@ -72,7 +74,7 @@ npm install
 
 ### Start the dev loop
 
-`npx convex dev` is a long-running watcher process that syncs backend code to a Convex deployment on every save. It also requires authentication on first run (browser-based OAuth). Both of these make it unsuitable for an agent to run directly.
+`npx convex dev` is a long-running watcher process that syncs backend code to a Convex deployment on every save. It also requires authentication on first run (browser-based OAuth). Both of these make it unsuitable for you to run directly.
 
 **Ask the user to run this themselves:**
 
@@ -84,7 +86,7 @@ Tell the user to run `npx convex dev` in their terminal. On first run it will pr
 
 The user should keep `npx convex dev` running in the background while you work on code. The watcher will automatically pick up any files you create or edit in `convex/`.
 
-**Exception - cloud or headless agents:** Environments that cannot open a browser for interactive login should use Agent Mode (see below) to run anonymously without user interaction.
+**Exception - cloud or headless environments:** Environments that cannot open a browser for interactive login should use Agent Mode (see below) to run anonymously without user interaction.
 
 ### Start the frontend
 
@@ -130,7 +132,7 @@ npm install convex
 
 ### Initialize and start dev loop
 
-Ask the user to run `npx convex dev` in their terminal. This handles login, creates the `convex/` directory, writes the deployment URL to `.env.local`, and starts the file watcher. See the notes in Path 1 about why the agent should not run this directly.
+Ask the user to run `npx convex dev` in their terminal. This handles login, creates the `convex/` directory, writes the deployment URL to `.env.local`, and starts the file watcher. See the notes in Path 1 about why you should not run this directly.
 
 ### Wire up the provider
 
@@ -227,9 +229,9 @@ The env var name depends on the framework:
 
 `npx convex dev` writes the correct variable to `.env.local` automatically.
 
-## Agent Mode (Cloud and Headless Agents)
+## Agent Mode (Cloud and Headless Environments)
 
-When running in a cloud or headless agent environment where interactive browser login is not possible, set `CONVEX_AGENT_MODE=anonymous` to use a local anonymous deployment.
+When running in a cloud or headless environment where interactive browser login is not possible, set `CONVEX_AGENT_MODE=anonymous` to use a local anonymous deployment.
 
 Add `CONVEX_AGENT_MODE=anonymous` to `.env.local`, or set it inline:
 

@@ -1,6 +1,8 @@
 ---
 name: convex-migration-helper
-description: Plans and executes safe Convex schema and data migrations using the widen-migrate-narrow workflow and the @convex-dev/migrations component. Use this skill when a deployment fails schema validation, existing documents need backfilling, fields need adding or removing or changing type, tables need splitting or merging, or a zero-downtime migration strategy is needed. Also use when the user mentions breaking schema changes, multi-deploy rollouts, or data transformations on existing Convex tables.
+description: "Plans and executes safe Convex schema and data migrations using the widen-migrate-narrow workflow. Use when deployment fails schema validation, documents need backfilling, fields need adding/removing/changing type, or zero-downtime migration is needed."
+user-invocable: true
+allowed-tools: Read, Grep, Glob, Bash, Edit, Write
 ---
 
 # Convex Migration Helper
@@ -109,11 +111,11 @@ Every breaking migration follows the same multi-deploy pattern:
 
 For any non-trivial migration, use the [`@convex-dev/migrations`](https://www.convex.dev/components/migrations) component. It handles batching, cursor-based pagination, state tracking, resume from failure, dry runs, and progress monitoring.
 
-See `references/migrations-component.md` for installation, setup, defining and running migrations, dry runs, status monitoring, and configuration options.
+See [migrations-component.md](migrations-component.md) for installation, setup, defining and running migrations, dry runs, status monitoring, and configuration options.
 
 ## Common Migration Patterns
 
-See `references/migration-patterns.md` for complete patterns with code examples covering:
+See [migration-patterns.md](migration-patterns.md) for complete patterns with code examples covering:
 
 - Adding a required field
 - Deleting a field

@@ -1,6 +1,8 @@
 ---
 name: convex-performance-audit
-description: Audits and optimizes Convex application performance across hot-path reads, write contention, subscription cost, and function limits. Use this skill when a Convex feature is slow or expensive, npx convex insights shows high bytes or documents read, OCC conflict errors or mutation retries appear, subscriptions or UI updates are costly, functions hit execution or transaction limits, or the user mentions performance, latency, read amplification, or invalidation problems in a Convex app.
+description: "Audits and optimizes Convex app performance across hot-path reads, write contention, subscription cost, and function limits. Use when a feature is slow, OCC conflicts appear, subscriptions are costly, or functions hit execution limits."
+user-invocable: true
+allowed-tools: Read, Grep, Glob, Bash, Edit, Write
 ---
 
 # Convex Performance Audit
@@ -45,11 +47,11 @@ After gathering signals, identify the problem class and read the matching refere
 
 | Signal | Reference |
 |---|---|
-| High bytes or documents read, JS filtering, unnecessary joins | `references/hot-path-rules.md` |
-| OCC conflict errors, write contention, mutation retries | `references/occ-conflicts.md` |
-| High subscription count, slow UI updates, excessive re-renders | `references/subscription-cost.md` |
-| Function timeouts, transaction size errors, large payloads | `references/function-budget.md` |
-| General "it's slow" with no specific signal | Start with `references/hot-path-rules.md` |
+| High bytes or documents read, JS filtering, unnecessary joins | See [hot-path-rules.md](hot-path-rules.md) for details. |
+| OCC conflict errors, write contention, mutation retries | See [occ-conflicts.md](occ-conflicts.md) for details. |
+| High subscription count, slow UI updates, excessive re-renders | See [subscription-cost.md](subscription-cost.md) for details. |
+| Function timeouts, transaction size errors, large payloads | See [function-budget.md](function-budget.md) for details. |
+| General "it's slow" with no specific signal | Start with [hot-path-rules.md](hot-path-rules.md). |
 
 Multiple problem classes can overlap. Read the most relevant reference first, then check the others if symptoms remain.
 
@@ -64,7 +66,7 @@ Examples:
 - reworking pagination or fetch strategy across several screens
 - switching to a new index or denormalized field that needs migration-safe rollout
 
-When correctness depends on handling old and new states during a rollout, consult `skills/convex-migration-helper/SKILL.md` for the migration workflow.
+When correctness depends on handling old and new states during a rollout, consult the `convex-migration-helper` skill for the migration workflow.
 
 ## Workflow
 
@@ -124,10 +126,10 @@ Confirm all of these:
 
 ## Reference Files
 
-- `references/hot-path-rules.md` - Read amplification, invalidation, denormalization, indexes, digest tables
-- `references/occ-conflicts.md` - Write contention, OCC resolution, hot document splitting
-- `references/subscription-cost.md` - Reactive query cost, subscription granularity, point-in-time reads
-- `references/function-budget.md` - Execution limits, transaction size, large documents, payload size
+- See [hot-path-rules.md](hot-path-rules.md) for read amplification, invalidation, denormalization, indexes, and digest tables.
+- See [occ-conflicts.md](occ-conflicts.md) for write contention, OCC resolution, and hot document splitting.
+- See [subscription-cost.md](subscription-cost.md) for reactive query cost, subscription granularity, and point-in-time reads.
+- See [function-budget.md](function-budget.md) for execution limits, transaction size, large documents, and payload size.
 
 Also check the official [Convex Best Practices](https://docs.convex.dev/understanding/best-practices/) page for additional patterns covering argument validation, access control, and code organization that may surface during the audit.
 
