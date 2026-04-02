@@ -9,6 +9,7 @@ import {
   formatBytes,
 } from "@/stores/downloads";
 import { isDownloadSupported } from "@/lib/download-manager";
+import { useSyncPush } from "@/lib/convex/sync-context";
 import type { MediaType, Stream } from "@/lib/types";
 
 /**
@@ -17,6 +18,7 @@ import type { MediaType, Stream } from "@/lib/types";
 export function useDownloads() {
   const { db } = useDatabase();
   const store = useDownloadsStore();
+  const sync = useSyncPush();
 
   // Initialize store with database functions
   React.useEffect(() => {
@@ -67,6 +69,26 @@ export function useDownloads() {
         addedAt: download.addedAt,
         completedAt: download.completedAt,
       });
+
+      sync.pushDownloadMeta({
+        localId: download.id,
+        tmdbId: download.tmdbId,
+        mediaType: download.mediaType,
+        seasonNumber: download.seasonNumber,
+        episodeNumber: download.episodeNumber,
+        title: download.title,
+        posterPath: download.posterPath,
+        fileName: download.fileName,
+        fileSize: download.fileSize,
+        quality: download.quality,
+        status: download.status,
+        streamUrl: download.streamUrl,
+        infoHash: download.infoHash,
+        duration: download.duration,
+        addedAt: download.addedAt,
+        completedAt: download.completedAt,
+        updatedAt: new Date().toISOString(),
+      });
     };
 
     const updateInDb = async (
@@ -77,14 +99,49 @@ export function useDownloads() {
         .update(downloadsTable)
         .set(updates)
         .where(eq(downloadsTable.id, id));
+
+      // Only sync status changes, not progress updates (too frequent)
+      if (updates.status || updates.completedAt) {
+        const row = await db
+          .select()
+          .from(downloadsTable)
+          .where(eq(downloadsTable.id, id))
+          .limit(1);
+        if (row[0]) {
+          sync.pushDownloadMeta({
+            localId: row[0].id,
+            tmdbId: row[0].tmdbId,
+            mediaType: row[0].mediaType,
+            seasonNumber: row[0].seasonNumber,
+            episodeNumber: row[0].episodeNumber,
+            title: row[0].title,
+            posterPath: row[0].posterPath,
+            fileName: row[0].fileName,
+            fileSize: row[0].fileSize,
+            quality: row[0].quality,
+            status: row[0].status,
+            streamUrl: row[0].streamUrl,
+            infoHash: row[0].infoHash,
+            duration: row[0].duration,
+            addedAt: row[0].addedAt,
+            completedAt: row[0].completedAt,
+            updatedAt: new Date().toISOString(),
+          });
+        }
+      }
     };
 
     const deleteFromDb = async (id: string): Promise<void> => {
       await db.delete(downloadsTable).where(eq(downloadsTable.id, id));
+
+      sync.pushDownloadMetaDeletion({
+        localId: id,
+        deletedAt: new Date().toISOString(),
+      });
     };
 
     store.initialize(loadFromDb, saveToDb, updateInDb, deleteFromDb);
-  }, [db, store.isInitialized, store.initialize]);
+  }, [db, store.isInitialized, store.initialize, sync]);
 
   const startDownload = React.useCallback(
     async (params: StartDownloadParams): Promise<string> => {
